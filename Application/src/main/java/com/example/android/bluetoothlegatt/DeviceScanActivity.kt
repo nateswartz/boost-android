@@ -17,8 +17,8 @@
 package com.example.android.bluetoothlegatt
 
 import android.app.Activity
-import android.app.ListActivity
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
@@ -27,37 +27,35 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_device_scan.*
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
-class DeviceScanActivity : ListActivity() {
-    private var mBluetoothAdapter: BluetoothAdapter? = null
-    private var mScanning: Boolean = false
-    private var mHandler: Handler? = null
+class DeviceScanActivity : Activity() {
+    private var bluetoothAdapter: BluetoothAdapter? = null
+    private var scanning: Boolean = false
+    private var handler: Handler? = null
+    private var boostHub: BluetoothDevice? = null
 
     // Device scan callback.
     private val mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
         runOnUiThread {
             // Only connect to LEGO Move Hubs
             if (device != null && device.name != null && device.name == "LEGO Move Hub") {
-                val intent = Intent(this, DeviceControlActivity::class.java)
-                intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.name)
-                intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.address)
-                if (mScanning) {
-                    mBluetoothAdapter!!.stopLeScan(null)
-                    mScanning = false
-                }
-                startActivity(intent)
+                boostHub = device
+                button_connect.isEnabled = true
             }
         }
     }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_device_scan)
         actionBar!!.setTitle(R.string.title_devices)
-        mHandler = Handler()
+        handler = Handler()
 
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
@@ -69,19 +67,30 @@ class DeviceScanActivity : ListActivity() {
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        mBluetoothAdapter = bluetoothManager.adapter
+        bluetoothAdapter = bluetoothManager.adapter
 
         // Checks if Bluetooth is supported on the device.
-        if (mBluetoothAdapter == null) {
+        if (bluetoothAdapter == null) {
             Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
     }
 
+    fun onConnectButtonClick(v: View) {
+        val intent = Intent(this, DeviceControlActivity::class.java)
+        intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, boostHub!!.name)
+        intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, boostHub!!.address)
+        if (scanning) {
+            bluetoothAdapter!!.stopLeScan(mLeScanCallback)
+            scanning = false
+        }
+        startActivity(intent)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
-        if (!mScanning) {
+        if (!scanning) {
             menu.findItem(R.id.menu_stop).isVisible = false
             menu.findItem(R.id.menu_scan).isVisible = true
             menu.findItem(R.id.menu_refresh).actionView = null
@@ -109,8 +118,8 @@ class DeviceScanActivity : ListActivity() {
 
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
-        if (!mBluetoothAdapter!!.isEnabled) {
-            if (!mBluetoothAdapter!!.isEnabled) {
+        if (!bluetoothAdapter!!.isEnabled) {
+            if (!bluetoothAdapter!!.isEnabled) {
                 val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
             }
@@ -136,17 +145,17 @@ class DeviceScanActivity : ListActivity() {
     private fun scanLeDevice(enable: Boolean) {
         if (enable) {
             // Stops scanning after a pre-defined scan period.
-            mHandler!!.postDelayed({
-                mScanning = false
-                mBluetoothAdapter!!.stopLeScan(mLeScanCallback)
+            handler!!.postDelayed({
+                scanning = false
+                bluetoothAdapter!!.stopLeScan(mLeScanCallback)
                 invalidateOptionsMenu()
             }, SCAN_PERIOD)
 
-            mScanning = true
-            mBluetoothAdapter!!.startLeScan(mLeScanCallback)
+            scanning = true
+            bluetoothAdapter!!.startLeScan(mLeScanCallback)
         } else {
-            mScanning = false
-            mBluetoothAdapter!!.stopLeScan(mLeScanCallback)
+            scanning = false
+            bluetoothAdapter!!.stopLeScan(mLeScanCallback)
         }
         invalidateOptionsMenu()
     }

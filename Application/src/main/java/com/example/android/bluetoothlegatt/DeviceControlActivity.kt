@@ -53,14 +53,14 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
  */
 class DeviceControlActivity : Activity() {
 
-    private var mConnectionState: TextView? = null
-    private var mDataField: TextView? = null
-    private var mDeviceName: String? = null
-    private var mDeviceAddress: String? = null
+    private var connectionState: TextView? = null
+    private var dataField: TextView? = null
+    private var deviceName: String? = null
+    private var deviceAddress: String? = null
     private var mGattServicesList: ExpandableListView? = null
     private var mBluetoothLeService: BluetoothLeService? = null
-    private var mGattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? = ArrayList()
-    private var mConnected = false
+    private var gattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? = ArrayList()
+    private var connected = false
     private val mNotifyCharacteristic: BluetoothGattCharacteristic? = null
 
     private val LIST_NAME = "NAME"
@@ -76,7 +76,7 @@ class DeviceControlActivity : Activity() {
                 finish()
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBluetoothLeService!!.connect(mDeviceAddress)
+            mBluetoothLeService!!.connect(deviceAddress)
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
@@ -94,11 +94,11 @@ class DeviceControlActivity : Activity() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             if (BluetoothLeService.ACTION_GATT_CONNECTED == action) {
-                mConnected = true
+                connected = true
                 updateConnectionState(R.string.connected)
                 invalidateOptionsMenu()
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED == action) {
-                mConnected = false
+                connected = false
                 updateConnectionState(R.string.disconnected)
                 invalidateOptionsMenu()
                 clearUI()
@@ -116,8 +116,8 @@ class DeviceControlActivity : Activity() {
     // http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
     // list of supported characteristic features.
     private val servicesListClickListner = ExpandableListView.OnChildClickListener { parent, v, groupPosition, childPosition, id ->
-        if (mGattCharacteristics != null) {
-            val characteristic = mGattCharacteristics!![groupPosition][childPosition]
+        if (gattCharacteristics != null) {
+            val characteristic = gattCharacteristics!![groupPosition][childPosition]
             val charaProp = characteristic.properties
             /*if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
                      // If there is an active notification on a characteristic, clear
@@ -149,7 +149,7 @@ class DeviceControlActivity : Activity() {
 
     private fun clearUI() {
         mGattServicesList!!.setAdapter(null as SimpleExpandableListAdapter?)
-        mDataField!!.setText(R.string.no_data)
+        dataField!!.setText(R.string.no_data)
     }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,17 +157,17 @@ class DeviceControlActivity : Activity() {
         setContentView(R.layout.gatt_services_characteristics)
 
         val intent = intent
-        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
-        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
+        deviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
+        deviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
 
         // Sets up UI references.
-        (findViewById<View>(R.id.device_address) as TextView).text = mDeviceAddress
+        (findViewById<View>(R.id.device_address) as TextView).text = deviceAddress
         mGattServicesList = findViewById<View>(R.id.gatt_services_list) as ExpandableListView
         mGattServicesList!!.setOnChildClickListener(servicesListClickListner)
-        mConnectionState = findViewById<View>(R.id.connection_state) as TextView
-        mDataField = findViewById<View>(R.id.data_value) as TextView
+        connectionState = findViewById<View>(R.id.connection_state) as TextView
+        dataField = findViewById<View>(R.id.data_value) as TextView
 
-        actionBar!!.title = mDeviceName
+        actionBar!!.title = deviceName
         actionBar!!.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE)
@@ -177,7 +177,7 @@ class DeviceControlActivity : Activity() {
         super.onResume()
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter())
         if (mBluetoothLeService != null) {
-            val result = mBluetoothLeService!!.connect(mDeviceAddress)
+            val result = mBluetoothLeService!!.connect(deviceAddress)
             Log.d(TAG, "Connect request result=" + result)
         }
     }
@@ -195,7 +195,7 @@ class DeviceControlActivity : Activity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gatt_services, menu)
-        if (mConnected) {
+        if (connected) {
             menu.findItem(R.id.menu_connect).isVisible = false
             menu.findItem(R.id.menu_disconnect).isVisible = true
         } else {
@@ -208,7 +208,7 @@ class DeviceControlActivity : Activity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_connect -> {
-                mBluetoothLeService!!.connect(mDeviceAddress)
+                mBluetoothLeService!!.connect(deviceAddress)
                 return true
             }
             R.id.menu_disconnect -> {
@@ -224,12 +224,12 @@ class DeviceControlActivity : Activity() {
     }
 
     private fun updateConnectionState(resourceId: Int) {
-        runOnUiThread { mConnectionState!!.setText(resourceId) }
+        runOnUiThread { connectionState!!.setText(resourceId) }
     }
 
     private fun displayData(data: String?) {
         if (data != null) {
-            mDataField!!.text = data
+            dataField!!.text = data
         }
     }
 
@@ -243,7 +243,7 @@ class DeviceControlActivity : Activity() {
         val unknownCharaString = resources.getString(R.string.unknown_characteristic)
         val gattServiceData = ArrayList<HashMap<String, String>>()
         val gattCharacteristicData = ArrayList<ArrayList<HashMap<String, String>>>()
-        mGattCharacteristics = ArrayList()
+        gattCharacteristics = ArrayList()
 
         // Loops through available GATT Services.
         for (gattService in gattServices) {
@@ -269,7 +269,7 @@ class DeviceControlActivity : Activity() {
                         gattCharacteristicGroupData.add(currentCharaData)
                     }
                 }
-                mGattCharacteristics!!.add(charas)
+                this.gattCharacteristics!!.add(charas)
                 gattCharacteristicData.add(gattCharacteristicGroupData)
             }
         }
