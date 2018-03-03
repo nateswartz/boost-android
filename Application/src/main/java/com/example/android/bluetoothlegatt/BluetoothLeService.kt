@@ -261,14 +261,13 @@ class BluetoothLeService : Service() {
         mBluetoothGatt!!.readCharacteristic(characteristic)
     }
 
-    fun writeCharacteristic(characteristic: BluetoothGattCharacteristic): Boolean {
+    fun writeCharacteristic(characteristic: BluetoothGattCharacteristic, data: ByteArray): Boolean {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return false
         }
         // RGB LED WHITE
-        val value = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x0A)
-        characteristic.value = value
+        characteristic.value = data
         return mBluetoothGatt!!.writeCharacteristic(characteristic)
     }
 

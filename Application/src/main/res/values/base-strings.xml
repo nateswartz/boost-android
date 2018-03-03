@@ -16,7 +16,7 @@
 -->
 
 <resources>
-    <string name="app_name">BluetoothLeGatt</string>
+    <string name="app_name">Boost Move Hub Controller</string>
     <string name="intro_message">
         <![CDATA[
         

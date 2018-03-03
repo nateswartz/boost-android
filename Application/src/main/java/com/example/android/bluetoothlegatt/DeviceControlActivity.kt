@@ -34,6 +34,7 @@ import android.view.View
 import android.widget.ExpandableListView
 import android.widget.SimpleExpandableListAdapter
 import android.widget.TextView
+import kotlinx.android.synthetic.main.activity_device_control.*
 
 import java.util.ArrayList
 import java.util.HashMap
@@ -57,30 +58,34 @@ class DeviceControlActivity : Activity() {
     private var dataField: TextView? = null
     private var deviceName: String? = null
     private var deviceAddress: String? = null
-    private var mGattServicesList: ExpandableListView? = null
-    private var mBluetoothLeService: BluetoothLeService? = null
+    private var gattServicesList: ExpandableListView? = null
+    private var bluetoothLeService: BluetoothLeService? = null
     private var gattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? = ArrayList()
     private var connected = false
-    private val mNotifyCharacteristic: BluetoothGattCharacteristic? = null
 
-    private val LIST_NAME = "NAME"
-    private val LIST_UUID = "UUID"
+    private val listName = "NAME"
+    private val listUUID = "UUID"
+
+    private val WHITE_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x0A)
+    private val YELLOW_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x07)
+    private val PINK_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x01)
+    private val PURPLE_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x02)
 
     // Code to manage Service lifecycle.
     private val mServiceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
-            mBluetoothLeService = (service as BluetoothLeService.LocalBinder).service
-            if (!mBluetoothLeService!!.initialize()) {
+            bluetoothLeService = (service as BluetoothLeService.LocalBinder).service
+            if (!bluetoothLeService!!.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth")
                 finish()
             }
             // Automatically connects to the device upon successful start-up initialization.
-            mBluetoothLeService!!.connect(deviceAddress)
+            bluetoothLeService!!.connect(deviceAddress)
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
-            mBluetoothLeService = null
+            bluetoothLeService = null
         }
     }
 
@@ -93,20 +98,21 @@ class DeviceControlActivity : Activity() {
     private val mGattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
-            if (BluetoothLeService.ACTION_GATT_CONNECTED == action) {
-                connected = true
-                updateConnectionState(R.string.connected)
-                invalidateOptionsMenu()
-            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED == action) {
-                connected = false
-                updateConnectionState(R.string.disconnected)
-                invalidateOptionsMenu()
-                clearUI()
-            } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED == action) {
-                // Show all the supported services and characteristics on the user interface.
-                displayGattServices(mBluetoothLeService!!.supportedGattServices)
-            } else if (BluetoothLeService.ACTION_DATA_AVAILABLE == action) {
-                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
+            when (action) {
+                BluetoothLeService.ACTION_GATT_CONNECTED -> {
+                    connected = true
+                    updateConnectionState(R.string.connected)
+                    invalidateOptionsMenu()
+                }
+                BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
+                    connected = false
+                    updateConnectionState(R.string.disconnected)
+                    invalidateOptionsMenu()
+                    clearUI()
+                }
+                BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> // Show all the supported services and characteristics on the user interface.
+                    displayGattServices(bluetoothLeService!!.supportedGattServices)
+                BluetoothLeService.ACTION_DATA_AVAILABLE -> displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
             }
         }
     }
@@ -115,7 +121,7 @@ class DeviceControlActivity : Activity() {
     // demonstrates 'Read' and 'Notify' features.  See
     // http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
     // list of supported characteristic features.
-    private val servicesListClickListner = ExpandableListView.OnChildClickListener { parent, v, groupPosition, childPosition, id ->
+    private val servicesListClickListener = ExpandableListView.OnChildClickListener { parent, v, groupPosition, childPosition, id ->
         if (gattCharacteristics != null) {
             val characteristic = gattCharacteristics!![groupPosition][childPosition]
             val charaProp = characteristic.properties
@@ -135,7 +141,8 @@ class DeviceControlActivity : Activity() {
                              characteristic, true);
                  }*/
             if (charaProp or BluetoothGattCharacteristic.PROPERTY_WRITE > 0) {
-                val result = mBluetoothLeService!!.writeCharacteristic(characteristic)
+                val value = WHITE_COLOR
+                val result = bluetoothLeService!!.writeCharacteristic(characteristic, value)
                 if (!result) {
                     Log.e("DeviceControlActivity", "Failed to write")
                 } else {
@@ -148,13 +155,13 @@ class DeviceControlActivity : Activity() {
     }
 
     private fun clearUI() {
-        mGattServicesList!!.setAdapter(null as SimpleExpandableListAdapter?)
+        gattServicesList!!.setAdapter(null as SimpleExpandableListAdapter?)
         dataField!!.setText(R.string.no_data)
     }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.gatt_services_characteristics)
+        setContentView(R.layout.activity_device_control)
 
         val intent = intent
         deviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
@@ -162,8 +169,8 @@ class DeviceControlActivity : Activity() {
 
         // Sets up UI references.
         (findViewById<View>(R.id.device_address) as TextView).text = deviceAddress
-        mGattServicesList = findViewById<View>(R.id.gatt_services_list) as ExpandableListView
-        mGattServicesList!!.setOnChildClickListener(servicesListClickListner)
+        gattServicesList = findViewById<View>(R.id.gatt_services_list) as ExpandableListView
+        gattServicesList!!.setOnChildClickListener(servicesListClickListener)
         connectionState = findViewById<View>(R.id.connection_state) as TextView
         dataField = findViewById<View>(R.id.data_value) as TextView
 
@@ -171,14 +178,31 @@ class DeviceControlActivity : Activity() {
         actionBar!!.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE)
+
+        button_purple.setOnClickListener {
+            val characteristic = gattCharacteristics!![0][0]
+            bluetoothLeService!!.writeCharacteristic(characteristic, PURPLE_COLOR)
+        }
+        button_white.setOnClickListener {
+            val characteristic = gattCharacteristics!![0][0]
+            bluetoothLeService!!.writeCharacteristic(characteristic, WHITE_COLOR)
+        }
+        button_yellow.setOnClickListener {
+            val characteristic = gattCharacteristics!![0][0]
+            bluetoothLeService!!.writeCharacteristic(characteristic, YELLOW_COLOR)
+        }
+        button_pink.setOnClickListener {
+            val characteristic = gattCharacteristics!![0][0]
+            bluetoothLeService!!.writeCharacteristic(characteristic, PINK_COLOR)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter())
-        if (mBluetoothLeService != null) {
-            val result = mBluetoothLeService!!.connect(deviceAddress)
-            Log.d(TAG, "Connect request result=" + result)
+        if (bluetoothLeService != null) {
+            val result = bluetoothLeService!!.connect(deviceAddress)
+            Log.d(TAG, "Connect request result=$result")
         }
     }
 
@@ -190,7 +214,7 @@ class DeviceControlActivity : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         unbindService(mServiceConnection)
-        mBluetoothLeService = null
+        bluetoothLeService = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -208,11 +232,11 @@ class DeviceControlActivity : Activity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_connect -> {
-                mBluetoothLeService!!.connect(deviceAddress)
+                bluetoothLeService!!.connect(deviceAddress)
                 return true
             }
             R.id.menu_disconnect -> {
-                mBluetoothLeService!!.disconnect()
+                bluetoothLeService!!.disconnect()
                 return true
             }
             android.R.id.home -> {
@@ -238,7 +262,7 @@ class DeviceControlActivity : Activity() {
     // on the UI.
     private fun displayGattServices(gattServices: List<BluetoothGattService>?) {
         if (gattServices == null) return
-        var uuid: String? = null
+        var uuid: String?
         val unknownServiceString = resources.getString(R.string.unknown_service)
         val unknownCharaString = resources.getString(R.string.unknown_characteristic)
         val gattServiceData = ArrayList<HashMap<String, String>>()
@@ -250,8 +274,8 @@ class DeviceControlActivity : Activity() {
             val currentServiceData = HashMap<String, String>()
             uuid = gattService.uuid.toString()
             if (uuid == "00001623-1212-efde-1623-785feabcd123") {
-                currentServiceData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownServiceString)
-                currentServiceData[LIST_UUID] = uuid
+                currentServiceData[listName] = SampleGattAttributes.lookup(uuid, unknownServiceString)
+                currentServiceData[listUUID] = uuid
                 gattServiceData.add(currentServiceData)
 
                 val gattCharacteristicGroupData = ArrayList<HashMap<String, String>>()
@@ -264,8 +288,8 @@ class DeviceControlActivity : Activity() {
                     val currentCharaData = HashMap<String, String>()
                     uuid = gattCharacteristic.uuid.toString()
                     if (uuid == "00001624-1212-efde-1623-785feabcd123") {
-                        currentCharaData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownCharaString)
-                        currentCharaData[LIST_UUID] = uuid
+                        currentCharaData[listName] = SampleGattAttributes.lookup(uuid, unknownCharaString)
+                        currentCharaData[listUUID] = uuid
                         gattCharacteristicGroupData.add(currentCharaData)
                     }
                 }
@@ -278,21 +302,21 @@ class DeviceControlActivity : Activity() {
                 this,
                 gattServiceData,
                 android.R.layout.simple_expandable_list_item_2,
-                arrayOf(LIST_NAME, LIST_UUID),
+                arrayOf(listName, listUUID),
                 intArrayOf(android.R.id.text1, android.R.id.text2),
                 gattCharacteristicData,
                 android.R.layout.simple_expandable_list_item_2,
-                arrayOf(LIST_NAME, LIST_UUID),
+                arrayOf(listName, listUUID),
                 intArrayOf(android.R.id.text1, android.R.id.text2)
         )
-        mGattServicesList!!.setAdapter(gattServiceAdapter)
+        gattServicesList!!.setAdapter(gattServiceAdapter)
     }
 
     companion object {
         private val TAG = DeviceControlActivity::class.java.simpleName
 
-        val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
-        val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
+        const val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
+        const val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
 
         private fun makeGattUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
