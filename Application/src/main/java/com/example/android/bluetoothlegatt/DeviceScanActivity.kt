@@ -30,6 +30,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_device_scan.*
+import java.util.*
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -40,14 +41,13 @@ class DeviceScanActivity : Activity() {
     private var handler: Handler? = null
     private var boostHub: BluetoothDevice? = null
 
+    private val boostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")
+
     // Device scan callback.
     private val mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
         runOnUiThread {
-            // Only connect to LEGO Move Hubs
-            if (device != null && device.name != null && device.name == "LEGO Move Hub") {
                 boostHub = device
                 button_connect.isEnabled = true
-            }
         }
     }
 
@@ -152,7 +152,7 @@ class DeviceScanActivity : Activity() {
             }, SCAN_PERIOD)
 
             scanning = true
-            bluetoothAdapter!!.startLeScan(mLeScanCallback)
+            bluetoothAdapter!!.startLeScan(arrayOf(boostUUID), mLeScanCallback)
         } else {
             scanning = false
             bluetoothAdapter!!.stopLeScan(mLeScanCallback)

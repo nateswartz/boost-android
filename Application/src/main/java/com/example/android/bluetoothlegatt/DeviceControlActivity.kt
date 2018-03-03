@@ -97,6 +97,8 @@ class DeviceControlActivity : Activity() {
     //                        or notification operations.
     private val mGattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            Log.e(TAG, "GATT Update Received")
+            Log.e(TAG, intent.action)
             val action = intent.action
             when (action) {
                 BluetoothLeService.ACTION_GATT_CONNECTED -> {
@@ -194,6 +196,26 @@ class DeviceControlActivity : Activity() {
         button_pink.setOnClickListener {
             val characteristic = gattCharacteristics!![0][0]
             bluetoothLeService!!.writeCharacteristic(characteristic, PINK_COLOR)
+        }
+
+        button_getcolor.setOnClickListener {
+            val characteristic = gattCharacteristics!![0][0]
+            if (characteristic.value == null) {
+                Log.e(TAG,"No value for characteristic!")
+                return@setOnClickListener
+            }
+            when (characteristic.value) {
+                WHITE_COLOR -> text_color.setText("LED is White")
+                PURPLE_COLOR -> text_color.setText("LED is Purple")
+                YELLOW_COLOR -> text_color.setText("LED is Yellow")
+                PINK_COLOR -> text_color.setText("LED is Pink")
+                else -> {
+                    for (b in characteristic.value) {
+                        val st = String.format("%02X", b)
+                        Log.e(TAG, st)
+                    }
+                }
+            }
         }
     }
 
@@ -297,6 +319,8 @@ class DeviceControlActivity : Activity() {
                 gattCharacteristicData.add(gattCharacteristicGroupData)
             }
         }
+        bluetoothLeService!!.readCharacteristic(gattCharacteristics!![0][0])
+        bluetoothLeService!!.setCharacteristicNotification(gattCharacteristics!![0][0], true)
 
         val gattServiceAdapter = SimpleExpandableListAdapter(
                 this,
