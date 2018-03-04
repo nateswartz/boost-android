@@ -35,9 +35,7 @@ import android.widget.ExpandableListView
 import android.widget.SimpleExpandableListAdapter
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_device_control.*
-
-import java.util.ArrayList
-import java.util.HashMap
+import java.util.*
 
 /*
 Handle to send data to:
@@ -71,6 +69,8 @@ class DeviceControlActivity : Activity() {
     private val PINK_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x01)
     private val PURPLE_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x02)
 
+    private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
+
     // Code to manage Service lifecycle.
     private val mServiceConnection = object : ServiceConnection {
 
@@ -97,8 +97,6 @@ class DeviceControlActivity : Activity() {
     //                        or notification operations.
     private val mGattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.e(TAG, "GATT Update Received")
-            Log.e(TAG, intent.action)
             val action = intent.action
             when (action) {
                 BluetoothLeService.ACTION_GATT_CONNECTED -> {
@@ -114,46 +112,12 @@ class DeviceControlActivity : Activity() {
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> // Show all the supported services and characteristics on the user interface.
                     displayGattServices(bluetoothLeService!!.supportedGattServices)
-                BluetoothLeService.ACTION_DATA_AVAILABLE -> displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
-            }
-        }
-    }
-
-    // If a given GATT characteristic is selected, check for supported features.  This sample
-    // demonstrates 'Read' and 'Notify' features.  See
-    // http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
-    // list of supported characteristic features.
-    private val servicesListClickListener = ExpandableListView.OnChildClickListener { parent, v, groupPosition, childPosition, id ->
-        if (gattCharacteristics != null) {
-            val characteristic = gattCharacteristics!![groupPosition][childPosition]
-            val charaProp = characteristic.properties
-            /*if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
-                     // If there is an active notification on a characteristic, clear
-                     // it first so it doesn't update the data field on the user interface.
-                     if (mNotifyCharacteristic != null) {
-                         mBluetoothLeService.setCharacteristicNotification(
-                                 mNotifyCharacteristic, false);
-                         mNotifyCharacteristic = null;
-                     }
-                     mBluetoothLeService.readCharacteristic(characteristic);
-                 }
-                 if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-                     mNotifyCharacteristic = characteristic;
-                     mBluetoothLeService.setCharacteristicNotification(
-                             characteristic, true);
-                 }*/
-            if (charaProp or BluetoothGattCharacteristic.PROPERTY_WRITE > 0) {
-                val value = WHITE_COLOR
-                val result = bluetoothLeService!!.writeCharacteristic(characteristic, value)
-                if (!result) {
-                    Log.e("DeviceControlActivity", "Failed to write")
-                } else {
-                    Log.e("DeviceControlActivity", "Successfully wrote")
+                BluetoothLeService.ACTION_DATA_AVAILABLE -> {
+                    displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
+                    handleNotification(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
                 }
             }
-            return@OnChildClickListener true
         }
-        false
     }
 
     private fun clearUI() {
@@ -172,7 +136,6 @@ class DeviceControlActivity : Activity() {
         // Sets up UI references.
         (findViewById<View>(R.id.device_address) as TextView).text = deviceAddress
         gattServicesList = findViewById<View>(R.id.gatt_services_list) as ExpandableListView
-        gattServicesList!!.setOnChildClickListener(servicesListClickListener)
         connectionState = findViewById<View>(R.id.connection_state) as TextView
         dataField = findViewById<View>(R.id.data_value) as TextView
 
@@ -182,41 +145,60 @@ class DeviceControlActivity : Activity() {
         bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE)
 
         button_purple.setOnClickListener {
-            val characteristic = gattCharacteristics!![0][0]
+            val characteristic = gattCharacteristics!![2][0]
             bluetoothLeService!!.writeCharacteristic(characteristic, PURPLE_COLOR)
         }
         button_white.setOnClickListener {
-            val characteristic = gattCharacteristics!![0][0]
+            val characteristic = gattCharacteristics!![2][0]
             bluetoothLeService!!.writeCharacteristic(characteristic, WHITE_COLOR)
         }
         button_yellow.setOnClickListener {
-            val characteristic = gattCharacteristics!![0][0]
+            val characteristic = gattCharacteristics!![2][0]
             bluetoothLeService!!.writeCharacteristic(characteristic, YELLOW_COLOR)
         }
         button_pink.setOnClickListener {
-            val characteristic = gattCharacteristics!![0][0]
+            val characteristic = gattCharacteristics!![2][0]
             bluetoothLeService!!.writeCharacteristic(characteristic, PINK_COLOR)
         }
 
-        button_getcolor.setOnClickListener {
-            val characteristic = gattCharacteristics!![0][0]
-            if (characteristic.value == null) {
-                Log.e(TAG,"No value for characteristic!")
-                return@setOnClickListener
+        button_enablebutton.setOnClickListener{
+            val characteristic = gattCharacteristics!![2][0]
+            bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_BUTTON)
+        }
+
+        button_dumpdata.setOnClickListener {
+            bluetoothLeService!!.dumpData()
+        }
+    }
+
+    fun handleNotification(data: String) {
+        Log.e(TAG, "Notification received!!")
+        val pieces = data.split("\n")
+        val encodedData = pieces[pieces.size - 1]
+        when (encodedData.trim()) {
+            "05 00 82 32 0A" -> Log.e(TAG, "LED Color Changed")
+            "06 00 01 02 06 00" -> {
+                Log.e(TAG, "Button released")
+                randomColor()
             }
-            when (characteristic.value) {
-                WHITE_COLOR -> text_color.setText("LED is White")
-                PURPLE_COLOR -> text_color.setText("LED is Purple")
-                YELLOW_COLOR -> text_color.setText("LED is Yellow")
-                PINK_COLOR -> text_color.setText("LED is Pink")
-                else -> {
-                    for (b in characteristic.value) {
-                        val st = String.format("%02X", b)
-                        Log.e(TAG, st)
-                    }
-                }
+            "06 00 01 02 06 01" -> Log.e(TAG, "Button pressed")
+            else -> {
+                Log.e(TAG, "Data received: $encodedData")
             }
         }
+    }
+
+    private fun randomColor() {
+        val characteristic = gattCharacteristics!![2][0]
+        var color = byteArrayOf()
+        var number = Random().nextInt(3)
+        when (number) {
+            0 -> color = PINK_COLOR
+            1 -> color = PURPLE_COLOR
+            2 -> color = WHITE_COLOR
+        }
+        Log.e(TAG, "Setting color to $color")
+        bluetoothLeService!!.writeCharacteristic(characteristic, color)
     }
 
     override fun onResume() {
@@ -295,32 +277,30 @@ class DeviceControlActivity : Activity() {
         for (gattService in gattServices) {
             val currentServiceData = HashMap<String, String>()
             uuid = gattService.uuid.toString()
-            if (uuid == "00001623-1212-efde-1623-785feabcd123") {
-                currentServiceData[listName] = SampleGattAttributes.lookup(uuid, unknownServiceString)
-                currentServiceData[listUUID] = uuid
-                gattServiceData.add(currentServiceData)
+            currentServiceData[listName] = SampleGattAttributes.lookup(uuid, unknownServiceString)
+            currentServiceData[listUUID] = uuid
+            gattServiceData.add(currentServiceData)
 
-                val gattCharacteristicGroupData = ArrayList<HashMap<String, String>>()
-                val gattCharacteristics = gattService.characteristics
-                val charas = ArrayList<BluetoothGattCharacteristic>()
+            val gattCharacteristicGroupData = ArrayList<HashMap<String, String>>()
+            val gattCharacteristics = gattService.characteristics
+            val charas = ArrayList<BluetoothGattCharacteristic>()
 
-                // Loops through available Characteristics.
-                for (gattCharacteristic in gattCharacteristics) {
-                    charas.add(gattCharacteristic)
-                    val currentCharaData = HashMap<String, String>()
-                    uuid = gattCharacteristic.uuid.toString()
-                    if (uuid == "00001624-1212-efde-1623-785feabcd123") {
-                        currentCharaData[listName] = SampleGattAttributes.lookup(uuid, unknownCharaString)
-                        currentCharaData[listUUID] = uuid
-                        gattCharacteristicGroupData.add(currentCharaData)
-                    }
-                }
-                this.gattCharacteristics!!.add(charas)
-                gattCharacteristicData.add(gattCharacteristicGroupData)
+            // Loops through available Characteristics.
+            for (gattCharacteristic in gattCharacteristics) {
+                charas.add(gattCharacteristic)
+                val currentCharaData = HashMap<String, String>()
+                uuid = gattCharacteristic.uuid.toString()
+                currentCharaData[listName] = SampleGattAttributes.lookup(uuid, unknownCharaString)
+                currentCharaData[listUUID] = uuid
+                gattCharacteristicGroupData.add(currentCharaData)
             }
+            this.gattCharacteristics!!.add(charas)
+            gattCharacteristicData.add(gattCharacteristicGroupData)
         }
-        bluetoothLeService!!.readCharacteristic(gattCharacteristics!![0][0])
-        bluetoothLeService!!.setCharacteristicNotification(gattCharacteristics!![0][0], true)
+        bluetoothLeService!!.setCharacteristicNotification(gattCharacteristics!![2][0], true)
+
+        //bluetoothLeService!!.readCharacteristic(gattCharacteristics!![0][0])
+        //bluetoothLeService!!.setCharacteristicNotification(gattCharacteristics!![0][0], true)
 
         val gattServiceAdapter = SimpleExpandableListAdapter(
                 this,

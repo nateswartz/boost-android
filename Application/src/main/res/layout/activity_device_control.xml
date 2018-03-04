@@ -45,7 +45,7 @@
         android:layout_margin="10dp"
         android:layout_marginTop="8dp"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/button_getcolor"
+        app:layout_constraintTop_toBottomOf="@+id/button_dumpdata"
         tools:layout_editor_absoluteX="10dp">
 
         <LinearLayout
@@ -136,12 +136,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/button_getcolor"
+        android:id="@+id/button_dumpdata"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Get Color"
+        android:text="Dump Data"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_yellow" />
 
@@ -150,6 +150,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintStart_toEndOf="@+id/button_getcolor"
+        app:layout_constraintStart_toEndOf="@+id/button_dumpdata"
         tools:layout_editor_absoluteY="72dp" />
+
+    <Button
+        android:id="@+id/button_enablebutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Enable Button"
+        app:layout_constraintStart_toEndOf="@+id/button_dumpdata"
+        app:layout_constraintTop_toBottomOf="@+id/button_purple" />
 </android.support.constraint.ConstraintLayout>

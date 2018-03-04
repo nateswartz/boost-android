@@ -30,9 +30,6 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
-import java.util.UUID
-import java.lang.System.getProperties
-
 
 
 /**
@@ -41,11 +38,11 @@ import java.lang.System.getProperties
  */
 class BluetoothLeService : Service() {
 
-    private var mBluetoothManager: BluetoothManager? = null
-    private var mBluetoothAdapter: BluetoothAdapter? = null
-    private var mBluetoothDeviceAddress: String? = null
-    private var mBluetoothGatt: BluetoothGatt? = null
-    private var mConnectionState = STATE_DISCONNECTED
+    private var bluetoothManager: BluetoothManager? = null
+    private var bluetoothAdapter: BluetoothAdapter? = null
+    private var bluetoothDeviceAddress: String? = null
+    private var bluetoothGatt: BluetoothGatt? = null
+    private var connectionState = STATE_DISCONNECTED
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -54,15 +51,15 @@ class BluetoothLeService : Service() {
             val intentAction: String
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED
-                mConnectionState = STATE_CONNECTED
+                connectionState = STATE_CONNECTED
                 broadcastUpdate(intentAction)
                 Log.i(TAG, "Connected to GATT server.")
                 // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt!!.discoverServices())
+                Log.i(TAG, "Attempting to start service discovery:" + bluetoothGatt!!.discoverServices())
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED
-                mConnectionState = STATE_DISCONNECTED
+                connectionState = STATE_DISCONNECTED
                 Log.i(TAG, "Disconnected from GATT server.")
                 broadcastUpdate(intentAction)
             }
@@ -86,7 +83,6 @@ class BluetoothLeService : Service() {
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt,
                                              characteristic: BluetoothGattCharacteristic) {
-            Log.e(TAG, "Notification received!!")
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
         }
     }
@@ -100,7 +96,7 @@ class BluetoothLeService : Service() {
      * @return A `List` of supported services.
      */
     val supportedGattServices: List<BluetoothGattService>?
-        get() = if (mBluetoothGatt == null) null else mBluetoothGatt!!.services
+        get() = if (bluetoothGatt == null) null else bluetoothGatt!!.services
 
     private fun broadcastUpdate(action: String) {
         val intent = Intent(action)
@@ -113,7 +109,7 @@ class BluetoothLeService : Service() {
 
         // For all other profiles, writes the data formatted in HEX.
         val data = characteristic.value
-        if (data != null && data.size > 0) {
+        if (data.isNotEmpty()) {
             val stringBuilder = StringBuilder(data.size)
             for (byteChar in data)
                 stringBuilder.append(String.format("%02X ", byteChar))
@@ -147,16 +143,16 @@ class BluetoothLeService : Service() {
     fun initialize(): Boolean {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
-        if (mBluetoothManager == null) {
-            mBluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            if (mBluetoothManager == null) {
+        if (bluetoothManager == null) {
+            bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            if (bluetoothManager == null) {
                 Log.e(TAG, "Unable to initialize BluetoothManager.")
                 return false
             }
         }
 
-        mBluetoothAdapter = mBluetoothManager!!.adapter
-        if (mBluetoothAdapter == null) {
+        bluetoothAdapter = bluetoothManager!!.adapter
+        if (bluetoothAdapter == null) {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.")
             return false
         }
@@ -175,34 +171,34 @@ class BluetoothLeService : Service() {
      * callback.
      */
     fun connect(address: String?): Boolean {
-        if (mBluetoothAdapter == null || address == null) {
+        if (bluetoothAdapter == null || address == null) {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.")
             return false
         }
 
         // Previously connected device.  Try to reconnect.
-        if (mBluetoothDeviceAddress != null && address == mBluetoothDeviceAddress
-                && mBluetoothGatt != null) {
+        if (bluetoothDeviceAddress != null && address == bluetoothDeviceAddress
+                && bluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
-            if (mBluetoothGatt!!.connect()) {
-                mConnectionState = STATE_CONNECTING
+            if (bluetoothGatt!!.connect()) {
+                connectionState = STATE_CONNECTING
                 return true
             } else {
                 return false
             }
         }
 
-        val device = mBluetoothAdapter!!.getRemoteDevice(address)
+        val device = bluetoothAdapter!!.getRemoteDevice(address)
         if (device == null) {
             Log.w(TAG, "Device not found.  Unable to connect.")
             return false
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        mBluetoothGatt = device.connectGatt(this, false, mGattCallback)
+        bluetoothGatt = device.connectGatt(this, false, mGattCallback)
         Log.d(TAG, "Trying to create a new connection.")
-        mBluetoothDeviceAddress = address
-        mConnectionState = STATE_CONNECTING
+        bluetoothDeviceAddress = address
+        connectionState = STATE_CONNECTING
         return true
     }
 
@@ -213,11 +209,11 @@ class BluetoothLeService : Service() {
      * callback.
      */
     fun disconnect() {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        mBluetoothGatt!!.disconnect()
+        bluetoothGatt!!.disconnect()
     }
 
     /**
@@ -225,11 +221,11 @@ class BluetoothLeService : Service() {
      * released properly.
      */
     fun close() {
-        if (mBluetoothGatt == null) {
+        if (bluetoothGatt == null) {
             return
         }
-        mBluetoothGatt!!.close()
-        mBluetoothGatt = null
+        bluetoothGatt!!.close()
+        bluetoothGatt = null
     }
 
     /**
@@ -240,21 +236,21 @@ class BluetoothLeService : Service() {
      * @param characteristic The characteristic to read from.
      */
     fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        mBluetoothGatt!!.readCharacteristic(characteristic)
+        bluetoothGatt!!.readCharacteristic(characteristic)
     }
 
     fun writeCharacteristic(characteristic: BluetoothGattCharacteristic, data: ByteArray): Boolean {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return false
         }
         // RGB LED WHITE
         characteristic.value = data
-        return mBluetoothGatt!!.writeCharacteristic(characteristic)
+        return bluetoothGatt!!.writeCharacteristic(characteristic)
     }
 
     /**
@@ -266,7 +262,7 @@ class BluetoothLeService : Service() {
     fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic,
                                       enabled: Boolean) {
         Log.e(TAG, "Enabling notifications")
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
@@ -277,7 +273,7 @@ class BluetoothLeService : Service() {
             Log.e(TAG, "PROPERY_NOTIFY is off")
         }
 
-        mBluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
+        bluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
 
         val descriptors = characteristic.descriptors
 
@@ -285,7 +281,33 @@ class BluetoothLeService : Service() {
             Log.e(TAG, descriptor.toString())
             if (descriptor != null) {
                 descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                mBluetoothGatt!!.writeDescriptor(descriptor)
+                bluetoothGatt!!.writeDescriptor(descriptor)
+            }
+        }
+    }
+
+    fun dumpData() {
+        for (service in bluetoothGatt!!.services) {
+            Log.e(TAG, "Service: ${service.uuid.toString()}")
+            if (service.characteristics != null) {
+                for (characteristic in service.characteristics) {
+                    Log.e(TAG, "Characteristic: ${characteristic.uuid.toString()}")
+                    if (characteristic.value != null) {
+                        for (byte in characteristic.value) {
+                            Log.e(TAG, String.format("%02X", byte))
+                        }
+                    }
+                    if (characteristic.descriptors != null) {
+                        for (descriptor in characteristic.descriptors) {
+                            Log.e(TAG, "Descriptor: ${descriptor.uuid.toString()}")
+                            if (descriptor.value != null) {
+                                for (byte in descriptor.value) {
+                                    Log.e(TAG, String.format("%02X", byte))
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
