@@ -41,8 +41,6 @@ class DeviceScanActivity : Activity() {
     private var handler: Handler? = null
     private var boostHub: BluetoothDevice? = null
 
-    private val boostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")
-
     // Device scan callback.
     private val mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
         runOnUiThread {
@@ -152,7 +150,7 @@ class DeviceScanActivity : Activity() {
             }, SCAN_PERIOD)
 
             scanning = true
-            bluetoothAdapter!!.startLeScan(arrayOf(boostUUID), mLeScanCallback)
+            bluetoothAdapter!!.startLeScan(arrayOf(BoostUUID), mLeScanCallback)
         } else {
             scanning = false
             bluetoothAdapter!!.stopLeScan(mLeScanCallback)

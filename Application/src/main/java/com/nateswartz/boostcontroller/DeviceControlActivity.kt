@@ -58,18 +58,14 @@ class DeviceControlActivity : Activity() {
     private var deviceAddress: String? = null
     private var gattServicesList: ExpandableListView? = null
     private var bluetoothLeService: BluetoothLeService? = null
+    private var moveHub: MoveHub? = null
     private var gattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? = ArrayList()
     private var connected = false
 
     private val listName = "NAME"
     private val listUUID = "UUID"
 
-    private val WHITE_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x0A)
-    private val YELLOW_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x07)
-    private val PINK_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x01)
-    private val PURPLE_COLOR = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00, 0x02)
 
-    private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
 
     // Code to manage Service lifecycle.
     private val mServiceConnection = object : ServiceConnection {
@@ -110,8 +106,10 @@ class DeviceControlActivity : Activity() {
                     invalidateOptionsMenu()
                     clearUI()
                 }
-                BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> // Show all the supported services and characteristics on the user interface.
+                BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
                     displayGattServices(bluetoothLeService!!.supportedGattServices)
+                    moveHub = MoveHub(bluetoothLeService, gattCharacteristics!![2][0])
+                }
                 BluetoothLeService.ACTION_DATA_AVAILABLE -> {
                     displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
                     handleNotification(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
@@ -145,25 +143,19 @@ class DeviceControlActivity : Activity() {
         bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE)
 
         button_purple.setOnClickListener {
-            val characteristic = gattCharacteristics!![2][0]
-            bluetoothLeService!!.writeCharacteristic(characteristic, PURPLE_COLOR)
+            moveHub!!.setLEDColor(LEDColor.PURPLE)
         }
         button_white.setOnClickListener {
-            val characteristic = gattCharacteristics!![2][0]
-            bluetoothLeService!!.writeCharacteristic(characteristic, WHITE_COLOR)
+            moveHub!!.setLEDColor(LEDColor.WHITE)
         }
         button_yellow.setOnClickListener {
-            val characteristic = gattCharacteristics!![2][0]
-            bluetoothLeService!!.writeCharacteristic(characteristic, YELLOW_COLOR)
+            moveHub!!.setLEDColor(LEDColor.YELLOW)
         }
         button_pink.setOnClickListener {
-            val characteristic = gattCharacteristics!![2][0]
-            bluetoothLeService!!.writeCharacteristic(characteristic, PINK_COLOR)
+            moveHub!!.setLEDColor(LEDColor.PINK)
         }
-
         button_enablebutton.setOnClickListener{
-            val characteristic = gattCharacteristics!![2][0]
-            bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_BUTTON)
+            moveHub!!.activateButton()
         }
 
         button_dumpdata.setOnClickListener {
@@ -190,15 +182,14 @@ class DeviceControlActivity : Activity() {
 
     private fun randomColor() {
         val characteristic = gattCharacteristics!![2][0]
-        var color = byteArrayOf()
+        var color : LEDColor? = null
         var number = Random().nextInt(3)
         when (number) {
-            0 -> color = PINK_COLOR
-            1 -> color = PURPLE_COLOR
-            2 -> color = WHITE_COLOR
+            0 -> color = LEDColor.PINK
+            1 -> color = LEDColor.PURPLE
+            2 -> color = LEDColor.WHITE
         }
-        Log.e(TAG, "Setting color to $color")
-        bluetoothLeService!!.writeCharacteristic(characteristic, color)
+        moveHub!!.setLEDColor(color!!)
     }
 
     override fun onResume() {
@@ -298,9 +289,6 @@ class DeviceControlActivity : Activity() {
             gattCharacteristicData.add(gattCharacteristicGroupData)
         }
         bluetoothLeService!!.setCharacteristicNotification(gattCharacteristics!![2][0], true)
-
-        //bluetoothLeService!!.readCharacteristic(gattCharacteristics!![0][0])
-        //bluetoothLeService!!.setCharacteristicNotification(gattCharacteristics!![0][0], true)
 
         val gattServiceAdapter = SimpleExpandableListAdapter(
                 this,
