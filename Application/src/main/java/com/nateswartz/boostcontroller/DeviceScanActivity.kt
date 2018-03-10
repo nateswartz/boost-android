@@ -16,15 +16,20 @@
 
 package com.nateswartz.boostcontroller
 
+import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
+import android.support.v13.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -41,6 +46,8 @@ class DeviceScanActivity : Activity() {
     private var handler: Handler? = null
     private var boostHub: BluetoothDevice? = null
 
+    private val PERMISSION_REQUEST_CODE = 1
+
     // Device scan callback.
     private val mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
         runOnUiThread {
@@ -55,6 +62,35 @@ class DeviceScanActivity : Activity() {
         actionBar!!.setTitle(R.string.title_devices)
         handler = Handler()
 
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        PERMISSION_REQUEST_CODE)
+
+        } else {
+            finishSetup()
+        }
+
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    finishSetup()
+                    return
+                }
+            }
+            else -> {
+            }
+        }
+    }
+
+    private fun finishSetup() {
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -114,16 +150,26 @@ class DeviceScanActivity : Activity() {
     override fun onResume() {
         super.onResume()
 
-        // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
-        // fire an intent to display a dialog asking the user to grant permission to enable it.
-        if (!bluetoothAdapter!!.isEnabled) {
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    PERMISSION_REQUEST_CODE)
+        } else {
+            // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
+            // fire an intent to display a dialog asking the user to grant permission to enable it.
             if (!bluetoothAdapter!!.isEnabled) {
-                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+                if (!bluetoothAdapter!!.isEnabled) {
+                    val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+                }
             }
+
+            scanLeDevice(true)
         }
 
-        scanLeDevice(true)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
@@ -137,7 +183,12 @@ class DeviceScanActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
-        scanLeDevice(false)
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            scanLeDevice(false)
+        }
     }
 
     private fun scanLeDevice(enable: Boolean) {
