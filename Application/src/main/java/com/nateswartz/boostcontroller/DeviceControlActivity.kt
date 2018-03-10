@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.nateswartz.boostcontroller
 
 import android.app.Activity
@@ -68,7 +52,7 @@ class DeviceControlActivity : Activity() {
 
 
     // Code to manage Service lifecycle.
-    private val mServiceConnection = object : ServiceConnection {
+    private val serviceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             bluetoothLeService = (service as BluetoothLeService.LocalBinder).service
@@ -91,7 +75,7 @@ class DeviceControlActivity : Activity() {
     // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
     // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
     //                        or notification operations.
-    private val mGattUpdateReceiver = object : BroadcastReceiver() {
+    private val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
@@ -140,7 +124,7 @@ class DeviceControlActivity : Activity() {
         actionBar!!.title = deviceName
         actionBar!!.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
-        bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE)
+        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
         button_purple.setOnClickListener {
             moveHub!!.setLEDColor(LEDColor.PURPLE)
@@ -181,9 +165,8 @@ class DeviceControlActivity : Activity() {
     }
 
     private fun randomColor() {
-        val characteristic = gattCharacteristics!![2][0]
         var color : LEDColor? = null
-        var number = Random().nextInt(3)
+        val number = Random().nextInt(3)
         when (number) {
             0 -> color = LEDColor.PINK
             1 -> color = LEDColor.PURPLE
@@ -194,7 +177,7 @@ class DeviceControlActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter())
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
         if (bluetoothLeService != null) {
             val result = bluetoothLeService!!.connect(deviceAddress)
             Log.d(TAG, "Connect request result=$result")
@@ -203,12 +186,12 @@ class DeviceControlActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(mGattUpdateReceiver)
+        unregisterReceiver(gattUpdateReceiver)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(mServiceConnection)
+        unbindService(serviceConnection)
         bluetoothLeService = null
     }
 
@@ -268,7 +251,7 @@ class DeviceControlActivity : Activity() {
         for (gattService in gattServices) {
             val currentServiceData = HashMap<String, String>()
             uuid = gattService.uuid.toString()
-            currentServiceData[listName] = SampleGattAttributes.lookup(uuid, unknownServiceString)
+            currentServiceData[listName] = unknownServiceString
             currentServiceData[listUUID] = uuid
             gattServiceData.add(currentServiceData)
 
@@ -281,7 +264,7 @@ class DeviceControlActivity : Activity() {
                 charas.add(gattCharacteristic)
                 val currentCharaData = HashMap<String, String>()
                 uuid = gattCharacteristic.uuid.toString()
-                currentCharaData[listName] = SampleGattAttributes.lookup(uuid, unknownCharaString)
+                currentCharaData[listName] = unknownCharaString
                 currentCharaData[listUUID] = uuid
                 gattCharacteristicGroupData.add(currentCharaData)
             }

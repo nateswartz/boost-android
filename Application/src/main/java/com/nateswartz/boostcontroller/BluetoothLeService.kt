@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.nateswartz.boostcontroller
 
 import android.app.Service
@@ -46,7 +30,7 @@ class BluetoothLeService : Service() {
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
-    private val mGattCallback = object : BluetoothGattCallback() {
+    private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             val intentAction: String
             if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -87,7 +71,7 @@ class BluetoothLeService : Service() {
         }
     }
 
-    private val mBinder = LocalBinder()
+    private val binder = LocalBinder()
 
     /**
      * Retrieves a list of supported GATT services on the connected device. This should be
@@ -124,7 +108,7 @@ class BluetoothLeService : Service() {
     }
 
     override fun onBind(intent: Intent): IBinder? {
-        return mBinder
+        return binder
     }
 
     override fun onUnbind(intent: Intent): Boolean {
@@ -180,11 +164,11 @@ class BluetoothLeService : Service() {
         if (bluetoothDeviceAddress != null && address == bluetoothDeviceAddress
                 && bluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
-            if (bluetoothGatt!!.connect()) {
+            return if (bluetoothGatt!!.connect()) {
                 connectionState = STATE_CONNECTING
-                return true
+                true
             } else {
-                return false
+                false
             }
         }
 
@@ -195,7 +179,7 @@ class BluetoothLeService : Service() {
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        bluetoothGatt = device.connectGatt(this, false, mGattCallback)
+        bluetoothGatt = device.connectGatt(this, false, gattCallback)
         Log.d(TAG, "Trying to create a new connection.")
         bluetoothDeviceAddress = address
         connectionState = STATE_CONNECTING
@@ -220,7 +204,7 @@ class BluetoothLeService : Service() {
      * After using a given BLE device, the app must call this method to ensure resources are
      * released properly.
      */
-    fun close() {
+    private fun close() {
         if (bluetoothGatt == null) {
             return
         }
@@ -288,10 +272,10 @@ class BluetoothLeService : Service() {
 
     fun dumpData() {
         for (service in bluetoothGatt!!.services) {
-            Log.e(TAG, "Service: ${service.uuid.toString()}")
+            Log.e(TAG, "Service: ${service.uuid}")
             if (service.characteristics != null) {
                 for (characteristic in service.characteristics) {
-                    Log.e(TAG, "Characteristic: ${characteristic.uuid.toString()}")
+                    Log.e(TAG, "Characteristic: ${characteristic.uuid}")
                     if (characteristic.value != null) {
                         for (byte in characteristic.value) {
                             Log.e(TAG, String.format("%02X", byte))
@@ -299,7 +283,7 @@ class BluetoothLeService : Service() {
                     }
                     if (characteristic.descriptors != null) {
                         for (descriptor in characteristic.descriptors) {
-                            Log.e(TAG, "Descriptor: ${descriptor.uuid.toString()}")
+                            Log.e(TAG, "Descriptor: ${descriptor.uuid}")
                             if (descriptor.value != null) {
                                 for (byte in descriptor.value) {
                                     Log.e(TAG, String.format("%02X", byte))

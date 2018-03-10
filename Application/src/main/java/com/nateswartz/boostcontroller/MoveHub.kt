@@ -7,10 +7,7 @@ import android.os.IBinder
 import android.util.Log
 import java.util.*
 
-/**
- * Created by nates on 3/8/2018.
- */
-val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")
+val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
 
 class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: BluetoothGattCharacteristic){
 

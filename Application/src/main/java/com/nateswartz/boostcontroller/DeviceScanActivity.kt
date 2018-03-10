@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.nateswartz.boostcontroller
 
 import android.Manifest
@@ -21,7 +5,7 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.content.ContentValues.TAG
+import android.bluetooth.le.*
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -29,19 +13,20 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v13.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_device_scan.*
-import java.util.*
+import android.os.ParcelUuid
+
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
 class DeviceScanActivity : Activity() {
     private var bluetoothAdapter: BluetoothAdapter? = null
+    private var bluetoothScanner: BluetoothLeScanner? = null
     private var scanning: Boolean = false
     private var handler: Handler? = null
     private var boostHub: BluetoothDevice? = null
@@ -49,10 +34,11 @@ class DeviceScanActivity : Activity() {
     private val PERMISSION_REQUEST_CODE = 1
 
     // Device scan callback.
-    private val mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
-        runOnUiThread {
-                boostHub = device
-                button_connect.isEnabled = true
+    private val leScanCallback = object : ScanCallback() {
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            super.onScanResult(callbackType, result)
+            boostHub = result.device
+            button_connect.isEnabled = true
         }
     }
 
@@ -102,6 +88,7 @@ class DeviceScanActivity : Activity() {
         // BluetoothAdapter through BluetoothManager.
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
+        bluetoothScanner = bluetoothAdapter!!.bluetoothLeScanner
 
         // Checks if Bluetooth is supported on the device.
         if (bluetoothAdapter == null) {
@@ -116,7 +103,7 @@ class DeviceScanActivity : Activity() {
         intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, boostHub!!.name)
         intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, boostHub!!.address)
         if (scanning) {
-            bluetoothAdapter!!.stopLeScan(mLeScanCallback)
+            bluetoothScanner!!.stopScan(leScanCallback)
             scanning = false
         }
         startActivity(intent)
@@ -196,15 +183,18 @@ class DeviceScanActivity : Activity() {
             // Stops scanning after a pre-defined scan period.
             handler!!.postDelayed({
                 scanning = false
-                bluetoothAdapter!!.stopLeScan(mLeScanCallback)
+                bluetoothScanner!!.stopScan(leScanCallback)
                 invalidateOptionsMenu()
             }, SCAN_PERIOD)
 
             scanning = true
-            bluetoothAdapter!!.startLeScan(arrayOf(BoostUUID), mLeScanCallback)
+            bluetoothScanner!!.startScan(
+                    listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BoostUUID)).build()),
+                    ScanSettings.Builder().build(),
+                    leScanCallback)
         } else {
             scanning = false
-            bluetoothAdapter!!.stopLeScan(mLeScanCallback)
+            bluetoothScanner!!.stopScan(leScanCallback)
         }
         invalidateOptionsMenu()
     }
