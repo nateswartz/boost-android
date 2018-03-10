@@ -93,6 +93,7 @@ class DeviceControlActivity : Activity() {
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
                     displayGattServices(bluetoothLeService!!.supportedGattServices)
                     moveHub = MoveHub(bluetoothLeService, gattCharacteristics!![2][0])
+                    moveHub!!.enableNotifications()
                 }
                 BluetoothLeService.ACTION_DATA_AVAILABLE -> {
                     displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
@@ -138,30 +139,23 @@ class DeviceControlActivity : Activity() {
         button_pink.setOnClickListener {
             moveHub!!.setLEDColor(LEDColor.PINK)
         }
-        button_enablebutton.setOnClickListener{
+
+        button_enable_button.setOnClickListener{
             moveHub!!.activateButton()
         }
+        button_enable_color_sensor.setOnClickListener{
+            moveHub!!.activateColorSensor()
+        }
 
-        button_dumpdata.setOnClickListener {
+        button_dump_data.setOnClickListener {
             bluetoothLeService!!.dumpData()
         }
     }
 
     fun handleNotification(data: String) {
-        Log.e(TAG, "Notification received!!")
         val pieces = data.split("\n")
         val encodedData = pieces[pieces.size - 1]
-        when (encodedData.trim()) {
-            "05 00 82 32 0A" -> Log.e(TAG, "LED Color Changed")
-            "06 00 01 02 06 00" -> {
-                Log.e(TAG, "Button released")
-                randomColor()
-            }
-            "06 00 01 02 06 01" -> Log.e(TAG, "Button pressed")
-            else -> {
-                Log.e(TAG, "Data received: $encodedData")
-            }
-        }
+        Log.e(TAG, "Notification - ${moveHub!!.parseNotification(encodedData.trim())}")
     }
 
     private fun randomColor() {
@@ -271,7 +265,6 @@ class DeviceControlActivity : Activity() {
             this.gattCharacteristics!!.add(charas)
             gattCharacteristicData.add(gattCharacteristicGroupData)
         }
-        bluetoothLeService!!.setCharacteristicNotification(gattCharacteristics!![2][0], true)
 
         val gattServiceAdapter = SimpleExpandableListAdapter(
                 this,

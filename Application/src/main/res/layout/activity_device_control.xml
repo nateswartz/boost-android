@@ -45,7 +45,7 @@
         android:layout_margin="10dp"
         android:layout_marginTop="8dp"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/button_dumpdata"
+        app:layout_constraintTop_toBottomOf="@+id/button_dump_data"
         tools:layout_editor_absoluteX="10dp">
 
         <LinearLayout
@@ -136,7 +136,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/button_dumpdata"
+        android:id="@+id/button_dump_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -150,16 +150,26 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintStart_toEndOf="@+id/button_dumpdata"
+        app:layout_constraintStart_toEndOf="@+id/button_dump_data"
         tools:layout_editor_absoluteY="72dp" />
 
     <Button
-        android:id="@+id/button_enablebutton"
+        android:id="@+id/button_enable_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Enable Button"
-        app:layout_constraintStart_toEndOf="@+id/button_dumpdata"
+        app:layout_constraintStart_toEndOf="@+id/button_dump_data"
         app:layout_constraintTop_toBottomOf="@+id/button_purple" />
+
+    <Button
+        android:id="@+id/button_enable_color_sensor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Color Sensor"
+        app:layout_constraintStart_toEndOf="@+id/button_enable_button"
+        app:layout_constraintTop_toBottomOf="@+id/button_pink" />
 </android.support.constraint.ConstraintLayout>
