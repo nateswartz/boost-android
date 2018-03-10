@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Application/Application.iml" filepath="$PROJECT_DIR$/Application/Application.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android-BluetoothLeGatt-master.iml" filepath="$PROJECT_DIR$/android-BluetoothLeGatt-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/BoostController.iml" filepath="$PROJECT_DIR$/BoostController.iml" />
     </modules>
   </component>
 </project>
