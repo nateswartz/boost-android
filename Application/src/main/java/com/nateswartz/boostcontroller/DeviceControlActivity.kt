@@ -155,7 +155,7 @@ class DeviceControlActivity : Activity() {
     fun handleNotification(data: String) {
         val pieces = data.split("\n")
         val encodedData = pieces[pieces.size - 1]
-        Log.e(TAG, "Notification - ${moveHub!!.parseNotification(encodedData.trim())}")
+        Log.e(TAG, HubNotificationFactory.build(encodedData.trim()).toString())
     }
 
     private fun randomColor() {
