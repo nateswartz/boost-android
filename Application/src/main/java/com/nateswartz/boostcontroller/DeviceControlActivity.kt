@@ -97,7 +97,7 @@ class DeviceControlActivity : Activity() {
                 }
                 BluetoothLeService.ACTION_DATA_AVAILABLE -> {
                     displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
-                    handleNotification(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
+                    moveHub!!.handleNotification(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
                 }
             }
         }
@@ -152,11 +152,7 @@ class DeviceControlActivity : Activity() {
         }
     }
 
-    fun handleNotification(data: String) {
-        val pieces = data.split("\n")
-        val encodedData = pieces[pieces.size - 1]
-        Log.e(TAG, HubNotificationFactory.build(encodedData.trim()).toString())
-    }
+
 
     private fun randomColor() {
         var color : LEDColor? = null
