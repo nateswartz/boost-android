@@ -41,11 +41,11 @@
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="477dp"
+        android:layout_height="344dp"
         android:layout_margin="10dp"
         android:layout_marginTop="8dp"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/button_enable_imotor"
+        app:layout_constraintTop_toBottomOf="@+id/button_dump_data"
         tools:layout_editor_absoluteX="10dp">
 
         <LinearLayout
@@ -139,11 +139,11 @@
         android:id="@+id/button_dump_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:text="Dump Data"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_yellow" />
+        app:layout_constraintTop_toBottomOf="@+id/button_imotor_run" />
 
     <TextView
         android:id="@+id/text_color"
@@ -157,17 +157,17 @@
         android:id="@+id/button_enable_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:text="Enable Button"
-        app:layout_constraintStart_toEndOf="@+id/button_dump_data"
+        android:text="Button"
+        app:layout_constraintStart_toEndOf="@+id/button_enable_imotor"
         app:layout_constraintTop_toBottomOf="@+id/button_purple" />
 
     <Button
         android:id="@+id/button_enable_color_sensor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:text="Color Sensor"
         app:layout_constraintStart_toEndOf="@+id/button_enable_button"
@@ -177,9 +177,29 @@
         android:id="@+id/button_enable_imotor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="IMotor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_white" />
+
+    <Button
+        android:id="@+id/button_imotor_run"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="Run IMotor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_enable_imotor" />
+
+    <Button
+        android:id="@+id/button_imotor_reverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Enable IMotor"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_dump_data" />
+        android:text="Reverse IMotor"
+        app:layout_constraintStart_toEndOf="@+id/button_imotor_run"
+        app:layout_constraintTop_toBottomOf="@+id/button_enable_button" />
 </android.support.constraint.ConstraintLayout>

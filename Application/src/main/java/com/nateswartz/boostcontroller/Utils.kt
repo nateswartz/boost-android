@@ -16,3 +16,15 @@ fun getColor(str: String) : Color {
         else -> Color.UNKNOWN
     }
 }
+
+fun getByteArrayFromInt(number: Int, size: Int): Array<Byte> {
+    val result = Array<Byte>(size, {0})
+    var intermediateNumber = number
+    var mask = 0xFF
+
+    for ( i in 0 until result.size) {
+        result[i] = intermediateNumber.and(mask).toByte()
+        intermediateNumber = intermediateNumber.shr(8)
+    }
+    return result
+}

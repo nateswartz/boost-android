@@ -150,6 +150,14 @@ class DeviceControlActivity : Activity() {
             moveHub!!.activateIMotorSensor()
         }
 
+        button_imotor_run.setOnClickListener{
+            moveHub!!.runMotor(25, 400, false)
+        }
+
+        button_imotor_reverse.setOnClickListener {
+            moveHub!!.runMotor(25, 400, true)
+        }
+
         button_dump_data.setOnClickListener {
             bluetoothLeService!!.dumpData()
         }
