@@ -51,8 +51,14 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
         val notification = HubNotificationFactory.build(encodedData.trim())
         if (notification is PortInfoNotification) {
             when(notification.sensor) {
-                "DistanceColor" -> ColorSensorPort = notification.port
-                "IMotor" -> IMotorPort = notification.port
+                "DistanceColor" -> {
+                    ColorSensorPort = notification.port
+                    HubNotificationFactory.ColorSensorPort = notification.port
+                }
+                "IMotor" -> {
+                    IMotorPort = notification.port
+                    HubNotificationFactory.IMotorPort = notification.port
+                }
             }
         }
         Log.e(TAG, notification.toString())
