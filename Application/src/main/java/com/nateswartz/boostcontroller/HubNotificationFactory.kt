@@ -10,8 +10,10 @@ object HubNotificationFactory {
             return ButtonNotification(stringData)
         } else if (stringData.startsWith("05 00 82 32")) {
             return LedColorChangeNotification(stringData)
-        } else if (stringData.startsWith("08 00 45")) {
+        } else if (stringData.startsWith("08 00 45 01")) {
             return ColorSensorNotification(stringData)
+        } else if (stringData.startsWith("08 00 45 02")) {
+            return IMotorNotification(stringData)
         } else if (stringData.startsWith("0F 00 04")) {
             return PortInfoNotification(stringData)
         }

@@ -10,11 +10,14 @@ val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
 class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: BluetoothGattCharacteristic){
 
     val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
-    val ACTIVATE_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
-    val ACTIVATE_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
+    val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
+    val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
+
+    val ACTIVATE_IMOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    val ACTIVATE_IMOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
 
     var ColorSensorPort = ""
-    var MotorPort = ""
+    var IMotorPort = ""
 
     fun enableNotifications() {
         bluetoothLeService!!.setCharacteristicNotification(characteristic, true)
@@ -30,8 +33,15 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
 
     fun activateColorSensor() {
         when (ColorSensorPort) {
-            "C" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_PORT_C)
-            "D" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_PORT_D)
+            "C" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_COLOR_SENSOR_PORT_C)
+            "D" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_COLOR_SENSOR_PORT_D)
+        }
+    }
+
+    fun activateIMotorSensor() {
+        when (IMotorPort) {
+            "C" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_IMOTOR_PORT_C)
+            "D" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_IMOTOR_PORT_D)
         }
     }
 
@@ -40,8 +50,10 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
         val encodedData = pieces[pieces.size - 1]
         val notification = HubNotificationFactory.build(encodedData.trim())
         if (notification is PortInfoNotification) {
-            if (notification.sensor == "DistanceColor")
-                ColorSensorPort = notification.port
+            when(notification.sensor) {
+                "DistanceColor" -> ColorSensorPort = notification.port
+                "IMotor" -> IMotorPort = notification.port
+            }
         }
         Log.e(TAG, notification.toString())
     }

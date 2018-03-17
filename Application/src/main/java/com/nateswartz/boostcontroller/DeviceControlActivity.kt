@@ -146,6 +146,9 @@ class DeviceControlActivity : Activity() {
         button_enable_color_sensor.setOnClickListener{
             moveHub!!.activateColorSensor()
         }
+        button_enable_imotor.setOnClickListener{
+            moveHub!!.activateIMotorSensor()
+        }
 
         button_dump_data.setOnClickListener {
             bluetoothLeService!!.dumpData()
