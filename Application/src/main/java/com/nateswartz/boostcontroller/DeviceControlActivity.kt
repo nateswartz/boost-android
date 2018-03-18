@@ -36,11 +36,8 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
  */
 class DeviceControlActivity : Activity() {
 
-    private var connectionState: TextView? = null
-    private var dataField: TextView? = null
     private var deviceName: String? = null
     private var deviceAddress: String? = null
-    private var gattServicesList: ExpandableListView? = null
     private var bluetoothLeService: BluetoothLeService? = null
     private var moveHub: MoveHub? = null
     private var gattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? = ArrayList()
@@ -81,31 +78,21 @@ class DeviceControlActivity : Activity() {
             when (action) {
                 BluetoothLeService.ACTION_GATT_CONNECTED -> {
                     connected = true
-                    updateConnectionState(R.string.connected)
                     invalidateOptionsMenu()
                 }
                 BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
                     connected = false
-                    updateConnectionState(R.string.disconnected)
                     invalidateOptionsMenu()
-                    clearUI()
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
-                    displayGattServices(bluetoothLeService!!.supportedGattServices)
-                    moveHub = MoveHub(bluetoothLeService, gattCharacteristics!![2][0])
+                    moveHub = MoveHub(bluetoothLeService, bluetoothLeService!!.supportedGattServices!![2].characteristics[0])
                     moveHub!!.enableNotifications()
                 }
                 BluetoothLeService.ACTION_DATA_AVAILABLE -> {
-                    displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
                     moveHub!!.handleNotification(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
                 }
             }
         }
-    }
-
-    private fun clearUI() {
-        gattServicesList!!.setAdapter(null as SimpleExpandableListAdapter?)
-        dataField!!.setText(R.string.no_data)
     }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,12 +102,6 @@ class DeviceControlActivity : Activity() {
         val intent = intent
         deviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
         deviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
-
-        // Sets up UI references.
-        (findViewById<View>(R.id.device_address) as TextView).text = deviceAddress
-        gattServicesList = findViewById<View>(R.id.gatt_services_list) as ExpandableListView
-        connectionState = findViewById<View>(R.id.connection_state) as TextView
-        dataField = findViewById<View>(R.id.data_value) as TextView
 
         actionBar!!.title = deviceName
         actionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -225,68 +206,7 @@ class DeviceControlActivity : Activity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
-    private fun updateConnectionState(resourceId: Int) {
-        runOnUiThread { connectionState!!.setText(resourceId) }
-    }
-
-    private fun displayData(data: String?) {
-        if (data != null) {
-            dataField!!.text = data
-        }
-    }
-
-    // Demonstrates how to iterate through the supported GATT Services/Characteristics.
-    // In this sample, we populate the data structure that is bound to the ExpandableListView
-    // on the UI.
-    private fun displayGattServices(gattServices: List<BluetoothGattService>?) {
-        if (gattServices == null) return
-        var uuid: String?
-        val unknownServiceString = resources.getString(R.string.unknown_service)
-        val unknownCharaString = resources.getString(R.string.unknown_characteristic)
-        val gattServiceData = ArrayList<HashMap<String, String>>()
-        val gattCharacteristicData = ArrayList<ArrayList<HashMap<String, String>>>()
-        gattCharacteristics = ArrayList()
-
-        // Loops through available GATT Services.
-        for (gattService in gattServices) {
-            val currentServiceData = HashMap<String, String>()
-            uuid = gattService.uuid.toString()
-            currentServiceData[listName] = unknownServiceString
-            currentServiceData[listUUID] = uuid
-            gattServiceData.add(currentServiceData)
-
-            val gattCharacteristicGroupData = ArrayList<HashMap<String, String>>()
-            val gattCharacteristics = gattService.characteristics
-            val charas = ArrayList<BluetoothGattCharacteristic>()
-
-            // Loops through available Characteristics.
-            for (gattCharacteristic in gattCharacteristics) {
-                charas.add(gattCharacteristic)
-                val currentCharaData = HashMap<String, String>()
-                uuid = gattCharacteristic.uuid.toString()
-                currentCharaData[listName] = unknownCharaString
-                currentCharaData[listUUID] = uuid
-                gattCharacteristicGroupData.add(currentCharaData)
-            }
-            this.gattCharacteristics!!.add(charas)
-            gattCharacteristicData.add(gattCharacteristicGroupData)
-        }
-
-        val gattServiceAdapter = SimpleExpandableListAdapter(
-                this,
-                gattServiceData,
-                android.R.layout.simple_expandable_list_item_2,
-                arrayOf(listName, listUUID),
-                intArrayOf(android.R.id.text1, android.R.id.text2),
-                gattCharacteristicData,
-                android.R.layout.simple_expandable_list_item_2,
-                arrayOf(listName, listUUID),
-                intArrayOf(android.R.id.text1, android.R.id.text2)
-        )
-        gattServicesList!!.setAdapter(gattServiceAdapter)
-    }
-
+    
     companion object {
         private val TAG = DeviceControlActivity::class.java.simpleName
 
