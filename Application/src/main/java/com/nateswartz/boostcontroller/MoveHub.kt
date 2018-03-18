@@ -18,6 +18,7 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
 
     val C_PORT_BYTE = 0x01.toByte()
     val D_PORT_BYTE = 0x02.toByte()
+    val AB_PORT_BYTE = 0x39.toByte()
 
     var ColorSensorPort = ""
     var ExternalMotorPort = ""
@@ -31,18 +32,26 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
     }
 
     fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
-        val powerByte = when (counterclockwise) {
-            true -> (255 - powerPercentage).toByte()
-            false -> powerPercentage.toByte()
-        }
-        val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
         var portByte : Byte? = null
         if (ExternalMotorPort == "C") {
             portByte = C_PORT_BYTE
         } else if (ExternalMotorPort == "D") {
             portByte = D_PORT_BYTE
         }
-        val RUN_MOTOR = byteArrayOf(0x0c, 0x00, 0x81.toByte(), portByte!!, 0x11, 0x09, timeBytes[0], timeBytes[1], powerByte, 0x64, 0x7f, 0x03)
+        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, portByte!!)
+    }
+
+    fun runInternalMotors(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
+        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, AB_PORT_BYTE)
+    }
+
+    private fun runMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, portByte: Byte) {
+        val powerByte = when (counterclockwise) {
+            true -> (255 - powerPercentage).toByte()
+            false -> powerPercentage.toByte()
+        }
+        val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
+        val RUN_MOTOR = byteArrayOf(0x0c, 0x00, 0x81.toByte(), portByte, 0x11, 0x09, timeBytes[0], timeBytes[1], powerByte, 0x64, 0x7f, 0x03)
         bluetoothLeService!!.writeCharacteristic(characteristic, RUN_MOTOR)
     }
 

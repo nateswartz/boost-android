@@ -2,7 +2,6 @@ package com.nateswartz.boostcontroller
 
 import android.app.Activity
 import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattService
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -16,8 +15,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
-import java.util.*
-import android.R.array
 import android.widget.*
 
 
@@ -27,13 +24,6 @@ attr handle: 0x000c, end grp handle: 0x000f uuid: 00001623-1212-efde-1623-785fea
 
 handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624-1212-efde-1623-785feabcd123
 */
-
-/**
- * For a given BLE device, this Activity provides the user interface to connect, display data,
- * and display GATT services and characteristics supported by the device.  The Activity
- * communicates with `BluetoothLeService`, which in turn interacts with the
- * Bluetooth LE API.
- */
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     private var deviceName: String? = null
@@ -43,7 +33,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     private var gattCharacteristic: BluetoothGattCharacteristic? = null
     private var connected = false
 
-    private var colorArray = arrayOf("Blue", "Off", "Pink", "Purple",
+    private var colorArray = arrayOf("Off", "Blue", "Pink", "Purple",
             "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
 
     // Code to manage Service lifecycle.
@@ -76,12 +66,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             when (action) {
                 BluetoothLeService.ACTION_GATT_CONNECTED -> {
                     connected = true
-                    enableButtons()
+                    enableControls()
                     invalidateOptionsMenu()
                 }
                 BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
                     connected = false
-                    disableButtons()
+                    disableControls()
                     invalidateOptionsMenu()
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
@@ -116,8 +106,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner_led_colors.adapter = adapter
         spinner_led_colors.onItemSelectedListener = this
+        // Set Spinner to Blue to start (since that's the Hub default)
+        spinner_led_colors.setSelection(1)
 
-        disableButtons()
+        disableControls()
 
         button_enable_button.setOnClickListener{
             moveHub!!.activateButton()
@@ -132,9 +124,15 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_imotor_run.setOnClickListener{
             moveHub!!.runExternalMotor(25, 400, false)
         }
-
         button_imotor_reverse.setOnClickListener {
             moveHub!!.runExternalMotor(25, 400, true)
+        }
+
+        button_run_internal_motor.setOnClickListener {
+            moveHub!!.runInternalMotors(25, 400, false)
+        }
+        button_reverse_internal_motor.setOnClickListener {
+            moveHub!!.runInternalMotors(25, 400, true)
         }
 
         button_dump_data.setOnClickListener {
@@ -151,21 +149,23 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     override fun onNothingSelected(parent: AdapterView<*>?) {
     }
 
-    private fun enableButtons() {
-        setButtonsState(true)
+    private fun enableControls() {
+        setControlsState(true)
     }
 
-    private fun disableButtons() {
-        setButtonsState(false)
+    private fun disableControls() {
+        setControlsState(false)
     }
 
-    private fun setButtonsState(enabled : Boolean) {
+    private fun setControlsState(enabled : Boolean) {
         button_enable_imotor.isEnabled = enabled
         button_enable_color_sensor.isEnabled = enabled
         button_enable_button.isEnabled = enabled
         button_imotor_run.isEnabled = enabled
         button_imotor_reverse.isEnabled = enabled
         button_dump_data.isEnabled = enabled
+        button_run_internal_motor.isEnabled = enabled
+        button_reverse_internal_motor.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
     }
 
