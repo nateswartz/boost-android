@@ -30,7 +30,7 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
         bluetoothLeService!!.writeCharacteristic(characteristic, color.data)
     }
 
-    fun runMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
+    fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
         val powerByte = when (counterclockwise) {
             true -> (255 - powerPercentage).toByte()
             false -> powerPercentage.toByte()
