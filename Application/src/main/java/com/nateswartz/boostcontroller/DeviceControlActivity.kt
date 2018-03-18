@@ -135,6 +135,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             moveHub!!.runInternalMotors(25, 400, true)
         }
 
+        button_spin.setOnClickListener {
+            moveHub!!.runInternalMotorsInOpposition(20, 300)
+        }
+
         button_dump_data.setOnClickListener {
             bluetoothLeService!!.dumpData()
         }
@@ -166,6 +170,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_dump_data.isEnabled = enabled
         button_run_internal_motor.isEnabled = enabled
         button_reverse_internal_motor.isEnabled = enabled
+        button_spin.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
     }
 

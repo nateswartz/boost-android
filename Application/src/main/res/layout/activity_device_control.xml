@@ -93,4 +93,14 @@
         android:text="Reverse Internal Motor"
         app:layout_constraintStart_toEndOf="@+id/button_run_internal_motor"
         app:layout_constraintTop_toBottomOf="@+id/button_imotor_reverse" />
+
+    <Button
+        android:id="@+id/button_spin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Spin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_dump_data" />
 </android.support.constraint.ConstraintLayout>
