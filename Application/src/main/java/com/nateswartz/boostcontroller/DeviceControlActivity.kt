@@ -41,6 +41,7 @@ class DeviceControlActivity : Activity() {
     private var deviceAddress: String? = null
     private var bluetoothLeService: BluetoothLeService? = null
     private var moveHub: MoveHub? = null
+    private var gattCharacteristic: BluetoothGattCharacteristic? = null
     private var connected = false
 
     // Code to manage Service lifecycle.
@@ -82,7 +83,10 @@ class DeviceControlActivity : Activity() {
                     invalidateOptionsMenu()
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
-                    moveHub = MoveHub(bluetoothLeService, bluetoothLeService!!.supportedGattServices!![2].characteristics[0])
+                    gattCharacteristic = bluetoothLeService!!.supportedGattServices!![2].characteristics[0]
+                    if (moveHub == null) {
+                        moveHub = MoveHub(bluetoothLeService, gattCharacteristic!!)
+                    }
                     moveHub!!.enableNotifications()
                 }
                 BluetoothLeService.ACTION_DATA_AVAILABLE -> {
