@@ -18,6 +18,7 @@ import android.view.View
 import android.widget.ExpandableListView
 import android.widget.SimpleExpandableListAdapter
 import android.widget.TextView
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_device_control.*
 import java.util.*
 
@@ -40,13 +41,7 @@ class DeviceControlActivity : Activity() {
     private var deviceAddress: String? = null
     private var bluetoothLeService: BluetoothLeService? = null
     private var moveHub: MoveHub? = null
-    private var gattCharacteristics: ArrayList<ArrayList<BluetoothGattCharacteristic>>? = ArrayList()
     private var connected = false
-
-    private val listName = "NAME"
-    private val listUUID = "UUID"
-
-
 
     // Code to manage Service lifecycle.
     private val serviceConnection = object : ServiceConnection {
@@ -78,10 +73,12 @@ class DeviceControlActivity : Activity() {
             when (action) {
                 BluetoothLeService.ACTION_GATT_CONNECTED -> {
                     connected = true
+                    enableButtons()
                     invalidateOptionsMenu()
                 }
                 BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
                     connected = false
+                    disableButtons()
                     invalidateOptionsMenu()
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
@@ -108,6 +105,7 @@ class DeviceControlActivity : Activity() {
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
+        disableButtons()
         button_purple.setOnClickListener {
             moveHub!!.setLEDColor(LEDColor.PURPLE)
         }
@@ -144,7 +142,26 @@ class DeviceControlActivity : Activity() {
         }
     }
 
+    private fun enableButtons() {
+        setButtonsState(true)
+    }
 
+    private fun disableButtons() {
+        setButtonsState(false)
+    }
+
+    private fun setButtonsState(enabled : Boolean) {
+        button_purple.isEnabled = enabled
+        button_white.isEnabled = enabled
+        button_yellow.isEnabled = enabled
+        button_pink.isEnabled = enabled
+        button_enable_imotor.isEnabled = enabled
+        button_enable_color_sensor.isEnabled = enabled
+        button_enable_button.isEnabled = enabled
+        button_imotor_run.isEnabled = enabled
+        button_imotor_reverse.isEnabled = enabled
+        button_dump_data.isEnabled = enabled
+    }
 
     private fun randomColor() {
         var color : LEDColor? = null
@@ -193,6 +210,7 @@ class DeviceControlActivity : Activity() {
         when (item.itemId) {
             R.id.menu_connect -> {
                 bluetoothLeService!!.connect(deviceAddress)
+                Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
                 return true
             }
             R.id.menu_disconnect -> {
@@ -206,7 +224,7 @@ class DeviceControlActivity : Activity() {
         }
         return super.onOptionsItemSelected(item)
     }
-    
+
     companion object {
         private val TAG = DeviceControlActivity::class.java.simpleName
 

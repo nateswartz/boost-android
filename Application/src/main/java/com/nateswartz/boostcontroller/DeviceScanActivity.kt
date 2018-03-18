@@ -106,6 +106,7 @@ class DeviceScanActivity : Activity() {
             bluetoothScanner!!.stopScan(leScanCallback)
             scanning = false
         }
+        Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
         startActivity(intent)
     }
 
