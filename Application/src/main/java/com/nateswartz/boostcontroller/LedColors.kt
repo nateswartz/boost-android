@@ -2,7 +2,7 @@ package com.nateswartz.boostcontroller
 
 private val LED_COLOR_BASE = byteArrayOf(0x08, 0x00, 0x81.toByte(), 0x32, 0x11, 0x51, 0x00)
 
-enum class LEDColor(val data: ByteArray) {
+enum class LEDColorCommand(val data: ByteArray) {
     BLACK(LED_COLOR_BASE + byteArrayOf(Color.BLACK.data)),
     PINK(LED_COLOR_BASE + byteArrayOf(Color.PINK.data)),
     PURPLE(LED_COLOR_BASE + byteArrayOf(Color.PURPLE.data)),

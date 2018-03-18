@@ -26,7 +26,7 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
         bluetoothLeService!!.setCharacteristicNotification(characteristic, true)
     }
 
-    fun setLEDColor(color: LEDColor) {
+    fun setLEDColor(color: LEDColorCommand) {
         bluetoothLeService!!.writeCharacteristic(characteristic, color.data)
     }
 

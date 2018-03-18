@@ -15,12 +15,11 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ExpandableListView
-import android.widget.SimpleExpandableListAdapter
-import android.widget.TextView
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_device_control.*
 import java.util.*
+import android.R.array
+import android.widget.*
+
 
 /*
 Handle to send data to:
@@ -35,7 +34,7 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
  * communicates with `BluetoothLeService`, which in turn interacts with the
  * Bluetooth LE API.
  */
-class DeviceControlActivity : Activity() {
+class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     private var deviceName: String? = null
     private var deviceAddress: String? = null
@@ -43,6 +42,9 @@ class DeviceControlActivity : Activity() {
     private var moveHub: MoveHub? = null
     private var gattCharacteristic: BluetoothGattCharacteristic? = null
     private var connected = false
+
+    private var colorArray = arrayOf("Blue", "Off", "Pink", "Purple",
+            "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
 
     // Code to manage Service lifecycle.
     private val serviceConnection = object : ServiceConnection {
@@ -109,19 +111,13 @@ class DeviceControlActivity : Activity() {
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
+        val adapter = ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, colorArray)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner_led_colors.adapter = adapter
+        spinner_led_colors.onItemSelectedListener = this
+
         disableButtons()
-        button_purple.setOnClickListener {
-            moveHub!!.setLEDColor(LEDColor.PURPLE)
-        }
-        button_white.setOnClickListener {
-            moveHub!!.setLEDColor(LEDColor.WHITE)
-        }
-        button_yellow.setOnClickListener {
-            moveHub!!.setLEDColor(LEDColor.YELLOW)
-        }
-        button_pink.setOnClickListener {
-            moveHub!!.setLEDColor(LEDColor.PINK)
-        }
 
         button_enable_button.setOnClickListener{
             moveHub!!.activateButton()
@@ -146,6 +142,15 @@ class DeviceControlActivity : Activity() {
         }
     }
 
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+        val item = parent!!.getItemAtPosition(position).toString()
+        val color = getLedColorFromName(item)
+        moveHub?.setLEDColor(color)
+    }
+
+    override fun onNothingSelected(parent: AdapterView<*>?) {
+    }
+
     private fun enableButtons() {
         setButtonsState(true)
     }
@@ -155,27 +160,13 @@ class DeviceControlActivity : Activity() {
     }
 
     private fun setButtonsState(enabled : Boolean) {
-        button_purple.isEnabled = enabled
-        button_white.isEnabled = enabled
-        button_yellow.isEnabled = enabled
-        button_pink.isEnabled = enabled
         button_enable_imotor.isEnabled = enabled
         button_enable_color_sensor.isEnabled = enabled
         button_enable_button.isEnabled = enabled
         button_imotor_run.isEnabled = enabled
         button_imotor_reverse.isEnabled = enabled
         button_dump_data.isEnabled = enabled
-    }
-
-    private fun randomColor() {
-        var color : LEDColor? = null
-        val number = Random().nextInt(3)
-        when (number) {
-            0 -> color = LEDColor.PINK
-            1 -> color = LEDColor.PURPLE
-            2 -> color = LEDColor.WHITE
-        }
-        moveHub!!.setLEDColor(color!!)
+        spinner_led_colors.isEnabled = enabled
     }
 
     override fun onResume() {

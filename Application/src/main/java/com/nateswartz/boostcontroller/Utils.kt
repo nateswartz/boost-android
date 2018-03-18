@@ -1,6 +1,6 @@
 package com.nateswartz.boostcontroller
 
-fun getColor(str: String) : Color {
+fun getColorFromHex(str: String) : Color {
     return when (str) {
         String.format("%02X", Color.BLACK.data) -> Color.BLACK
         String.format("%02X", Color.PINK.data) -> Color.PINK
@@ -15,6 +15,23 @@ fun getColor(str: String) : Color {
         String.format("%02X", Color.WHITE.data) -> Color.WHITE
         else -> Color.UNKNOWN
     }
+}
+
+fun getLedColorFromName(name: String) : LEDColorCommand {
+    val color = when (name) {
+        "Pink" -> LEDColorCommand.PINK
+        "Purple" -> LEDColorCommand.PURPLE
+        "Blue" -> LEDColorCommand.BLUE
+        "Light Blue" -> LEDColorCommand.LIGHTBLUE
+        "Cyan" -> LEDColorCommand.CYAN
+        "Green" -> LEDColorCommand.GREEN
+        "Yellow" -> LEDColorCommand.YELLOW
+        "Orange" -> LEDColorCommand.ORANGE
+        "Red" -> LEDColorCommand.RED
+        "White" -> LEDColorCommand.WHITE
+        else -> LEDColorCommand.BLACK
+    }
+    return color
 }
 
 fun getByteArrayFromInt(number: Int, size: Int): Array<Byte> {
