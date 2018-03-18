@@ -147,7 +147,7 @@ class DeviceControlActivity : Activity() {
             moveHub!!.activateColorSensor()
         }
         button_enable_imotor.setOnClickListener{
-            moveHub!!.activateIMotorSensor()
+            moveHub!!.activateExternalMotorSensor()
         }
 
         button_imotor_run.setOnClickListener{

@@ -14,7 +14,7 @@ class PortInfoNotification : HubNotification{
     val sensor = when (rawData.substring(15, 17)) {
         "17" -> "LED"
         "25" -> "DistanceColor"
-        "26" -> "IMotor"
+        "26" -> "ExternalMotor"
         "27" -> "Motor"
         "28" -> "Tilt"
         else -> "Unknown"

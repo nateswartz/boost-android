@@ -3,7 +3,7 @@ package com.nateswartz.boostcontroller
 object HubNotificationFactory {
 
     var ColorSensorPort = ""
-    var IMotorPort = ""
+    var ExternalMotorPort = ""
 
     fun build(byteData: ByteArray): HubNotification {
         return build(convertBytesToString(byteData))
@@ -17,9 +17,9 @@ object HubNotificationFactory {
         } else if (stringData.substring(9, 11) == "01" && ColorSensorPort == "C"
                 || stringData.substring(9, 11) == "02" && ColorSensorPort == "D") {
             return ColorSensorNotification(stringData)
-        } else if (stringData.substring(9, 11) == "01" && IMotorPort == "C"
-                || stringData.substring(9, 11) == "02" && IMotorPort == "D") {
-            return IMotorNotification(stringData)
+        } else if (stringData.substring(9, 11) == "01" && ExternalMotorPort == "C"
+                || stringData.substring(9, 11) == "02" && ExternalMotorPort == "D") {
+            return ExternalMotorNotification(stringData)
         } else if (stringData.startsWith("0F 00 04")) {
             return PortInfoNotification(stringData)
         }

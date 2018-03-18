@@ -13,14 +13,14 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
     val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
     val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
 
-    val ACTIVATE_IMOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-    val ACTIVATE_IMOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    val ACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    val ACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
 
     val C_PORT_BYTE = 0x01.toByte()
     val D_PORT_BYTE = 0x02.toByte()
 
     var ColorSensorPort = ""
-    var IMotorPort = ""
+    var ExternalMotorPort = ""
 
     fun enableNotifications() {
         bluetoothLeService!!.setCharacteristicNotification(characteristic, true)
@@ -37,9 +37,9 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
         }
         val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
         var portByte : Byte? = null
-        if (IMotorPort == "C") {
+        if (ExternalMotorPort == "C") {
             portByte = C_PORT_BYTE
-        } else if (IMotorPort == "D") {
+        } else if (ExternalMotorPort == "D") {
             portByte = D_PORT_BYTE
         }
         val RUN_MOTOR = byteArrayOf(0x0c, 0x00, 0x81.toByte(), portByte!!, 0x11, 0x09, timeBytes[0], timeBytes[1], powerByte, 0x64, 0x7f, 0x03)
@@ -57,10 +57,10 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
         }
     }
 
-    fun activateIMotorSensor() {
-        when (IMotorPort) {
-            "C" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_IMOTOR_PORT_C)
-            "D" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_IMOTOR_PORT_D)
+    fun activateExternalMotorSensor() {
+        when (ExternalMotorPort) {
+            "C" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
+            "D" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
         }
     }
 
@@ -74,9 +74,9 @@ class MoveHub (var bluetoothLeService: BluetoothLeService?, val characteristic: 
                     ColorSensorPort = notification.port
                     HubNotificationFactory.ColorSensorPort = notification.port
                 }
-                "IMotor" -> {
-                    IMotorPort = notification.port
-                    HubNotificationFactory.IMotorPort = notification.port
+                "ExternalMotor" -> {
+                    ExternalMotorPort = notification.port
+                    HubNotificationFactory.ExternalMotorPort = notification.port
                 }
             }
         }
