@@ -120,19 +120,30 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_enable_imotor.setOnClickListener{
             moveHub!!.activateExternalMotorSensor()
         }
+        button_enable_motors.setOnClickListener {
+            moveHub!!.activateInternalMotorSensors()
+        }
 
-        button_imotor_run.setOnClickListener{
+        button_imotor_run.setOnClickListener {
             moveHub!!.runExternalMotor(25, 400, false)
         }
         button_imotor_reverse.setOnClickListener {
             moveHub!!.runExternalMotor(25, 400, true)
         }
 
-        button_run_internal_motor.setOnClickListener {
+        button_run_internal_motors.setOnClickListener {
             moveHub!!.runInternalMotors(25, 400, false)
         }
-        button_reverse_internal_motor.setOnClickListener {
+        button_reverse_internal_motors.setOnClickListener {
             moveHub!!.runInternalMotors(25, 400, true)
+        }
+
+        button_run_motor_a.setOnClickListener{
+            moveHub!!.runInternalMotor(25, 400, false, "A")
+        }
+
+        button_run_motor_b.setOnClickListener{
+            moveHub!!.runInternalMotor(25, 400, false, "B")
         }
 
         button_spin.setOnClickListener {
@@ -165,12 +176,15 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_enable_imotor.isEnabled = enabled
         button_enable_color_sensor.isEnabled = enabled
         button_enable_button.isEnabled = enabled
+        button_enable_motors.isEnabled = enabled
         button_imotor_run.isEnabled = enabled
         button_imotor_reverse.isEnabled = enabled
         button_dump_data.isEnabled = enabled
-        button_run_internal_motor.isEnabled = enabled
-        button_reverse_internal_motor.isEnabled = enabled
+        button_run_internal_motors.isEnabled = enabled
+        button_reverse_internal_motors.isEnabled = enabled
         button_spin.isEnabled = enabled
+        button_run_motor_a.isEnabled = enabled
+        button_run_motor_b.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
     }
 

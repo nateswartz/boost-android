@@ -13,7 +13,7 @@
         android:layout_marginTop="8dp"
         android:text="Dump Data"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_run_internal_motor" />
+        app:layout_constraintTop_toBottomOf="@+id/button_spin" />
 
     <Button
         android:id="@+id/button_enable_button"
@@ -75,23 +75,23 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/button_run_internal_motor"
+        android:id="@+id/button_run_internal_motors"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Run Internal Motor"
+        android:text="Run Internal Motors"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_imotor_run" />
 
     <Button
-        android:id="@+id/button_reverse_internal_motor"
+        android:id="@+id/button_reverse_internal_motors"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Reverse Internal Motor"
-        app:layout_constraintStart_toEndOf="@+id/button_run_internal_motor"
+        android:text="Reverse Internal Motors"
+        app:layout_constraintStart_toEndOf="@+id/button_run_internal_motors"
         app:layout_constraintTop_toBottomOf="@+id/button_imotor_reverse" />
 
     <Button
@@ -102,5 +102,35 @@
         android:layout_marginTop="8dp"
         android:text="Spin"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_dump_data" />
+        app:layout_constraintTop_toBottomOf="@+id/button_run_internal_motors" />
+
+    <Button
+        android:id="@+id/button_enable_motors"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Motors"
+        app:layout_constraintStart_toEndOf="@+id/button_enable_button"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/button_run_motor_a"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Run Motor A"
+        app:layout_constraintStart_toEndOf="@+id/button_spin"
+        app:layout_constraintTop_toBottomOf="@+id/button_run_internal_motors" />
+
+    <Button
+        android:id="@+id/button_run_motor_b"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Run Motor B"
+        app:layout_constraintStart_toEndOf="@+id/button_run_motor_a"
+        app:layout_constraintTop_toBottomOf="@+id/button_reverse_internal_motors" />
 </android.support.constraint.ConstraintLayout>
