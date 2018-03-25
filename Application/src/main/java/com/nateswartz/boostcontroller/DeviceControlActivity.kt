@@ -1,22 +1,31 @@
 package com.nateswartz.boostcontroller
 
+import android.Manifest
 import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothManager
+import android.bluetooth.le.*
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.ParcelUuid
+import android.support.v13.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
 import android.widget.*
-
 
 /*
 Handle to send data to:
@@ -26,8 +35,6 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
 */
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
-    private var deviceName: String? = null
-    private var deviceAddress: String? = null
     private var bluetoothLeService: BluetoothLeService? = null
     private var moveHub: MoveHub? = null
     private var gattCharacteristic: BluetoothGattCharacteristic? = null
@@ -35,6 +42,24 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     private var colorArray = arrayOf("Off", "Blue", "Pink", "Purple",
             "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
+
+
+    private var bluetoothAdapter: BluetoothAdapter? = null
+    private var bluetoothScanner: BluetoothLeScanner? = null
+    private var scanning: Boolean = false
+    private var handler: Handler? = null
+    private var boostHub: BluetoothDevice? = null
+
+    private val PERMISSION_REQUEST_CODE = 1
+
+    // Device scan callback.
+    private val leScanCallback = object : ScanCallback() {
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            super.onScanResult(callbackType, result)
+            boostHub = result.device
+            scanLeDevice(false)
+        }
+    }
 
     // Code to manage Service lifecycle.
     private val serviceConnection = object : ServiceConnection {
@@ -46,7 +71,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 finish()
             }
             // Automatically connects to the device upon successful start-up initialization.
-            bluetoothLeService!!.connect(deviceAddress)
+            bluetoothLeService!!.connect(boostHub!!.address)
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
@@ -91,15 +116,128 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_control)
+        actionBar!!.setTitle(R.string.title_devices)
+        handler = Handler()
 
-        val intent = intent
-        deviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
-        deviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
 
-        actionBar!!.title = deviceName
-        actionBar!!.setDisplayHomeAsUpEnabled(true)
-        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
-        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    PERMISSION_REQUEST_CODE)
+
+        } else {
+            finishSetup()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    finishSetup()
+                    return
+                }
+            }
+            else -> {
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.gatt_services, menu)
+        if (connected) {
+            menu.findItem(R.id.menu_connect).isVisible = false
+            menu.findItem(R.id.menu_disconnect).isVisible = true
+        } else {
+            menu.findItem(R.id.menu_connect).isVisible = true
+            menu.findItem(R.id.menu_disconnect).isVisible = false
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_connect -> {
+                if (scanning) {
+                    bluetoothScanner!!.stopScan(leScanCallback)
+                    scanning = false
+                }
+                Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
+                val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+                bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+                return true
+            }
+            R.id.menu_disconnect -> {
+                bluetoothLeService!!.disconnect()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        // User chose not to enable Bluetooth.
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
+            finish()
+            return
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+
+    private fun scanLeDevice(enable: Boolean) {
+        if (enable) {
+            // Stops scanning after a pre-defined scan period.
+            handler!!.postDelayed({
+                scanning = false
+                bluetoothScanner!!.stopScan(leScanCallback)
+                invalidateOptionsMenu()
+            }, SCAN_PERIOD)
+
+            Log.e(TAG, "Scanning")
+            scanning = true
+            bluetoothScanner!!.startScan(
+                    listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BoostUUID)).build()),
+                    ScanSettings.Builder().build(),
+                    leScanCallback)
+            Toast.makeText(this, "Scanning...", Toast.LENGTH_SHORT).show()
+
+        } else {
+            Log.e(TAG, "Stop Scanning")
+            scanning = false
+            bluetoothScanner!!.stopScan(leScanCallback)
+            Toast.makeText(this, "Scanning Stopped", Toast.LENGTH_SHORT).show()
+        }
+        invalidateOptionsMenu()
+    }
+
+    private fun finishSetup() {
+        Log.e(TAG, "FinishSetup")
+        // Use this check to determine whether BLE is supported on the device.  Then you can
+        // selectively disable BLE-related features.
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show()
+            finish()
+        }
+
+        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
+        // BluetoothAdapter through BluetoothManager.
+        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothAdapter = bluetoothManager.adapter
+        bluetoothScanner = bluetoothAdapter!!.bluetoothLeScanner
+
+        // Checks if Bluetooth is supported on the device.
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+        scanLeDevice(true)
 
         val adapter = ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, colorArray)
@@ -190,15 +328,43 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     override fun onResume() {
         super.onResume()
+
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    PERMISSION_REQUEST_CODE)
+        } else {
+            // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
+            // fire an intent to display a dialog asking the user to grant permission to enable it.
+            if (!bluetoothAdapter!!.isEnabled) {
+                if (!bluetoothAdapter!!.isEnabled) {
+                    val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+                }
+            }
+
+            scanLeDevice(true)
+        }
+
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
         if (bluetoothLeService != null) {
-            val result = bluetoothLeService!!.connect(deviceAddress)
+            val result = bluetoothLeService!!.connect(boostHub!!.address)
             Log.d(TAG, "Connect request result=$result")
         }
+
     }
 
     override fun onPause() {
         super.onPause()
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            scanLeDevice(false)
+        }
         unregisterReceiver(gattUpdateReceiver)
     }
 
@@ -208,42 +374,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         bluetoothLeService = null
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.gatt_services, menu)
-        if (connected) {
-            menu.findItem(R.id.menu_connect).isVisible = false
-            menu.findItem(R.id.menu_disconnect).isVisible = true
-        } else {
-            menu.findItem(R.id.menu_connect).isVisible = true
-            menu.findItem(R.id.menu_disconnect).isVisible = false
-        }
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.menu_connect -> {
-                bluetoothLeService!!.connect(deviceAddress)
-                Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-                return true
-            }
-            R.id.menu_disconnect -> {
-                bluetoothLeService!!.disconnect()
-                return true
-            }
-            android.R.id.home -> {
-                onBackPressed()
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
     companion object {
         private val TAG = DeviceControlActivity::class.java.simpleName
 
-        const val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
-        const val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
+        const val REQUEST_ENABLE_BT = 1
+        // Stops scanning after 10 seconds.
+        const val SCAN_PERIOD: Long = 10000
 
         private fun makeGattUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
