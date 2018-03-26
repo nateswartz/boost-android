@@ -36,19 +36,17 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     private var bluetoothLeService: BluetoothLeService? = null
+    private var bluetoothAdapter: BluetoothAdapter? = null
+    private var bluetoothScanner: BluetoothLeScanner? = null
+    private var handler: Handler? = null
+    private var boostHub: BluetoothDevice? = null
     private var moveHub: MoveHub? = null
     private var gattCharacteristic: BluetoothGattCharacteristic? = null
     private var connected = false
+    private var scanning: Boolean = false
 
     private var colorArray = arrayOf("Off", "Blue", "Pink", "Purple",
             "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
-
-
-    private var bluetoothAdapter: BluetoothAdapter? = null
-    private var bluetoothScanner: BluetoothLeScanner? = null
-    private var scanning: Boolean = false
-    private var handler: Handler? = null
-    private var boostHub: BluetoothDevice? = null
 
     private val PERMISSION_REQUEST_CODE = 1
 
@@ -152,6 +150,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             menu.findItem(R.id.menu_connect).isVisible = false
             menu.findItem(R.id.menu_disconnect).isVisible = true
         } else {
+            menu.findItem(R.id.menu_connect).isEnabled = !scanning
             menu.findItem(R.id.menu_connect).isVisible = true
             menu.findItem(R.id.menu_disconnect).isVisible = false
         }
@@ -172,6 +171,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             }
             R.id.menu_disconnect -> {
                 bluetoothLeService!!.disconnect()
+                connected = false
+                unbindService(serviceConnection)
+                bluetoothLeService = null
                 return true
             }
         }
