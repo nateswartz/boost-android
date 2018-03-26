@@ -7,7 +7,7 @@ import java.util.*
 
 val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
 
-class MoveHub (private var bluetoothLeService: BluetoothLeService?, private val characteristic: BluetoothGattCharacteristic){
+class MoveHub (private var bluetoothLeService: BluetoothLeService?, private var characteristic: BluetoothGattCharacteristic){
 
     private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
     private val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
@@ -25,6 +25,11 @@ class MoveHub (private var bluetoothLeService: BluetoothLeService?, private val 
 
     private var ColorSensorPort = ""
     private var ExternalMotorPort = ""
+
+    fun update(newBluetoothLeService: BluetoothLeService, newCharacteristic: BluetoothGattCharacteristic) {
+        bluetoothLeService = newBluetoothLeService
+        characteristic = newCharacteristic
+    }
 
     fun setLEDColor(color: LEDColorCommand) {
         bluetoothLeService!!.writeCharacteristic(characteristic, color.data)

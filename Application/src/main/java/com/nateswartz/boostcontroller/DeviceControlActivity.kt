@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.*
 import android.content.BroadcastReceiver
@@ -41,7 +40,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     private var handler: Handler? = null
     private var boostHub: BluetoothDevice? = null
     private var moveHub: MoveHub? = null
-    private var gattCharacteristic: BluetoothGattCharacteristic? = null
     private var connected = false
     private var scanning: Boolean = false
 
@@ -53,6 +51,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     // Device scan callback.
     private val leScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
+            Log.e(TAG, result.toString())
             super.onScanResult(callbackType, result)
             boostHub = result.device
             scanLeDevice(false)
@@ -70,9 +69,11 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             }
             // Automatically connects to the device upon successful start-up initialization.
             bluetoothLeService!!.connect(boostHub!!.address)
+            Log.e(TAG, "Connecting to Boost Hub")
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
+            Log.e(TAG, "Service Disconnect")
             bluetoothLeService = null
         }
     }
@@ -98,9 +99,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     invalidateOptionsMenu()
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
-                    gattCharacteristic = bluetoothLeService!!.supportedGattServices!![2].characteristics[0]
                     if (moveHub == null) {
-                        moveHub = MoveHub(bluetoothLeService, gattCharacteristic!!)
+                        moveHub = MoveHub(bluetoothLeService, bluetoothLeService!!.supportedGattServices!![2].characteristics[0])
+                    } else {
+                        moveHub!!.update(bluetoothLeService!!, bluetoothLeService!!.supportedGattServices!![2].characteristics[0])
                     }
                     moveHub!!.enableNotifications()
                 }
@@ -147,9 +149,11 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gatt_services, menu)
         if (connected) {
+            menu.findItem(R.id.menu_scan).isVisible = false
             menu.findItem(R.id.menu_connect).isVisible = false
             menu.findItem(R.id.menu_disconnect).isVisible = true
         } else {
+            menu.findItem(R.id.menu_scan).isVisible = !scanning
             menu.findItem(R.id.menu_connect).isEnabled = !scanning
             menu.findItem(R.id.menu_connect).isVisible = true
             menu.findItem(R.id.menu_disconnect).isVisible = false
@@ -159,6 +163,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.menu_scan -> {
+                scanLeDevice(true)
+                scanning = true
+            }
             R.id.menu_connect -> {
                 if (scanning) {
                     bluetoothScanner!!.stopScan(leScanCallback)
