@@ -133,4 +133,57 @@
         android:text="Run Motor B"
         app:layout_constraintStart_toEndOf="@+id/button_run_motor_a"
         app:layout_constraintTop_toBottomOf="@+id/button_reverse_internal_motors" />
+
+    <EditText
+        android:id="@+id/input_power"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="24dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintStart_toEndOf="@+id/text_power"
+        app:layout_constraintTop_toBottomOf="@+id/button_dump_data" />
+
+    <EditText
+        android:id="@+id/input_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="16dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintStart_toEndOf="@+id/text_time"
+        app:layout_constraintTop_toBottomOf="@+id/input_power" />
+
+    <TextView
+        android:id="@+id/text_power"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="24dp"
+        android:text="Power (%)"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_dump_data" />
+
+    <TextView
+        android:id="@+id/text_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="Time (ms)"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_power" />
+
+    <Button
+        android:id="@+id/button_var_run_motor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="19dp"
+        android:text="Run Motor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_time" />
+
 </android.support.constraint.ConstraintLayout>

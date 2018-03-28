@@ -307,6 +307,14 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_dump_data.setOnClickListener {
             bluetoothLeService!!.dumpData()
         }
+
+        button_var_run_motor.setOnClickListener {
+            val power = input_power.text.toString()
+            val time = input_time.text.toString()
+            if (power != "" && time != "") {
+                moveHub!!.runInternalMotors(power.toInt(), time.toInt(), false)
+            }
+        }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -340,6 +348,11 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_run_motor_a.isEnabled = enabled
         button_run_motor_b.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
+        text_power.isEnabled = enabled
+        text_time.isEnabled = enabled
+        input_power.isEnabled = enabled
+        input_time.isEnabled = enabled
+        button_var_run_motor.isEnabled = enabled
     }
 
     override fun onResume() {
