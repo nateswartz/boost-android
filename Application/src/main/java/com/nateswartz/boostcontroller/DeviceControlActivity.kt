@@ -41,7 +41,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     private var boostHub: BluetoothDevice? = null
     private var moveHub: MoveHub? = null
     private var connected = false
-    private var scanning: Boolean = false
+    private var scanning = false
+    private var found = false
 
     private var colorArray = arrayOf("Off", "Blue", "Pink", "Purple",
             "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
@@ -54,6 +55,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             Log.e(TAG, result.toString())
             super.onScanResult(callbackType, result)
             boostHub = result.device
+            found = true
             scanLeDevice(false)
         }
     }
@@ -153,7 +155,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             menu.findItem(R.id.menu_connect).isVisible = false
             menu.findItem(R.id.menu_disconnect).isVisible = true
         } else {
-            menu.findItem(R.id.menu_scan).isVisible = !scanning
+            if (!found) {
+                menu.findItem(R.id.menu_scan).isVisible = true
+            }
+            menu.findItem(R.id.menu_scan).isVisible = false
             menu.findItem(R.id.menu_connect).isEnabled = !scanning
             menu.findItem(R.id.menu_connect).isVisible = true
             menu.findItem(R.id.menu_disconnect).isVisible = false
@@ -205,6 +210,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             // Stops scanning after a pre-defined scan period.
             handler!!.postDelayed({
                 scanning = false
+                found = false
                 bluetoothScanner!!.stopScan(leScanCallback)
                 invalidateOptionsMenu()
             }, SCAN_PERIOD)
@@ -356,7 +362,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 }
             }
 
-            scanLeDevice(true)
+            if (!found) {
+                scanLeDevice(true)
+            }
         }
 
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
@@ -373,7 +381,17 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                         Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            scanLeDevice(false)
+            if (scanning) {
+                scanLeDevice(false)
+                scanning = false
+            } else {
+                if (connected) {
+                    bluetoothLeService!!.disconnect()
+                    connected = false
+                    unbindService(serviceConnection)
+                    bluetoothLeService = null
+                }
+            }
         }
         unregisterReceiver(gattUpdateReceiver)
     }
