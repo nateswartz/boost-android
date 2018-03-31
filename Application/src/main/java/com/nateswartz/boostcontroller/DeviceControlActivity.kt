@@ -47,6 +47,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     private var colorArray = arrayOf("Off", "Blue", "Pink", "Purple",
             "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
 
+    private var motorTypes = arrayOf("A", "B", "A+B", "External")
+
     private val PERMISSION_REQUEST_CODE = 1
 
     // Device scan callback.
@@ -255,13 +257,19 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         }
         scanLeDevice(true)
 
-        val adapter = ArrayAdapter<String>(this,
+        val colorAdapter = ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, colorArray)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner_led_colors.adapter = adapter
+        colorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner_led_colors.adapter = colorAdapter
         spinner_led_colors.onItemSelectedListener = this
         // Set Spinner to Blue to start (since that's the Hub default)
         spinner_led_colors.setSelection(1)
+
+        val motorAdapter = ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, motorTypes)
+        motorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner_motor_types.adapter = motorAdapter
+        spinner_motor_types.onItemSelectedListener = this
 
         disableControls()
 
@@ -311,16 +319,28 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_var_run_motor.setOnClickListener {
             val power = input_power.text.toString()
             val time = input_time.text.toString()
+            val motor = spinner_motor_types.selectedItem.toString()
+            val counterclockwise = switch_counter_clockwise.isChecked
             if (power != "" && time != "") {
-                moveHub!!.runInternalMotors(power.toInt(), time.toInt(), false)
+                when (motor) {
+                    "A" -> moveHub!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
+                    "B" -> moveHub!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
+                    "A+B" -> moveHub!!.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
+                    "External" -> moveHub!!.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
+                }
             }
         }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        val item = parent!!.getItemAtPosition(position).toString()
-        val color = getLedColorFromName(item)
-        moveHub?.setLEDColor(color)
+        when (parent) {
+            spinner_led_colors -> {
+                val item = parent!!.getItemAtPosition(position).toString()
+                val color = getLedColorFromName(item)
+                moveHub?.setLEDColor(color)
+            }
+        }
+
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -348,6 +368,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_run_motor_a.isEnabled = enabled
         button_run_motor_b.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
+        spinner_motor_types.isEnabled = enabled
         text_power.isEnabled = enabled
         text_time.isEnabled = enabled
         input_power.isEnabled = enabled
