@@ -120,7 +120,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_control)
-        actionBar!!.setTitle(R.string.title_devices)
         handler = Handler()
 
         if (ContextCompat.checkSelfPermission(this,
@@ -151,19 +150,21 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.gatt_services, menu)
+        menuInflater.inflate(R.menu.main_menu, menu)
         if (connected) {
             menu.findItem(R.id.menu_scan).isVisible = false
             menu.findItem(R.id.menu_connect).isVisible = false
             menu.findItem(R.id.menu_disconnect).isVisible = true
         } else {
-            if (!found) {
-                menu.findItem(R.id.menu_scan).isVisible = true
-            }
-            menu.findItem(R.id.menu_scan).isVisible = false
-            menu.findItem(R.id.menu_connect).isEnabled = !scanning
-            menu.findItem(R.id.menu_connect).isVisible = true
             menu.findItem(R.id.menu_disconnect).isVisible = false
+            if (found) {
+                menu.findItem(R.id.menu_scan).isVisible = false
+                menu.findItem(R.id.menu_connect).isEnabled = true
+            } else {
+                menu.findItem(R.id.menu_scan).isVisible = true
+                menu.findItem(R.id.menu_scan).isEnabled = !scanning
+                menu.findItem(R.id.menu_connect).isVisible = false
+            }
         }
         return true
     }
@@ -212,7 +213,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             // Stops scanning after a pre-defined scan period.
             handler!!.postDelayed({
                 scanning = false
-                found = false
                 bluetoothScanner!!.stopScan(leScanCallback)
                 invalidateOptionsMenu()
             }, SCAN_PERIOD)
@@ -286,28 +286,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             moveHub!!.activateInternalMotorSensors()
         }
 
-        button_imotor_run.setOnClickListener {
-            moveHub!!.runExternalMotor(25, 400, false)
-        }
-        button_imotor_reverse.setOnClickListener {
-            moveHub!!.runExternalMotor(25, 400, true)
-        }
-
-        button_run_internal_motors.setOnClickListener {
-            moveHub!!.runInternalMotors(25, 400, false)
-        }
-        button_reverse_internal_motors.setOnClickListener {
-            moveHub!!.runInternalMotors(25, 400, true)
-        }
-
-        button_run_motor_a.setOnClickListener{
-            moveHub!!.runInternalMotor(25, 400, false, "A")
-        }
-
-        button_run_motor_b.setOnClickListener{
-            moveHub!!.runInternalMotor(25, 400, false, "B")
-        }
-
         button_spin.setOnClickListener {
             moveHub!!.runInternalMotorsInOpposition(20, 300)
         }
@@ -359,14 +337,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_enable_color_sensor.isEnabled = enabled
         button_enable_button.isEnabled = enabled
         button_enable_motors.isEnabled = enabled
-        button_imotor_run.isEnabled = enabled
-        button_imotor_reverse.isEnabled = enabled
         button_dump_data.isEnabled = enabled
-        button_run_internal_motors.isEnabled = enabled
-        button_reverse_internal_motors.isEnabled = enabled
         button_spin.isEnabled = enabled
-        button_run_motor_a.isEnabled = enabled
-        button_run_motor_b.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
         spinner_motor_types.isEnabled = enabled
         text_power.isEnabled = enabled
