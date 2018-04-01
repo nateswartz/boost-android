@@ -69,11 +69,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             moveHubService = (service as MoveHubService.LocalBinder).service
-            if (!moveHubService!!.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth")
-                finish()
-            }
-            // Automatically connects to the device upon successful start-up initialization.
             finishSetup()
         }
 
@@ -83,12 +78,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         }
     }
 
-    // Handles various events fired by the Service.
-    // ACTION_GATT_CONNECTED: connected to a GATT server.
-    // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
-    // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
-    // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
-    //                        or notification operations.
     private val gattUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action

@@ -28,6 +28,157 @@ class MoveHubService : Service() {
     private var bluetoothGatt: BluetoothGatt? = null
     private var connectionState = STATE_DISCONNECTED
 
+    private var characteristic: BluetoothGattCharacteristic? = null
+
+    private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
+    private val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val ACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val ACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val ACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+
+    private val C_PORT_BYTE = 0x01.toByte()
+    private val D_PORT_BYTE = 0x02.toByte()
+    private val AB_PORT_BYTE = 0x39.toByte()
+    private val A_PORT_BYTE = 0x37.toByte()
+    private val B_PORT_BYTE = 0x38.toByte()
+
+    private var ColorSensorPort = ""
+    private var ExternalMotorPort = ""
+
+    fun setLEDColor(color: LEDColorCommand) {
+        writeCharacteristic(characteristic!!, color.data)
+    }
+
+    fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
+        var portByte : Byte? = null
+        if (ExternalMotorPort == "C") {
+            portByte = C_PORT_BYTE
+        } else if (ExternalMotorPort == "D") {
+            portByte = D_PORT_BYTE
+        }
+        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, portByte!!)
+    }
+
+    fun runInternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, motor: String)
+    {
+        when (motor) {
+            "A" -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, A_PORT_BYTE)
+            "B" -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, B_PORT_BYTE)
+        }
+    }
+
+    fun runInternalMotors(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
+        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, AB_PORT_BYTE)
+    }
+
+    fun runInternalMotorsInOpposition(powerPercentage: Int, timeInMilliseconds: Int) {
+        val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
+        val motorAPower = powerPercentage.toByte()
+        val motorBPower = (255 - powerPercentage).toByte()
+        val RUN_MOTOR = byteArrayOf(0x0d, 0x00, 0x81.toByte(), AB_PORT_BYTE, 0x11, 0x0a, timeBytes[0], timeBytes[1], motorAPower, motorBPower, 0x64, 0x7f, 0x03)
+        writeCharacteristic(characteristic!!, RUN_MOTOR)
+    }
+
+    fun enableNotifications() {
+        setCharacteristicNotification(characteristic!!, true)
+    }
+
+    fun activateButtonNotifications() {
+        writeCharacteristic(characteristic!!, ACTIVATE_BUTTON)
+    }
+
+    fun activateColorSensorNotifications() {
+        when (ColorSensorPort) {
+            "C" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_C)
+            "D" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_D)
+        }
+    }
+
+    fun activateExternalMotorSensorNotifications() {
+        when (ExternalMotorPort) {
+            "C" -> writeCharacteristic(characteristic!!, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
+            "D" -> writeCharacteristic(characteristic!!, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
+        }
+    }
+
+    fun activateInternalMotorSensorsNotifications() {
+        activateInternalMotorSensorNotifications("A")
+        activateInternalMotorSensorNotifications("B")
+    }
+
+    fun activateInternalMotorSensorNotifications(motor: String) {
+        var data = ACTIVATE_MOTOR_PORT
+        when (motor) {
+            "A" -> data[3] = A_PORT_BYTE
+            "B" -> data[3] = B_PORT_BYTE
+        }
+        writeCharacteristic(characteristic!!, data)
+    }
+
+    fun activateTiltSensorNotifications() {
+        writeCharacteristic(characteristic!!, ACTIVATE_TILT_SENSOR)
+    }
+
+    private fun handleNotification(data: ByteArray) {
+        val stringBuilder = StringBuilder(data.size)
+        for (byteChar in data)
+            stringBuilder.append(String.format("%02X ", byteChar))
+        val pieces = (String(data) + "\n" + stringBuilder.toString()).split("\n")
+        val encodedData = pieces[pieces.size - 1]
+        val notification = HubNotificationFactory.build(encodedData.trim())
+        if (notification is PortInfoNotification) {
+            when(notification.sensor) {
+                "DistanceColor" -> {
+                    ColorSensorPort = notification.port
+                    HubNotificationFactory.ColorSensorPort = notification.port
+                }
+                "ExternalMotor" -> {
+                    ExternalMotorPort = notification.port
+                    HubNotificationFactory.ExternalMotorPort = notification.port
+                }
+            }
+        }
+        Log.e(TAG, notification.toString())
+    }
+
+    private fun runMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, portByte: Byte) {
+        val powerByte = when (counterclockwise) {
+            true -> (255 - powerPercentage).toByte()
+            false -> powerPercentage.toByte()
+        }
+        val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
+        val RUN_MOTOR = byteArrayOf(0x0c, 0x00, 0x81.toByte(), portByte, 0x11, 0x09, timeBytes[0], timeBytes[1], powerByte, 0x64, 0x7f, 0x03)
+        writeCharacteristic(characteristic!!, RUN_MOTOR)
+    }
+
+    fun dumpData() {
+        for (service in bluetoothGatt!!.services) {
+            Log.e(TAG, "Service: ${service.uuid}")
+            if (service.characteristics != null) {
+                for (characteristic in service.characteristics) {
+                    Log.e(TAG, "Characteristic: ${characteristic.uuid}")
+                    if (characteristic.value != null) {
+                        for (byte in characteristic.value) {
+                            Log.e(TAG, String.format("%02X", byte))
+                        }
+                    }
+                    if (characteristic.descriptors != null) {
+                        for (descriptor in characteristic.descriptors) {
+                            Log.e(TAG, "Descriptor: ${descriptor.uuid}")
+                            if (descriptor.value != null) {
+                                for (byte in descriptor.value) {
+                                    Log.e(TAG, String.format("%02X", byte))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
     private val gattCallback = object : BluetoothGattCallback() {
@@ -53,7 +204,6 @@ class MoveHubService : Service() {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 characteristic = supportedGattServices!![2].characteristics[0]
                 enableNotifications()
-                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
             } else {
                 Log.w(TAG, "onServicesDiscovered received: $status")
             }
@@ -63,13 +213,19 @@ class MoveHubService : Service() {
                                           characteristic: BluetoothGattCharacteristic,
                                           status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
+                val data = characteristic.value
+                if (data.isNotEmpty()) {
+                    handleNotification(data)
+                }
             }
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt,
                                              characteristic: BluetoothGattCharacteristic) {
-            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
+            val data = characteristic.value
+            if (data.isNotEmpty()) {
+                handleNotification(data)
+            }
         }
     }
 
@@ -89,28 +245,13 @@ class MoveHubService : Service() {
         sendBroadcast(intent)
     }
 
-    private fun broadcastUpdate(action: String,
-                                characteristic: BluetoothGattCharacteristic) {
-        val intent = Intent(action)
-
-        // For all other profiles, writes the data formatted in HEX.
-        val data = characteristic.value
-        if (data.isNotEmpty()) {
-            val stringBuilder = StringBuilder(data.size)
-            for (byteChar in data)
-                stringBuilder.append(String.format("%02X ", byteChar))
-            handleNotification(String(data) + "\n" + stringBuilder.toString())
-            intent.putExtra(EXTRA_DATA, String(data) + "\n" + stringBuilder.toString())
-        }
-        sendBroadcast(intent)
-    }
-
     inner class LocalBinder : Binder() {
         internal val service: MoveHubService
             get() = this@MoveHubService
     }
 
     override fun onBind(intent: Intent): IBinder? {
+        initialize()
         return binder
     }
 
@@ -127,7 +268,7 @@ class MoveHubService : Service() {
      *
      * @return Return true if the initialization is successful.
      */
-    fun initialize(): Boolean {
+    private fun initialize(): Boolean {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
         if (bluetoothManager == null) {
@@ -273,156 +414,6 @@ class MoveHubService : Service() {
         }
     }
 
-    fun dumpData() {
-        for (service in bluetoothGatt!!.services) {
-            Log.e(TAG, "Service: ${service.uuid}")
-            if (service.characteristics != null) {
-                for (characteristic in service.characteristics) {
-                    Log.e(TAG, "Characteristic: ${characteristic.uuid}")
-                    if (characteristic.value != null) {
-                        for (byte in characteristic.value) {
-                            Log.e(TAG, String.format("%02X", byte))
-                        }
-                    }
-                    if (characteristic.descriptors != null) {
-                        for (descriptor in characteristic.descriptors) {
-                            Log.e(TAG, "Descriptor: ${descriptor.uuid}")
-                            if (descriptor.value != null) {
-                                for (byte in descriptor.value) {
-                                    Log.e(TAG, String.format("%02X", byte))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Move Hub, Need to refactor //
-    private var characteristic: BluetoothGattCharacteristic? = null
-
-    private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
-    private val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
-    private val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
-    private val ACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-    private val ACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-    private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-    private val ACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-
-    private val C_PORT_BYTE = 0x01.toByte()
-    private val D_PORT_BYTE = 0x02.toByte()
-    private val AB_PORT_BYTE = 0x39.toByte()
-    private val A_PORT_BYTE = 0x37.toByte()
-    private val B_PORT_BYTE = 0x38.toByte()
-
-    private var ColorSensorPort = ""
-    private var ExternalMotorPort = ""
-
-    fun setLEDColor(color: LEDColorCommand) {
-        writeCharacteristic(characteristic!!, color.data)
-    }
-
-    fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
-        var portByte : Byte? = null
-        if (ExternalMotorPort == "C") {
-            portByte = C_PORT_BYTE
-        } else if (ExternalMotorPort == "D") {
-            portByte = D_PORT_BYTE
-        }
-        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, portByte!!)
-    }
-
-    fun runInternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, motor: String)
-    {
-        when (motor) {
-            "A" -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, A_PORT_BYTE)
-            "B" -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, B_PORT_BYTE)
-        }
-    }
-
-    fun runInternalMotors(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
-        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, AB_PORT_BYTE)
-    }
-
-    fun runInternalMotorsInOpposition(powerPercentage: Int, timeInMilliseconds: Int) {
-        val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
-        val motorAPower = powerPercentage.toByte()
-        val motorBPower = (255 - powerPercentage).toByte()
-        val RUN_MOTOR = byteArrayOf(0x0d, 0x00, 0x81.toByte(), AB_PORT_BYTE, 0x11, 0x0a, timeBytes[0], timeBytes[1], motorAPower, motorBPower, 0x64, 0x7f, 0x03)
-        writeCharacteristic(characteristic!!, RUN_MOTOR)
-    }
-
-    fun enableNotifications() {
-        setCharacteristicNotification(characteristic!!, true)
-    }
-
-    fun activateButtonNotifications() {
-        writeCharacteristic(characteristic!!, ACTIVATE_BUTTON)
-    }
-
-    fun activateColorSensorNotifications() {
-        when (ColorSensorPort) {
-            "C" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_C)
-            "D" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_D)
-        }
-    }
-
-    fun activateExternalMotorSensorNotifications() {
-        when (ExternalMotorPort) {
-            "C" -> writeCharacteristic(characteristic!!, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
-            "D" -> writeCharacteristic(characteristic!!, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
-        }
-    }
-
-    fun activateInternalMotorSensorsNotifications() {
-        activateInternalMotorSensorNotifications("A")
-        activateInternalMotorSensorNotifications("B")
-    }
-
-    fun activateInternalMotorSensorNotifications(motor: String) {
-        var data = ACTIVATE_MOTOR_PORT
-        when (motor) {
-            "A" -> data[3] = A_PORT_BYTE
-            "B" -> data[3] = B_PORT_BYTE
-        }
-        writeCharacteristic(characteristic!!, data)
-    }
-
-    fun activateTiltSensorNotifications() {
-        writeCharacteristic(characteristic!!, ACTIVATE_TILT_SENSOR)
-    }
-
-    fun handleNotification(data: String) {
-        val pieces = data.split("\n")
-        val encodedData = pieces[pieces.size - 1]
-        val notification = HubNotificationFactory.build(encodedData.trim())
-        if (notification is PortInfoNotification) {
-            when(notification.sensor) {
-                "DistanceColor" -> {
-                    ColorSensorPort = notification.port
-                    HubNotificationFactory.ColorSensorPort = notification.port
-                }
-                "ExternalMotor" -> {
-                    ExternalMotorPort = notification.port
-                    HubNotificationFactory.ExternalMotorPort = notification.port
-                }
-            }
-        }
-        Log.e(TAG, notification.toString())
-    }
-
-    private fun runMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, portByte: Byte) {
-        val powerByte = when (counterclockwise) {
-            true -> (255 - powerPercentage).toByte()
-            false -> powerPercentage.toByte()
-        }
-        val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
-        val RUN_MOTOR = byteArrayOf(0x0c, 0x00, 0x81.toByte(), portByte, 0x11, 0x09, timeBytes[0], timeBytes[1], powerByte, 0x64, 0x7f, 0x03)
-        writeCharacteristic(characteristic!!, RUN_MOTOR)
-    }
-    // Move Hub, Need to refactor //
-
     companion object {
         private val TAG = MoveHubService::class.java.simpleName
 
@@ -434,6 +425,5 @@ class MoveHubService : Service() {
         val ACTION_GATT_DISCONNECTED = "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED"
         val ACTION_GATT_SERVICES_DISCOVERED = "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED"
         val ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE"
-        val EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA"
     }
 }
