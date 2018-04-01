@@ -25,6 +25,7 @@ import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
 import android.widget.*
+import java.util.*
 
 /*
 Handle to send data to:
@@ -34,12 +35,13 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
 */
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
+    val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
+
     private var bluetoothLeService: BluetoothLeService? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothScanner: BluetoothLeScanner? = null
     private var handler: Handler? = null
     private var boostHub: BluetoothDevice? = null
-    private var moveHub: MoveHub? = null
     private var connected = false
     private var scanning = false
     private var found = false
@@ -101,17 +103,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     connected = false
                     disableControls()
                     invalidateOptionsMenu()
-                }
-                BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> { // Show all the supported services and characteristics on the user interface.
-                    if (moveHub == null) {
-                        moveHub = MoveHub(bluetoothLeService, bluetoothLeService!!.supportedGattServices!![2].characteristics[0])
-                    } else {
-                        moveHub!!.update(bluetoothLeService!!, bluetoothLeService!!.supportedGattServices!![2].characteristics[0])
-                    }
-                    moveHub!!.enableNotifications()
-                }
-                BluetoothLeService.ACTION_DATA_AVAILABLE -> {
-                    moveHub!!.handleNotification(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
                 }
             }
         }
@@ -181,15 +172,17 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     scanning = false
                 }
                 Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-                val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
-                bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+                if (bluetoothLeService == null) {
+                    val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+                    bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+                } else {
+                    bluetoothLeService!!.connect(boostHub!!.address)
+                }
                 return true
             }
             R.id.menu_disconnect -> {
                 bluetoothLeService!!.disconnect()
                 connected = false
-                unbindService(serviceConnection)
-                bluetoothLeService = null
                 invalidateOptionsMenu()
                 return true
             }
@@ -275,23 +268,23 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         disableControls()
 
         button_enable_button.setOnClickListener{
-            moveHub!!.activateButtonNotifications()
+            bluetoothLeService!!.activateButtonNotifications()
         }
         button_enable_color_sensor.setOnClickListener{
-            moveHub!!.activateColorSensorNotifications()
+            bluetoothLeService!!.activateColorSensorNotifications()
         }
         button_enable_imotor.setOnClickListener{
-            moveHub!!.activateExternalMotorSensorNotifications()
+            bluetoothLeService!!.activateExternalMotorSensorNotifications()
         }
         button_enable_motors.setOnClickListener {
-            moveHub!!.activateInternalMotorSensorsNotifications()
+            bluetoothLeService!!.activateInternalMotorSensorsNotifications()
         }
         button_tilt_sensor.setOnClickListener {
-            moveHub!!.activateTiltSensorNotifications()
+            bluetoothLeService!!.activateTiltSensorNotifications()
         }
 
         button_spin.setOnClickListener {
-            moveHub!!.runInternalMotorsInOpposition(20, 300)
+            bluetoothLeService!!.runInternalMotorsInOpposition(20, 300)
         }
 
         button_dump_data.setOnClickListener {
@@ -305,10 +298,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             val counterclockwise = switch_counter_clockwise.isChecked
             if (power != "" && time != "") {
                 when (motor) {
-                    "A" -> moveHub!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
-                    "B" -> moveHub!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
-                    "A+B" -> moveHub!!.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
-                    "External" -> moveHub!!.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
+                    "A" -> bluetoothLeService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
+                    "B" -> bluetoothLeService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
+                    "A+B" -> bluetoothLeService!!.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
+                    "External" -> bluetoothLeService!!.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
                 }
             }
         }
@@ -319,7 +312,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             spinner_led_colors -> {
                 val item = parent!!.getItemAtPosition(position).toString()
                 val color = getLedColorFromName(item)
-                moveHub?.setLEDColor(color)
+                bluetoothLeService?.setLEDColor(color)
             }
         }
 
@@ -351,6 +344,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         input_time.isEnabled = enabled
         button_var_run_motor.isEnabled = enabled
         button_tilt_sensor.isEnabled = enabled
+        switch_counter_clockwise.isEnabled = enabled
     }
 
     override fun onResume() {
