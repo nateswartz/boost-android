@@ -145,4 +145,14 @@
         app:layout_constraintStart_toEndOf="@+id/spinner_motor_types"
         app:layout_constraintTop_toBottomOf="@+id/input_time" />
 
+    <Button
+        android:id="@+id/button_tilt_sensor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Tilt Sensor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_enable_motors" />
+
 </android.support.constraint.ConstraintLayout>

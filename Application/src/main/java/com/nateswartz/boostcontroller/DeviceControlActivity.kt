@@ -190,6 +190,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 connected = false
                 unbindService(serviceConnection)
                 bluetoothLeService = null
+                invalidateOptionsMenu()
                 return true
             }
         }
@@ -274,16 +275,19 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         disableControls()
 
         button_enable_button.setOnClickListener{
-            moveHub!!.activateButton()
+            moveHub!!.activateButtonNotifications()
         }
         button_enable_color_sensor.setOnClickListener{
-            moveHub!!.activateColorSensor()
+            moveHub!!.activateColorSensorNotifications()
         }
         button_enable_imotor.setOnClickListener{
-            moveHub!!.activateExternalMotorSensor()
+            moveHub!!.activateExternalMotorSensorNotifications()
         }
         button_enable_motors.setOnClickListener {
-            moveHub!!.activateInternalMotorSensors()
+            moveHub!!.activateInternalMotorSensorsNotifications()
+        }
+        button_tilt_sensor.setOnClickListener {
+            moveHub!!.activateTiltSensorNotifications()
         }
 
         button_spin.setOnClickListener {
@@ -346,6 +350,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         input_power.isEnabled = enabled
         input_time.isEnabled = enabled
         button_var_run_motor.isEnabled = enabled
+        button_tilt_sensor.isEnabled = enabled
     }
 
     override fun onResume() {

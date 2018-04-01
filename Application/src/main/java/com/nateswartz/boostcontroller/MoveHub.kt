@@ -12,10 +12,10 @@ class MoveHub (private var bluetoothLeService: BluetoothLeService?, private var 
     private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
     private val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
-
     private val ACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val ACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
 
     private val C_PORT_BYTE = 0x01.toByte()
     private val D_PORT_BYTE = 0x02.toByte()
@@ -69,36 +69,40 @@ class MoveHub (private var bluetoothLeService: BluetoothLeService?, private var 
         bluetoothLeService!!.setCharacteristicNotification(characteristic, true)
     }
 
-    fun activateButton() {
+    fun activateButtonNotifications() {
         bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_BUTTON)
     }
 
-    fun activateColorSensor() {
+    fun activateColorSensorNotifications() {
         when (ColorSensorPort) {
             "C" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_COLOR_SENSOR_PORT_C)
             "D" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_COLOR_SENSOR_PORT_D)
         }
     }
 
-    fun activateExternalMotorSensor() {
+    fun activateExternalMotorSensorNotifications() {
         when (ExternalMotorPort) {
             "C" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
             "D" -> bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
         }
     }
 
-    fun activateInternalMotorSensors() {
-        activateInternalMotorSensor("A")
-        activateInternalMotorSensor("B")
+    fun activateInternalMotorSensorsNotifications() {
+        activateInternalMotorSensorNotifications("A")
+        activateInternalMotorSensorNotifications("B")
     }
 
-    fun activateInternalMotorSensor(motor: String) {
+    fun activateInternalMotorSensorNotifications(motor: String) {
         var data = ACTIVATE_MOTOR_PORT
         when (motor) {
             "A" -> data[3] = A_PORT_BYTE
             "B" -> data[3] = B_PORT_BYTE
         }
         bluetoothLeService!!.writeCharacteristic(characteristic, data)
+    }
+
+    fun activateTiltSensorNotifications() {
+        bluetoothLeService!!.writeCharacteristic(characteristic, ACTIVATE_TILT_SENSOR)
     }
 
     fun handleNotification(data: String) {
