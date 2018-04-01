@@ -37,7 +37,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
 
-    private var bluetoothLeService: BluetoothLeService? = null
+    private var moveHubService: MoveHubService? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothScanner: BluetoothLeScanner? = null
     private var handler: Handler? = null
@@ -68,19 +68,18 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     private val serviceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
-            bluetoothLeService = (service as BluetoothLeService.LocalBinder).service
-            if (!bluetoothLeService!!.initialize()) {
+            moveHubService = (service as MoveHubService.LocalBinder).service
+            if (!moveHubService!!.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth")
                 finish()
             }
             // Automatically connects to the device upon successful start-up initialization.
-            bluetoothLeService!!.connect(boostHub!!.address)
-            Log.e(TAG, "Connecting to Boost Hub")
+            finishSetup()
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
             Log.e(TAG, "Service Disconnect")
-            bluetoothLeService = null
+            moveHubService = null
         }
     }
 
@@ -94,12 +93,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-                BluetoothLeService.ACTION_GATT_CONNECTED -> {
+                MoveHubService.ACTION_GATT_CONNECTED -> {
                     connected = true
                     enableControls()
                     invalidateOptionsMenu()
                 }
-                BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
+                MoveHubService.ACTION_GATT_DISCONNECTED -> {
                     connected = false
                     disableControls()
                     invalidateOptionsMenu()
@@ -122,7 +121,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     PERMISSION_REQUEST_CODE)
 
         } else {
-            finishSetup()
+            val gattServiceIntent = Intent(this, MoveHubService::class.java)
+            bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
     }
 
@@ -131,7 +131,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    finishSetup()
+                    val gattServiceIntent = Intent(this, MoveHubService::class.java)
+                    bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
                     return
                 }
             }
@@ -172,16 +173,11 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     scanning = false
                 }
                 Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-                if (bluetoothLeService == null) {
-                    val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
-                    bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
-                } else {
-                    bluetoothLeService!!.connect(boostHub!!.address)
-                }
+                moveHubService!!.connect(boostHub!!.address)
                 return true
             }
             R.id.menu_disconnect -> {
-                bluetoothLeService!!.disconnect()
+                moveHubService!!.disconnect()
                 connected = false
                 invalidateOptionsMenu()
                 return true
@@ -268,27 +264,27 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         disableControls()
 
         button_enable_button.setOnClickListener{
-            bluetoothLeService!!.activateButtonNotifications()
+            moveHubService!!.activateButtonNotifications()
         }
         button_enable_color_sensor.setOnClickListener{
-            bluetoothLeService!!.activateColorSensorNotifications()
+            moveHubService!!.activateColorSensorNotifications()
         }
         button_enable_imotor.setOnClickListener{
-            bluetoothLeService!!.activateExternalMotorSensorNotifications()
+            moveHubService!!.activateExternalMotorSensorNotifications()
         }
         button_enable_motors.setOnClickListener {
-            bluetoothLeService!!.activateInternalMotorSensorsNotifications()
+            moveHubService!!.activateInternalMotorSensorsNotifications()
         }
         button_tilt_sensor.setOnClickListener {
-            bluetoothLeService!!.activateTiltSensorNotifications()
+            moveHubService!!.activateTiltSensorNotifications()
         }
 
         button_spin.setOnClickListener {
-            bluetoothLeService!!.runInternalMotorsInOpposition(20, 300)
+            moveHubService!!.runInternalMotorsInOpposition(20, 300)
         }
 
         button_dump_data.setOnClickListener {
-            bluetoothLeService!!.dumpData()
+            moveHubService!!.dumpData()
         }
 
         button_var_run_motor.setOnClickListener {
@@ -298,24 +294,25 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             val counterclockwise = switch_counter_clockwise.isChecked
             if (power != "" && time != "") {
                 when (motor) {
-                    "A" -> bluetoothLeService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
-                    "B" -> bluetoothLeService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
-                    "A+B" -> bluetoothLeService!!.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
-                    "External" -> bluetoothLeService!!.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
+                    "A" -> moveHubService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
+                    "B" -> moveHubService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
+                    "A+B" -> moveHubService!!.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
+                    "External" -> moveHubService!!.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
                 }
             }
         }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        when (parent) {
-            spinner_led_colors -> {
-                val item = parent!!.getItemAtPosition(position).toString()
-                val color = getLedColorFromName(item)
-                bluetoothLeService?.setLEDColor(color)
+        if (connected) {
+            when (parent) {
+                spinner_led_colors -> {
+                    val item = parent!!.getItemAtPosition(position).toString()
+                    val color = getLedColorFromName(item)
+                    moveHubService?.setLEDColor(color)
+                }
             }
         }
-
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -360,21 +357,19 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         } else {
             // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
             // fire an intent to display a dialog asking the user to grant permission to enable it.
+            val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            bluetoothAdapter = bluetoothManager.adapter
             if (!bluetoothAdapter!!.isEnabled) {
                 if (!bluetoothAdapter!!.isEnabled) {
                     val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                     startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
                 }
             }
-
-            if (!found) {
-                scanLeDevice(true)
-            }
         }
 
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
-        if (bluetoothLeService != null) {
-            val result = bluetoothLeService!!.connect(boostHub!!.address)
+        if (moveHubService != null) {
+            val result = moveHubService!!.connect(boostHub!!.address)
             Log.d(TAG, "Connect request result=$result")
         }
 
@@ -391,10 +386,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 scanning = false
             } else {
                 if (connected) {
-                    bluetoothLeService!!.disconnect()
+                    moveHubService!!.disconnect()
                     connected = false
                     unbindService(serviceConnection)
-                    bluetoothLeService = null
+                    moveHubService = null
                 }
             }
         }
@@ -404,7 +399,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
-        bluetoothLeService = null
+        moveHubService = null
     }
 
     companion object {
@@ -416,10 +411,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
         private fun makeGattUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
-            intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
-            intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)
-            intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED)
-            intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE)
+            intentFilter.addAction(MoveHubService.ACTION_GATT_CONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_GATT_DISCONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_GATT_SERVICES_DISCOVERED)
+            intentFilter.addAction(MoveHubService.ACTION_DATA_AVAILABLE)
             return intentFilter
         }
     }

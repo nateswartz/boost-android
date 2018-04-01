@@ -20,7 +20,7 @@ import android.util.Log
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
  */
-class BluetoothLeService : Service() {
+class MoveHubService : Service() {
 
     private var bluetoothManager: BluetoothManager? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
@@ -106,8 +106,8 @@ class BluetoothLeService : Service() {
     }
 
     inner class LocalBinder : Binder() {
-        internal val service: BluetoothLeService
-            get() = this@BluetoothLeService
+        internal val service: MoveHubService
+            get() = this@MoveHubService
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -424,7 +424,7 @@ class BluetoothLeService : Service() {
     // Move Hub, Need to refactor //
 
     companion object {
-        private val TAG = BluetoothLeService::class.java.simpleName
+        private val TAG = MoveHubService::class.java.simpleName
 
         private val STATE_DISCONNECTED = 0
         private val STATE_CONNECTING = 1
