@@ -3,9 +3,7 @@ package com.nateswartz.boostcontroller
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.bluetooth.le.*
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -14,9 +12,7 @@ import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Handler
 import android.os.IBinder
-import android.os.ParcelUuid
 import android.support.v13.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
@@ -25,7 +21,6 @@ import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
 import android.widget.*
-import java.util.*
 
 /*
 Handle to send data to:
@@ -35,13 +30,7 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
 */
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
-    val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
-
     private var moveHubService: MoveHubService? = null
-    private var bluetoothAdapter: BluetoothAdapter? = null
-    private var bluetoothScanner: BluetoothLeScanner? = null
-    private var handler: Handler? = null
-    private var boostHub: BluetoothDevice? = null
     private var connected = false
     private var scanning = false
     private var found = false
@@ -53,20 +42,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     private val PERMISSION_REQUEST_CODE = 1
 
-    // Device scan callback.
-    private val leScanCallback = object : ScanCallback() {
-        override fun onScanResult(callbackType: Int, result: ScanResult) {
-            Log.e(TAG, result.toString())
-            super.onScanResult(callbackType, result)
-            boostHub = result.device
-            found = true
-            scanLeDevice(false)
-        }
-    }
-
-    // Code to manage Service lifecycle.
     private val serviceConnection = object : ServiceConnection {
-
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             moveHubService = (service as MoveHubService.LocalBinder).service
             finishSetup()
@@ -78,16 +54,21 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         }
     }
 
-    private val gattUpdateReceiver = object : BroadcastReceiver() {
+    private val moveHubUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-                MoveHubService.ACTION_GATT_CONNECTED -> {
+                MoveHubService.ACTION_DEVICE_FOUND -> {
+                    scanning = false
+                    found = true
+                    invalidateOptionsMenu();
+                }
+                MoveHubService.ACTION_DEVICE_CONNECTED -> {
                     connected = true
                     enableControls()
                     invalidateOptionsMenu()
                 }
-                MoveHubService.ACTION_GATT_DISCONNECTED -> {
+                MoveHubService.ACTION_DEVICE_DISCONNECTED -> {
                     connected = false
                     disableControls()
                     invalidateOptionsMenu()
@@ -99,7 +80,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_control)
-        handler = Handler()
 
         if (ContextCompat.checkSelfPermission(this,
                         Manifest.permission.ACCESS_FINE_LOCATION)
@@ -110,8 +90,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     PERMISSION_REQUEST_CODE)
 
         } else {
-            val gattServiceIntent = Intent(this, MoveHubService::class.java)
-            bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+            val moveHubServiceIntent = Intent(this, MoveHubService::class.java)
+            bindService(moveHubServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
     }
 
@@ -120,12 +100,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    val gattServiceIntent = Intent(this, MoveHubService::class.java)
-                    bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+                    val moveHubServiceIntent = Intent(this, MoveHubService::class.java)
+                    bindService(moveHubServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
                     return
                 }
-            }
-            else -> {
             }
         }
     }
@@ -153,16 +131,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_scan -> {
-                scanLeDevice(true)
+                moveHubService!!.scan()
                 scanning = true
             }
             R.id.menu_connect -> {
-                if (scanning) {
-                    bluetoothScanner!!.stopScan(leScanCallback)
-                    scanning = false
-                }
                 Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-                moveHubService!!.connect(boostHub!!.address)
+                moveHubService!!.connect()
                 return true
             }
             R.id.menu_disconnect -> {
@@ -186,33 +160,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-
-    private fun scanLeDevice(enable: Boolean) {
-        if (enable) {
-            // Stops scanning after a pre-defined scan period.
-            handler!!.postDelayed({
-                scanning = false
-                bluetoothScanner!!.stopScan(leScanCallback)
-                invalidateOptionsMenu()
-            }, SCAN_PERIOD)
-
-            Log.e(TAG, "Scanning")
-            scanning = true
-            bluetoothScanner!!.startScan(
-                    listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BoostUUID)).build()),
-                    ScanSettings.Builder().build(),
-                    leScanCallback)
-            Toast.makeText(this, "Scanning...", Toast.LENGTH_SHORT).show()
-
-        } else {
-            Log.e(TAG, "Stop Scanning")
-            scanning = false
-            bluetoothScanner!!.stopScan(leScanCallback)
-            Toast.makeText(this, "Scanning Stopped", Toast.LENGTH_SHORT).show()
-        }
-        invalidateOptionsMenu()
-    }
-
     private fun finishSetup() {
         Log.e(TAG, "FinishSetup")
         // Use this check to determine whether BLE is supported on the device.  Then you can
@@ -222,19 +169,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             finish()
         }
 
-        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
-        // BluetoothAdapter through BluetoothManager.
-        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothAdapter = bluetoothManager.adapter
-        bluetoothScanner = bluetoothAdapter!!.bluetoothLeScanner
-
-        // Checks if Bluetooth is supported on the device.
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
-        scanLeDevice(true)
+        moveHubService!!.scan()
+        scanning = true
 
         val colorAdapter = ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, colorArray)
@@ -347,18 +283,16 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
             // fire an intent to display a dialog asking the user to grant permission to enable it.
             val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            bluetoothAdapter = bluetoothManager.adapter
+            val bluetoothAdapter = bluetoothManager.adapter
             if (!bluetoothAdapter!!.isEnabled) {
-                if (!bluetoothAdapter!!.isEnabled) {
-                    val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-                }
+                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
             }
         }
 
-        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
+        registerReceiver(moveHubUpdateReceiver, makeMoveHubUpdateIntentFilter())
         if (moveHubService != null) {
-            val result = moveHubService!!.connect(boostHub!!.address)
+            val result = moveHubService!!.connect()
             Log.d(TAG, "Connect request result=$result")
         }
 
@@ -371,7 +305,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 == PackageManager.PERMISSION_GRANTED) {
 
             if (scanning) {
-                scanLeDevice(false)
+                moveHubService!!.stopScan()
                 scanning = false
             } else {
                 if (connected) {
@@ -382,7 +316,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 }
             }
         }
-        unregisterReceiver(gattUpdateReceiver)
+        unregisterReceiver(moveHubUpdateReceiver)
     }
 
     override fun onDestroy() {
@@ -398,12 +332,11 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         // Stops scanning after 10 seconds.
         const val SCAN_PERIOD: Long = 10000
 
-        private fun makeGattUpdateIntentFilter(): IntentFilter {
+        private fun makeMoveHubUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
-            intentFilter.addAction(MoveHubService.ACTION_GATT_CONNECTED)
-            intentFilter.addAction(MoveHubService.ACTION_GATT_DISCONNECTED)
-            intentFilter.addAction(MoveHubService.ACTION_GATT_SERVICES_DISCOVERED)
-            intentFilter.addAction(MoveHubService.ACTION_DATA_AVAILABLE)
+            intentFilter.addAction(MoveHubService.ACTION_DEVICE_CONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_DEVICE_DISCONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_DEVICE_FOUND)
             return intentFilter
         }
     }
