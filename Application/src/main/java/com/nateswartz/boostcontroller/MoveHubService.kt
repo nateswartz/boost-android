@@ -189,14 +189,17 @@ class MoveHubService : Service() {
     // connection change and services discovered.
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.e(TAG, "Bluetooth Connected")
-                gatt.discoverServices()
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.e(TAG, "Bluetooth Disconnected")
-                val intentAction = ACTION_DEVICE_DISCONNECTED
-                connected = false
-                broadcastUpdate(intentAction)
+            when (newState) {
+                BluetoothProfile.STATE_CONNECTED -> {
+                    Log.e(TAG, "Bluetooth Connected")
+                    gatt.discoverServices()
+                }
+                BluetoothProfile.STATE_DISCONNECTED -> {
+                    Log.e(TAG, "Bluetooth Disconnected")
+                    val intentAction = ACTION_DEVICE_DISCONNECTED
+                    connected = false
+                    broadcastUpdate(intentAction)
+                }
             }
         }
 
@@ -284,12 +287,12 @@ class MoveHubService : Service() {
         return true
     }
 
-    fun scan() {
-        scanLeDevice(true)
-    }
-
-    fun stopScan(){
-        scanLeDevice(false)
+    fun connect() {
+        if (!found && !scanning && !connected) {
+            scanLeDevice(true)
+        } else if (found && !scanning && !connected) {
+            finishConnection()
+        }
     }
 
     /**
@@ -302,7 +305,7 @@ class MoveHubService : Service() {
      * `BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)`
      * callback.
      */
-    fun connect(): Boolean {
+    private fun finishConnection(): Boolean {
         if (scanning) {
             bluetoothScanner!!.stopScan(leScanCallback)
             scanning = false
@@ -317,11 +320,7 @@ class MoveHubService : Service() {
         if (bluetoothDeviceAddress != null && boostHub!!.address == bluetoothDeviceAddress
                 && bluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
-            return if (bluetoothGatt!!.connect()) {
-                true
-            } else {
-                false
-            }
+            return (bluetoothGatt!!.connect())
         }
 
         val device = bluetoothAdapter!!.getRemoteDevice(boostHub!!.address)
@@ -348,7 +347,12 @@ class MoveHubService : Service() {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        bluetoothGatt!!.disconnect()
+        if (scanning) {
+            scanLeDevice(false)
+        }
+        if (connected) {
+            bluetoothGatt!!.disconnect()
+        }
     }
 
     /**
@@ -452,9 +456,8 @@ class MoveHubService : Service() {
             super.onScanResult(callbackType, result)
             boostHub = result.device
             found = true
-            val intentAction = ACTION_DEVICE_FOUND
-            broadcastUpdate(intentAction)
             scanLeDevice(false)
+            finishConnection()
         }
     }
 
@@ -463,6 +466,6 @@ class MoveHubService : Service() {
 
         val ACTION_DEVICE_CONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_GATT_CONNECTED"
         val ACTION_DEVICE_DISCONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_GATT_DISCONNECTED"
-        val ACTION_DEVICE_FOUND = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_FOUND"
+        val ACTION_DEVICE_CONNECTION_FAILED = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_CONNECTION_FAILED"
     }
 }
