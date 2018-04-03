@@ -147,6 +147,8 @@ class MoveHubService : Service() {
             }
         }
         Log.e(TAG, notification.toString())
+        val intentAction = ACTION_DEVICE_NOTIFICATION
+        broadcastUpdate(intentAction, notification)
     }
 
     private fun runMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, portByte: Byte) {
@@ -236,6 +238,12 @@ class MoveHubService : Service() {
 
     private fun broadcastUpdate(action: String) {
         val intent = Intent(action)
+        sendBroadcast(intent)
+    }
+
+    private fun broadcastUpdate(action: String, notification: HubNotification) {
+        val intent = Intent(action)
+        intent.putExtra(NOTIFICATION_DATA, notification)
         sendBroadcast(intent)
     }
 
@@ -466,6 +474,8 @@ class MoveHubService : Service() {
 
         val ACTION_DEVICE_CONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_GATT_CONNECTED"
         val ACTION_DEVICE_DISCONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_GATT_DISCONNECTED"
+        val ACTION_DEVICE_NOTIFICATION = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_NOTIFICATION"
         val ACTION_DEVICE_CONNECTION_FAILED = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_CONNECTION_FAILED"
+        val NOTIFICATION_DATA = "com.nateswartz.boostcontroller.move.hub.NOTIFICATION_DATA"
     }
 }

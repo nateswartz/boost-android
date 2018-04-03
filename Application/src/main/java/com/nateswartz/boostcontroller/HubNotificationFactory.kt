@@ -23,7 +23,7 @@ object HubNotificationFactory {
         } else if (stringData.startsWith("0F 00 04")) {
             return PortInfoNotification(stringData)
         }
-        return HubNotification(stringData)
+        return UnknownHubNotification(stringData)
     }
 
     private fun convertBytesToString(bytes: ByteArray): String {

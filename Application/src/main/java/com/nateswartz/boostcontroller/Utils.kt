@@ -18,17 +18,17 @@ fun getColorFromHex(str: String) : Color {
 }
 
 fun getLedColorFromName(name: String) : LEDColorCommand {
-    val color = when (name) {
-        "Pink" -> LEDColorCommand.PINK
-        "Purple" -> LEDColorCommand.PURPLE
-        "Blue" -> LEDColorCommand.BLUE
-        "Light Blue" -> LEDColorCommand.LIGHTBLUE
-        "Cyan" -> LEDColorCommand.CYAN
-        "Green" -> LEDColorCommand.GREEN
-        "Yellow" -> LEDColorCommand.YELLOW
-        "Orange" -> LEDColorCommand.ORANGE
-        "Red" -> LEDColorCommand.RED
-        "White" -> LEDColorCommand.WHITE
+    val color = when (name.toLowerCase()) {
+        "pink" -> LEDColorCommand.PINK
+        "purple" -> LEDColorCommand.PURPLE
+        "blue" -> LEDColorCommand.BLUE
+        "light blue" -> LEDColorCommand.LIGHTBLUE
+        "cyan" -> LEDColorCommand.CYAN
+        "green" -> LEDColorCommand.GREEN
+        "yellow" -> LEDColorCommand.YELLOW
+        "orange" -> LEDColorCommand.ORANGE
+        "red" -> LEDColorCommand.RED
+        "white" -> LEDColorCommand.WHITE
         else -> LEDColorCommand.BLACK
     }
     return color

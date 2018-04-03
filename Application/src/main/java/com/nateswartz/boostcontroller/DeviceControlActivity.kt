@@ -74,6 +74,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     invalidateOptionsMenu()
                     Toast.makeText(this@DeviceControlActivity, "Connection Failed!", Toast.LENGTH_SHORT).show()
                 }
+                MoveHubService.ACTION_DEVICE_NOTIFICATION -> {
+                    val notification = intent.getParcelableExtra<HubNotification>(MoveHubService.NOTIFICATION_DATA)
+                    if (switch_sync_colors.isChecked && notification is ColorSensorNotification) {
+                        moveHubService!!.setLEDColor(getLedColorFromName(notification.color.string))
+                    }
+                }
             }
         }
     }
@@ -259,6 +265,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_var_run_motor.isEnabled = enabled
         button_tilt_sensor.isEnabled = enabled
         switch_counter_clockwise.isEnabled = enabled
+        switch_sync_colors.isEnabled = enabled
     }
 
     override fun onResume() {
@@ -324,6 +331,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
             intentFilter.addAction(MoveHubService.ACTION_DEVICE_CONNECTED)
             intentFilter.addAction(MoveHubService.ACTION_DEVICE_DISCONNECTED)
             intentFilter.addAction(MoveHubService.ACTION_DEVICE_CONNECTION_FAILED)
+            intentFilter.addAction(MoveHubService.ACTION_DEVICE_NOTIFICATION)
             return intentFilter
         }
     }
