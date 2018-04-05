@@ -189,8 +189,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_enable_button.setOnClickListener{
             moveHubService!!.activateButtonNotifications()
         }
-        button_enable_color_sensor.setOnClickListener{
-            moveHubService!!.activateColorSensorNotifications()
+        switch_color_sensor.setOnClickListener{
+            if (switch_color_sensor.isChecked) {
+                moveHubService!!.activateColorSensorNotifications()
+            } else {
+                moveHubService!!.deactivateColorSensorNotifications()
+            }
         }
         button_enable_imotor.setOnClickListener{
             moveHubService!!.activateExternalMotorSensorNotifications()
@@ -251,7 +255,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     private fun setControlsState(enabled : Boolean) {
         button_enable_imotor.isEnabled = enabled
-        button_enable_color_sensor.isEnabled = enabled
         button_enable_button.isEnabled = enabled
         button_enable_motors.isEnabled = enabled
         button_dump_data.isEnabled = enabled
@@ -266,6 +269,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         button_tilt_sensor.isEnabled = enabled
         switch_counter_clockwise.isEnabled = enabled
         switch_sync_colors.isEnabled = enabled
+        switch_color_sensor.isEnabled = enabled
     }
 
     override fun onResume() {

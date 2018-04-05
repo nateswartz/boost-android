@@ -10,10 +10,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="Dump Data"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_spin" />
+        app:layout_constraintStart_toEndOf="@+id/button_spin"
+        app:layout_constraintTop_toBottomOf="@+id/switch_color_sensor" />
 
     <Button
         android:id="@+id/button_enable_button"
@@ -22,16 +22,6 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Button"
-        app:layout_constraintStart_toEndOf="@+id/button_enable_color_sensor"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/button_enable_color_sensor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Color Sensor"
         app:layout_constraintStart_toEndOf="@+id/button_enable_imotor"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -59,10 +49,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="Spin"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_enable_imotor" />
+        app:layout_constraintTop_toBottomOf="@+id/switch_color_sensor" />
 
     <Button
         android:id="@+id/button_enable_motors"
@@ -149,11 +139,11 @@
         android:id="@+id/button_tilt_sensor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Tilt Sensor"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_enable_motors" />
+        app:layout_constraintStart_toEndOf="@+id/button_enable_motors"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Switch
         android:id="@+id/switch_sync_colors"
@@ -164,5 +154,15 @@
         android:text="Sync Colors"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_var_run_motor" />
+
+    <Switch
+        android:id="@+id/switch_color_sensor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Color Sensor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_enable_imotor" />
 
 </android.support.constraint.ConstraintLayout>

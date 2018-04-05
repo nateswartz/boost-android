@@ -39,6 +39,8 @@ class MoveHubService : Service() {
     private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
     private val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val DEACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00)
+    private val DEACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00)
     private val ACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
@@ -99,6 +101,13 @@ class MoveHubService : Service() {
         when (ColorSensorPort) {
             "C" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_C)
             "D" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_D)
+        }
+    }
+
+    fun deactivateColorSensorNotifications() {
+        when (ColorSensorPort) {
+            "C" -> writeCharacteristic(characteristic!!, DEACTIVATE_COLOR_SENSOR_PORT_C)
+            "D" -> writeCharacteristic(characteristic!!, DEACTIVATE_COLOR_SENSOR_PORT_D)
         }
     }
 
