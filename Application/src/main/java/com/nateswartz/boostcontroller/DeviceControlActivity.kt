@@ -186,9 +186,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
         disableControls()
 
-        button_enable_button.setOnClickListener{
-            moveHubService!!.activateButtonNotifications()
-        }
         switch_color_sensor.setOnClickListener{
             if (switch_color_sensor.isChecked) {
                 moveHubService!!.activateColorSensorNotifications()
@@ -196,14 +193,38 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 moveHubService!!.deactivateColorSensorNotifications()
             }
         }
-        button_enable_imotor.setOnClickListener{
-            moveHubService!!.activateExternalMotorSensorNotifications()
+
+        switch_tilt_sensor.setOnClickListener {
+            if (switch_tilt_sensor.isChecked) {
+                moveHubService!!.activateTiltSensorNotifications()
+            } else {
+                moveHubService!!.deactivateTiltSensorNotifications()
+            }
         }
-        button_enable_motors.setOnClickListener {
-            moveHubService!!.activateInternalMotorSensorsNotifications()
+
+        switch_internal_motors.setOnClickListener {
+            if (switch_internal_motors.isChecked) {
+                moveHubService!!.activateInternalMotorSensorsNotifications()
+            } else {
+                moveHubService!!.deactivateInternalMotorSensorsNotifications()
+            }
         }
-        button_tilt_sensor.setOnClickListener {
-            moveHubService!!.activateTiltSensorNotifications()
+
+        switch_external_motor.setOnClickListener {
+            if (switch_external_motor.isChecked) {
+                moveHubService!!.activateExternalMotorSensorNotifications()
+            } else {
+                moveHubService!!.deactivateExternalMotorSensorNotifications()
+            }
+        }
+
+        switch_button.setOnClickListener {
+            if (switch_button.isChecked) {
+                moveHubService!!.activateButtonNotifications()
+            } else {
+                // Currently not working
+                moveHubService!!.deactivateButtonNotifications()
+            }
         }
 
         button_spin.setOnClickListener {
@@ -254,9 +275,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun setControlsState(enabled : Boolean) {
-        button_enable_imotor.isEnabled = enabled
-        button_enable_button.isEnabled = enabled
-        button_enable_motors.isEnabled = enabled
         button_dump_data.isEnabled = enabled
         button_spin.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
@@ -266,10 +284,13 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         input_power.isEnabled = enabled
         input_time.isEnabled = enabled
         button_var_run_motor.isEnabled = enabled
-        button_tilt_sensor.isEnabled = enabled
         switch_counter_clockwise.isEnabled = enabled
         switch_sync_colors.isEnabled = enabled
         switch_color_sensor.isEnabled = enabled
+        switch_tilt_sensor.isEnabled = enabled
+        switch_button.isEnabled = enabled
+        switch_external_motor.isEnabled = enabled
+        switch_internal_motors.isEnabled = enabled
     }
 
     override fun onResume() {

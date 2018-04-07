@@ -37,14 +37,24 @@ class MoveHubService : Service() {
     private var characteristic: BluetoothGattCharacteristic? = null
 
     private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
+    // Currently not working
+    private val DEACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x03, 0x02, 0x00)
+
     private val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val DEACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00)
     private val DEACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00)
+
     private val ACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val ACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val DEACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
+    private val DEACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
+
     private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val DEACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
+
     private val ACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val DEACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
 
     private val C_PORT_BYTE = 0x01.toByte()
     private val D_PORT_BYTE = 0x02.toByte()
@@ -97,6 +107,11 @@ class MoveHubService : Service() {
         writeCharacteristic(characteristic!!, ACTIVATE_BUTTON)
     }
 
+    // Currently not working
+    fun deactivateButtonNotifications() {
+        writeCharacteristic(characteristic!!, DEACTIVATE_BUTTON)
+    }
+
     fun activateColorSensorNotifications() {
         when (ColorSensorPort) {
             "C" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_C)
@@ -118,6 +133,13 @@ class MoveHubService : Service() {
         }
     }
 
+    fun deactivateExternalMotorSensorNotifications() {
+        when (ExternalMotorPort) {
+            "C" -> writeCharacteristic(characteristic!!, DEACTIVATE_EXTERNAL_MOTOR_PORT_C)
+            "D" -> writeCharacteristic(characteristic!!, DEACTIVATE_EXTERNAL_MOTOR_PORT_D)
+        }
+    }
+
     fun activateInternalMotorSensorsNotifications() {
         activateInternalMotorSensorNotifications("A")
         activateInternalMotorSensorNotifications("B")
@@ -132,8 +154,26 @@ class MoveHubService : Service() {
         writeCharacteristic(characteristic!!, data)
     }
 
+    fun deactivateInternalMotorSensorsNotifications() {
+        deactivateInternalMotorSensorNotifications("A")
+        deactivateInternalMotorSensorNotifications("B")
+    }
+
+    fun deactivateInternalMotorSensorNotifications(motor: String) {
+        var data = DEACTIVATE_MOTOR_PORT
+        when (motor) {
+            "A" -> data[3] = A_PORT_BYTE
+            "B" -> data[3] = B_PORT_BYTE
+        }
+        writeCharacteristic(characteristic!!, data)
+    }
+
     fun activateTiltSensorNotifications() {
         writeCharacteristic(characteristic!!, ACTIVATE_TILT_SENSOR)
+    }
+
+    fun deactivateTiltSensorNotifications() {
+        writeCharacteristic(characteristic!!, DEACTIVATE_TILT_SENSOR)
     }
 
     private fun handleNotification(data: ByteArray) {
