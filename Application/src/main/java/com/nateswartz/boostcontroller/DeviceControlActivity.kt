@@ -20,7 +20,12 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
+import com.orbotix.DualStackDiscoveryAgent
 import android.widget.*
+import com.orbotix.ConvenienceRobot
+import com.orbotix.common.DiscoveryException
+import com.orbotix.common.Robot
+import com.orbotix.common.RobotChangedStateListener
 
 /*
 Handle to send data to:
@@ -28,7 +33,12 @@ attr handle: 0x000c, end grp handle: 0x000f uuid: 00001623-1212-efde-1623-785fea
 
 handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624-1212-efde-1623-785feabcd123
 */
-class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
+class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener {
+
+    // Sphero
+    private val mDiscoveryAgent = DualStackDiscoveryAgent()
+    private var mRobot: ConvenienceRobot? = null
+    private var click = 0
 
     private var moveHubService: MoveHubService? = null
     private var connected = false
@@ -86,6 +96,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        mDiscoveryAgent.addRobotStateListener(this)
+
         setContentView(R.layout.activity_device_control)
 
         if (ContextCompat.checkSelfPermission(this,
@@ -112,6 +125,33 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                     return
                 }
             }
+        }
+    }
+
+    public override fun onStart() {
+        super.onStart()
+        startDiscovery()
+    }
+
+    // Sphero
+    private fun startDiscovery() {
+        //If the DiscoveryAgent is not already looking for robots, start discovery.
+        if( !mDiscoveryAgent.isDiscovering ) {
+            try {
+                Log.e("Sphero", "Looking for Sphero")
+                mDiscoveryAgent.startDiscovery(applicationContext)
+            } catch (e: DiscoveryException) {
+                Log.e("Sphero", "DiscoveryException: " + e.message)
+            }
+        }
+    }
+
+    // Sphero
+    override fun handleRobotChangedState(robot: Robot, type: RobotChangedStateListener.RobotChangedStateNotificationType) {
+        Log.e("Sphero", "handleRobotChangedState $type")
+        when (type) {
+            RobotChangedStateListener.RobotChangedStateNotificationType.Connected -> mRobot = ConvenienceRobot(robot)
+            RobotChangedStateListener.RobotChangedStateNotificationType.Online -> mRobot = ConvenienceRobot(robot)
         }
     }
 
@@ -249,6 +289,16 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
                 }
             }
         }
+
+        // Sphero
+        button_sphero.setOnClickListener {
+            click++
+            if (click % 2 == 0) {
+                mRobot!!.setLed(0.0f, 1.0f, 0.0f)
+            } else {
+                mRobot!!.setLed(1.0f, 0.0f, 0.0f)
+            }
+        }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -342,6 +392,16 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener {
         super.onDestroy()
         unbindService(serviceConnection)
         moveHubService = null
+
+        // Sphero
+        // If the DiscoveryAgent is in discovery mode, stop it.
+        if (mDiscoveryAgent.isDiscovering) {
+            mDiscoveryAgent.stopDiscovery()
+        }
+
+        // If a robot is connected to the device, disconnect it
+        mRobot?.disconnect()
+        mRobot = null
     }
 
     companion object {
