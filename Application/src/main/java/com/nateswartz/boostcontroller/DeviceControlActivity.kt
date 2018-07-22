@@ -22,6 +22,10 @@ import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
 import com.orbotix.DualStackDiscoveryAgent
 import android.widget.*
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.orbotix.ConvenienceRobot
 import com.orbotix.common.DiscoveryException
 import com.orbotix.common.Robot
@@ -131,6 +135,36 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     public override fun onStart() {
         super.onStart()
         startDiscovery()
+
+        // Instantiate the RequestQueue.
+        val queue = Volley.newRequestQueue(this)
+        val url = "https://api.lifx.com/v1/lights/all"
+
+        // Request a string response from the provided URL.
+        val getRequest = object : StringRequest(Request.Method.GET, url,
+                Response.Listener<String>
+                {
+
+                    Log.e("Volley", "Success")
+                },
+                        Response.ErrorListener {
+                            // error
+                            Log.e("Volley", "Error")
+                        }
+                ) {
+            override fun getHeaders(): MutableMap<String, String> {
+                val auth = "Bearer "
+                //Creating HashMap
+                val headers = HashMap<String, String>()
+
+                headers["Authorization"] = auth
+
+                return headers
+            }
+        }
+
+        // Add the request to the RequestQueue.
+        queue.add(getRequest)
     }
 
     // Sphero
