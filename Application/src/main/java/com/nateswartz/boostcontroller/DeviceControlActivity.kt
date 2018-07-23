@@ -39,6 +39,10 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
 */
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener {
 
+    // Lifx
+    private val apiToken = ""
+    private val lightID = ""
+
     // Sphero
     private val mDiscoveryAgent = DualStackDiscoveryAgent()
     private var mRobot: ConvenienceRobot? = null
@@ -134,37 +138,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     public override fun onStart() {
         super.onStart()
-        startDiscovery()
-
-        // Instantiate the RequestQueue.
-        val queue = Volley.newRequestQueue(this)
-        val url = "https://api.lifx.com/v1/lights/all"
-
-        // Request a string response from the provided URL.
-        val getRequest = object : StringRequest(Request.Method.GET, url,
-                Response.Listener<String>
-                {
-
-                    Log.e("Volley", "Success")
-                },
-                        Response.ErrorListener {
-                            // error
-                            Log.e("Volley", "Error")
-                        }
-                ) {
-            override fun getHeaders(): MutableMap<String, String> {
-                val auth = "Bearer "
-                //Creating HashMap
-                val headers = HashMap<String, String>()
-
-                headers["Authorization"] = auth
-
-                return headers
-            }
-        }
-
-        // Add the request to the RequestQueue.
-        queue.add(getRequest)
     }
 
     // Sphero
@@ -184,8 +157,16 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     override fun handleRobotChangedState(robot: Robot, type: RobotChangedStateListener.RobotChangedStateNotificationType) {
         Log.e("Sphero", "handleRobotChangedState $type")
         when (type) {
-            RobotChangedStateListener.RobotChangedStateNotificationType.Connected -> mRobot = ConvenienceRobot(robot)
-            RobotChangedStateListener.RobotChangedStateNotificationType.Online -> mRobot = ConvenienceRobot(robot)
+            RobotChangedStateListener.RobotChangedStateNotificationType.Connected -> {
+                mRobot = ConvenienceRobot(robot)
+                button_sphero_color.isEnabled = true
+                button_sphero_connect.isEnabled = false
+            }
+            RobotChangedStateListener.RobotChangedStateNotificationType.Online -> {
+                mRobot = ConvenienceRobot(robot)
+                button_sphero_color.isEnabled = true
+                button_sphero_connect.isEnabled = false
+            }
         }
     }
 
@@ -325,13 +306,47 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
 
         // Sphero
-        button_sphero.setOnClickListener {
+        button_sphero_connect.setOnClickListener {
+            Toast.makeText(this, "Connecting to Sphero...", Toast.LENGTH_SHORT).show()
+            startDiscovery()
+        }
+
+        button_sphero_color.setOnClickListener {
             click++
             if (click % 2 == 0) {
                 mRobot!!.setLed(0.0f, 1.0f, 0.0f)
             } else {
                 mRobot!!.setLed(1.0f, 0.0f, 0.0f)
             }
+        }
+
+        // Lifx
+        button_lifx.setOnClickListener {
+            // Instantiate the RequestQueue.
+            val queue = Volley.newRequestQueue(this)
+            val url = "https://api.lifx.com/v1/lights/id:$lightID/toggle"
+            val headers = HashMap<String, String>()
+            headers["Authorization"] = "Bearer $apiToken"
+
+            // Request a string response from the provided URL.
+            val postRequest = object : StringRequest(Request.Method.POST, url,
+                    Response.Listener<String>
+                    {response ->
+
+                        Log.e("Volley", "Success: $response")
+                    },
+                    Response.ErrorListener {
+                        // error
+                        Log.e("Volley", "Error")
+                    }
+            ) {
+                override fun getHeaders(): MutableMap<String, String> {
+                    return headers
+                }
+            }
+
+            // Add the request to the RequestQueue.
+            queue.add(postRequest)
         }
     }
 
@@ -436,6 +451,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         // If a robot is connected to the device, disconnect it
         mRobot?.disconnect()
         mRobot = null
+        button_sphero_color.isEnabled = false
     }
 
     companion object {

@@ -166,12 +166,33 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/button_sphero"
+        android:id="@+id/button_sphero_connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
-        android:text="Sphero"
+        android:text="Connect Sphero"
+        app:layout_constraintBottom_toTopOf="@+id/spinner_led_colors"
+        app:layout_constraintEnd_toStartOf="@+id/button_sphero_color" />
+
+    <Button
+        android:id="@+id/button_lifx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="Lifx"
+        app:layout_constraintBottom_toTopOf="@+id/button_sphero_connect"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button_sphero_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:enabled="false"
+        android:text="Sphero Color"
         app:layout_constraintBottom_toTopOf="@+id/spinner_led_colors"
         app:layout_constraintEnd_toEndOf="parent" />
 
