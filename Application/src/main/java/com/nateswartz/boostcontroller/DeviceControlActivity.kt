@@ -42,6 +42,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     // Lifx
     private val apiToken = ""
     private val lightID = ""
+    private var connectBoostToLifx = false
 
     // Sphero
     private val mDiscoveryAgent = DualStackDiscoveryAgent()
@@ -96,6 +97,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     val notification = intent.getParcelableExtra<HubNotification>(MoveHubService.NOTIFICATION_DATA)
                     if (switch_sync_colors.isChecked && notification is ColorSensorNotification) {
                         moveHubService!!.setLEDColor(getLedColorFromName(notification.color.string))
+                    }
+                    if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification) {
+                        toggleLifx()
                     }
                 }
             }
@@ -204,7 +208,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
 
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.e(TAG, "onActivityResult Enter")
         // User chose not to enable Bluetooth.
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish()
@@ -321,32 +326,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
 
         // Lifx
-        button_lifx.setOnClickListener {
-            // Instantiate the RequestQueue.
-            val queue = Volley.newRequestQueue(this)
-            val url = "https://api.lifx.com/v1/lights/id:$lightID/toggle"
-            val headers = HashMap<String, String>()
-            headers["Authorization"] = "Bearer $apiToken"
+        switch_sync_colors.setOnClickListener {
+            connectBoostToLifx = switch_sync_colors.isChecked
 
-            // Request a string response from the provided URL.
-            val postRequest = object : StringRequest(Request.Method.POST, url,
-                    Response.Listener<String>
-                    {response ->
-
-                        Log.e("Volley", "Success: $response")
-                    },
-                    Response.ErrorListener {
-                        // error
-                        Log.e("Volley", "Error")
-                    }
-            ) {
-                override fun getHeaders(): MutableMap<String, String> {
-                    return headers
-                }
-            }
-
-            // Add the request to the RequestQueue.
-            queue.add(postRequest)
         }
     }
 
@@ -390,6 +372,34 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_button.isEnabled = enabled
         switch_external_motor.isEnabled = enabled
         switch_internal_motors.isEnabled = enabled
+    }
+
+    private fun toggleLifx() {
+        // Instantiate the RequestQueue.
+        val queue = Volley.newRequestQueue(this)
+        val url = "https://api.lifx.com/v1/lights/id:$lightID/toggle"
+        val headers = HashMap<String, String>()
+        headers["Authorization"] = "Bearer $apiToken"
+
+        // Request a string response from the provided URL.
+        val postRequest = object : StringRequest(Request.Method.POST, url,
+                Response.Listener<String>
+                {response ->
+
+                    Log.e("Volley", "Success: $response")
+                },
+                Response.ErrorListener {
+                    // error
+                    Log.e("Volley", "Error")
+                }
+        ) {
+            override fun getHeaders(): MutableMap<String, String> {
+                return headers
+            }
+        }
+
+        // Add the request to the RequestQueue.
+        queue.add(postRequest)
     }
 
     override fun onResume() {

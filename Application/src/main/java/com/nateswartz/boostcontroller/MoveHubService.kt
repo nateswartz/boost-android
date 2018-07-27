@@ -486,6 +486,7 @@ class MoveHubService : Service() {
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             handler!!.postDelayed({
+                Log.e(TAG, "Scanning timed out")
                 scanning = false
                 bluetoothScanner!!.stopScan(leScanCallback)
             }, DeviceControlActivity.SCAN_PERIOD)
