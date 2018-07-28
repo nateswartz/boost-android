@@ -489,6 +489,8 @@ class MoveHubService : Service() {
                 Log.e(TAG, "Scanning timed out")
                 scanning = false
                 bluetoothScanner!!.stopScan(leScanCallback)
+                val intentAction = ACTION_DEVICE_CONNECTION_FAILED
+                broadcastUpdate(intentAction)
             }, DeviceControlActivity.SCAN_PERIOD)
 
             Log.e(TAG, "Scanning")
