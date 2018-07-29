@@ -98,6 +98,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     if (switch_sync_colors.isChecked && notification is ColorSensorNotification) {
                         moveHubService!!.setLEDColor(getLedColorFromName(notification.color.string))
                     }
+                    if (notification is ButtonNotification && mRobot != null) {
+                        changeSpheroColor()
+                    }
                     if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification) {
                         toggleLifx()
                     }
@@ -317,12 +320,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
 
         button_sphero_color.setOnClickListener {
-            click++
-            if (click % 2 == 0) {
-                mRobot!!.setLed(0.0f, 1.0f, 0.0f)
-            } else {
-                mRobot!!.setLed(1.0f, 0.0f, 0.0f)
-            }
+            changeSpheroColor()
         }
 
         // Lifx
@@ -372,6 +370,15 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_button.isEnabled = enabled
         switch_external_motor.isEnabled = enabled
         switch_internal_motors.isEnabled = enabled
+    }
+
+    private fun changeSpheroColor() {
+        click++
+        if (click % 2 == 0) {
+            mRobot!!.setLed(0.0f, 1.0f, 0.0f)
+        } else {
+            mRobot!!.setLed(1.0f, 0.0f, 0.0f)
+        }
     }
 
     private fun toggleLifx() {
