@@ -20,21 +20,7 @@ import java.util.*
  */
 class MoveHubService : Service() {
 
-    val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
-
-    private var bluetoothManager: BluetoothManager? = null
-    private var bluetoothAdapter: BluetoothAdapter? = null
-    private var bluetoothDeviceAddress: String? = null
-    private var bluetoothGatt: BluetoothGatt? = null
-    private var bluetoothScanner: BluetoothLeScanner? = null
-    private var boostHub: BluetoothDevice? = null
-    private var handler: Handler? = null
-
-    private var scanning = false
-    private var found = false
-    private var connected = false
-
-    private var characteristic: BluetoothGattCharacteristic? = null
+    private var gattController = GattController(this)
 
     private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
     // Currently not working
@@ -66,7 +52,7 @@ class MoveHubService : Service() {
     private var ExternalMotorPort = ""
 
     fun setLEDColor(color: LEDColorCommand) {
-        writeCharacteristic(characteristic!!, color.data)
+        gattController.writeCharacteristic(color.data)
     }
 
     fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
@@ -96,47 +82,47 @@ class MoveHubService : Service() {
         val motorAPower = powerPercentage.toByte()
         val motorBPower = (255 - powerPercentage).toByte()
         val RUN_MOTOR = byteArrayOf(0x0d, 0x00, 0x81.toByte(), AB_PORT_BYTE, 0x11, 0x0a, timeBytes[0], timeBytes[1], motorAPower, motorBPower, 0x64, 0x7f, 0x03)
-        writeCharacteristic(characteristic!!, RUN_MOTOR)
+        gattController.writeCharacteristic(RUN_MOTOR)
     }
 
     fun enableNotifications() {
-        setCharacteristicNotification(characteristic!!, true)
+        gattController.setCharacteristicNotification(true)
     }
 
     fun activateButtonNotifications() {
-        writeCharacteristic(characteristic!!, ACTIVATE_BUTTON)
+        gattController.writeCharacteristic(ACTIVATE_BUTTON)
     }
 
     // Currently not working
     fun deactivateButtonNotifications() {
-        writeCharacteristic(characteristic!!, DEACTIVATE_BUTTON)
+        gattController.writeCharacteristic(DEACTIVATE_BUTTON)
     }
 
     fun activateColorSensorNotifications() {
         when (ColorSensorPort) {
-            "C" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_C)
-            "D" -> writeCharacteristic(characteristic!!, ACTIVATE_COLOR_SENSOR_PORT_D)
+            "C" -> gattController.writeCharacteristic(ACTIVATE_COLOR_SENSOR_PORT_C)
+            "D" -> gattController.writeCharacteristic(ACTIVATE_COLOR_SENSOR_PORT_D)
         }
     }
 
     fun deactivateColorSensorNotifications() {
         when (ColorSensorPort) {
-            "C" -> writeCharacteristic(characteristic!!, DEACTIVATE_COLOR_SENSOR_PORT_C)
-            "D" -> writeCharacteristic(characteristic!!, DEACTIVATE_COLOR_SENSOR_PORT_D)
+            "C" -> gattController.writeCharacteristic(DEACTIVATE_COLOR_SENSOR_PORT_C)
+            "D" -> gattController.writeCharacteristic(DEACTIVATE_COLOR_SENSOR_PORT_D)
         }
     }
 
     fun activateExternalMotorSensorNotifications() {
         when (ExternalMotorPort) {
-            "C" -> writeCharacteristic(characteristic!!, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
-            "D" -> writeCharacteristic(characteristic!!, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
+            "C" -> gattController.writeCharacteristic(ACTIVATE_EXTERNAL_MOTOR_PORT_C)
+            "D" -> gattController.writeCharacteristic(ACTIVATE_EXTERNAL_MOTOR_PORT_D)
         }
     }
 
     fun deactivateExternalMotorSensorNotifications() {
         when (ExternalMotorPort) {
-            "C" -> writeCharacteristic(characteristic!!, DEACTIVATE_EXTERNAL_MOTOR_PORT_C)
-            "D" -> writeCharacteristic(characteristic!!, DEACTIVATE_EXTERNAL_MOTOR_PORT_D)
+            "C" -> gattController.writeCharacteristic(DEACTIVATE_EXTERNAL_MOTOR_PORT_C)
+            "D" -> gattController.writeCharacteristic(DEACTIVATE_EXTERNAL_MOTOR_PORT_D)
         }
     }
 
@@ -151,7 +137,7 @@ class MoveHubService : Service() {
             "A" -> data[3] = A_PORT_BYTE
             "B" -> data[3] = B_PORT_BYTE
         }
-        writeCharacteristic(characteristic!!, data)
+        gattController.writeCharacteristic(data)
     }
 
     fun deactivateInternalMotorSensorsNotifications() {
@@ -165,18 +151,18 @@ class MoveHubService : Service() {
             "A" -> data[3] = A_PORT_BYTE
             "B" -> data[3] = B_PORT_BYTE
         }
-        writeCharacteristic(characteristic!!, data)
+        gattController.writeCharacteristic(data)
     }
 
     fun activateTiltSensorNotifications() {
-        writeCharacteristic(characteristic!!, ACTIVATE_TILT_SENSOR)
+        gattController.writeCharacteristic(ACTIVATE_TILT_SENSOR)
     }
 
     fun deactivateTiltSensorNotifications() {
-        writeCharacteristic(characteristic!!, DEACTIVATE_TILT_SENSOR)
+        gattController.writeCharacteristic(DEACTIVATE_TILT_SENSOR)
     }
 
-    private fun handleNotification(data: ByteArray) {
+    public fun handleNotification(data: ByteArray) {
         val stringBuilder = StringBuilder(data.size)
         for (byteChar in data)
             stringBuilder.append(String.format("%02X ", byteChar))
@@ -207,11 +193,11 @@ class MoveHubService : Service() {
         }
         val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
         val RUN_MOTOR = byteArrayOf(0x0c, 0x00, 0x81.toByte(), portByte, 0x11, 0x09, timeBytes[0], timeBytes[1], powerByte, 0x64, 0x7f, 0x03)
-        writeCharacteristic(characteristic!!, RUN_MOTOR)
+        gattController.writeCharacteristic(RUN_MOTOR)
     }
 
     fun dumpData() {
-        for (service in bluetoothGatt!!.services) {
+        /*for (service in bluetoothGatt!!.services) {
             Log.e(TAG, "Service: ${service.uuid}")
             if (service.characteristics != null) {
                 for (characteristic in service.characteristics) {
@@ -233,59 +219,16 @@ class MoveHubService : Service() {
                     }
                 }
             }
-        }
+        }*/
     }
 
-    // Implements callback methods for GATT events that the app cares about.  For example,
-    // connection change and services discovered.
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            when (newState) {
-                BluetoothProfile.STATE_CONNECTED -> {
-                    Log.e(TAG, "Bluetooth Connected")
-                    gatt.discoverServices()
-                }
-                BluetoothProfile.STATE_DISCONNECTED -> {
-                    Log.e(TAG, "Bluetooth Disconnected")
-                    val intentAction = ACTION_DEVICE_DISCONNECTED
-                    connected = false
-                    broadcastUpdate(intentAction)
-                }
-            }
-        }
-
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            Log.e(TAG, "Bluetooth Services Discovered")
-            val intentAction = ACTION_DEVICE_CONNECTED
-            connected = true
-            broadcastUpdate(intentAction)
-            characteristic = bluetoothGatt!!.services!![2].characteristics[0]
-            enableNotifications()
-        }
-
-        override fun onCharacteristicRead(gatt: BluetoothGatt,
-                                          characteristic: BluetoothGattCharacteristic,
-                                          status: Int) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                val data = characteristic.value
-                if (data.isNotEmpty()) {
-                    handleNotification(data)
-                }
-            }
-        }
-
-        override fun onCharacteristicChanged(gatt: BluetoothGatt,
-                                             characteristic: BluetoothGattCharacteristic) {
-            val data = characteristic.value
-            if (data.isNotEmpty()) {
-                handleNotification(data)
-            }
-        }
+    public fun showMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private val binder = LocalBinder()
 
-    private fun broadcastUpdate(action: String) {
+    public fun broadcastUpdate(action: String) {
         val intent = Intent(action)
         sendBroadcast(intent)
     }
@@ -301,9 +244,16 @@ class MoveHubService : Service() {
             get() = this@MoveHubService
     }
 
+    fun connect() {
+        gattController.connect()
+    }
+
+    fun disconnect() {
+        gattController.disconnect()
+    }
+
     override fun onCreate() {
-        initialize()
-        handler = Handler()
+        gattController.initialize()
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -314,211 +264,8 @@ class MoveHubService : Service() {
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
-        close()
+        gattController.close()
         return super.onUnbind(intent)
-    }
-
-    /**
-     * Initializes a reference to the local Bluetooth adapter.
-     *
-     * @return Return true if the initialization is successful.
-     */
-    private fun initialize(): Boolean {
-        // For API level 18 and above, get a reference to BluetoothAdapter through
-        // BluetoothManager.
-        if (bluetoothManager == null) {
-            bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            if (bluetoothManager == null) {
-                Log.e(TAG, "Unable to initialize BluetoothManager.")
-                return false
-            }
-        }
-
-        bluetoothAdapter = bluetoothManager!!.adapter
-        bluetoothScanner = bluetoothAdapter!!.bluetoothLeScanner
-        if (bluetoothAdapter == null) {
-            Log.e(TAG, "Unable to obtain a BluetoothAdapter.")
-            return false
-        }
-
-        return true
-    }
-
-    fun connect() {
-        if (!found && !scanning && !connected) {
-            scanLeDevice(true)
-        } else if (found && !scanning && !connected) {
-            finishConnection()
-        }
-    }
-
-    /**
-     * Connects to the GATT server hosted on the Bluetooth LE device.
-     *
-     * @param address The device address of the destination device.
-     *
-     * @return Return true if the connection is initiated successfully. The connection result
-     * is reported asynchronously through the
-     * `BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)`
-     * callback.
-     */
-    private fun finishConnection(): Boolean {
-        if (scanning) {
-            bluetoothScanner!!.stopScan(leScanCallback)
-            scanning = false
-        }
-
-        if (bluetoothAdapter == null || boostHub == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.")
-            return false
-        }
-
-        // Previously connected device.  Try to reconnect.
-        if (bluetoothDeviceAddress != null && boostHub!!.address == bluetoothDeviceAddress
-                && bluetoothGatt != null) {
-            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
-            return (bluetoothGatt!!.connect())
-        }
-
-        val device = bluetoothAdapter!!.getRemoteDevice(boostHub!!.address)
-        if (device == null) {
-            Log.w(TAG, "Device not found.  Unable to connect.")
-            return false
-        }
-        // We want to directly connect to the device, so we are setting the autoConnect
-        // parameter to false.
-        bluetoothGatt = device.connectGatt(this, false, gattCallback)
-        Log.d(TAG, "Trying to create a new connection.")
-        bluetoothDeviceAddress = boostHub!!.address
-        return true
-    }
-
-    /**
-     * Disconnects an existing connection or cancel a pending connection. The disconnection result
-     * is reported asynchronously through the
-     * `BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)`
-     * callback.
-     */
-    fun disconnect() {
-        if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
-            return
-        }
-        if (scanning) {
-            scanLeDevice(false)
-        }
-        if (connected) {
-            bluetoothGatt!!.disconnect()
-        }
-    }
-
-    /**
-     * After using a given BLE device, the app must call this method to ensure resources are
-     * released properly.
-     */
-    private fun close() {
-        if (bluetoothGatt == null) {
-            return
-        }
-        bluetoothGatt!!.close()
-        bluetoothGatt = null
-    }
-
-    /**
-     * Request a read on a given `BluetoothGattCharacteristic`. The read result is reported
-     * asynchronously through the `BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)`
-     * callback.
-     *
-     * @param characteristic The characteristic to read from.
-     */
-    private fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
-        if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
-            return
-        }
-        bluetoothGatt!!.readCharacteristic(characteristic)
-    }
-
-    private fun writeCharacteristic(characteristic: BluetoothGattCharacteristic, data: ByteArray): Boolean {
-        if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
-            return false
-        }
-        // RGB LED WHITE
-        characteristic.value = data
-        return bluetoothGatt!!.writeCharacteristic(characteristic)
-    }
-
-    /**
-     * Enables or disables notification on a give characteristic.
-     *
-     * @param characteristic Characteristic to act on.
-     * @param enabled If true, enable notification.  False otherwise.
-     */
-    private fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic,
-                                      enabled: Boolean) {
-        Log.e(TAG, "Enabling notifications")
-        if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
-            return
-        }
-
-        // Check characteristic property
-        val properties = characteristic.properties
-        if (properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY == 0) {
-            Log.e(TAG, "PROPERY_NOTIFY is off")
-        }
-
-        bluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
-
-        val descriptors = characteristic.descriptors
-
-        for (descriptor in descriptors) {
-            Log.e(TAG, descriptor.toString())
-            if (descriptor != null) {
-                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                bluetoothGatt!!.writeDescriptor(descriptor)
-            }
-        }
-    }
-
-    private fun scanLeDevice(enable: Boolean) {
-        if (enable) {
-            // Stops scanning after a pre-defined scan period.
-            handler!!.postDelayed({
-                Log.e(TAG, "Scanning timed out")
-                scanning = false
-                bluetoothScanner!!.stopScan(leScanCallback)
-                val intentAction = ACTION_DEVICE_CONNECTION_FAILED
-                broadcastUpdate(intentAction)
-            }, DeviceControlActivity.SCAN_PERIOD)
-
-            Log.e(TAG, "Scanning")
-            scanning = true
-            bluetoothScanner!!.startScan(
-                    listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BoostUUID)).build()),
-                    ScanSettings.Builder().build(),
-                    leScanCallback)
-            Toast.makeText(this, "Scanning...", Toast.LENGTH_SHORT).show()
-
-        } else {
-            Log.e(TAG, "Stop Scanning")
-            scanning = false
-            bluetoothScanner!!.stopScan(leScanCallback)
-            Toast.makeText(this, "Scanning Stopped", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Device scan callback.
-    private val leScanCallback = object : ScanCallback() {
-        override fun onScanResult(callbackType: Int, result: ScanResult) {
-            Log.e(TAG, result.toString())
-            super.onScanResult(callbackType, result)
-            boostHub = result.device
-            found = true
-            scanLeDevice(false)
-            finishConnection()
-        }
     }
 
     companion object {
