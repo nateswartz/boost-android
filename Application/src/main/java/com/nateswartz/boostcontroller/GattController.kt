@@ -27,14 +27,14 @@ class GattController(val moveHubService: MoveHubService) {
     private var bluetoothDeviceAddress: String? = null
     private var bluetoothGatt: BluetoothGatt? = null
     private var bluetoothScanner: BluetoothLeScanner? = null
-    private var boostHub: BluetoothDevice? = null
     private var handler: Handler? = null
 
     private var scanning = false
     private var found = false
     private var connected = false
-
-    private var characteristic: BluetoothGattCharacteristic? = null
+    
+    private var boostHub: BluetoothDevice? = null
+    private var boostCharacteristic: BluetoothGattCharacteristic? = null
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -59,7 +59,7 @@ class GattController(val moveHubService: MoveHubService) {
             val intentAction = ACTION_DEVICE_CONNECTED
             connected = true
             moveHubService.broadcastUpdate(intentAction)
-            characteristic = bluetoothGatt!!.services!![2].characteristics[0]
+            boostCharacteristic = bluetoothGatt!!.services!![2].characteristics[0]
             moveHubService.enableNotifications()
         }
 
@@ -201,7 +201,7 @@ class GattController(val moveHubService: MoveHubService) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        bluetoothGatt!!.readCharacteristic(characteristic)
+        bluetoothGatt!!.readCharacteristic(boostCharacteristic)
     }
 
     fun writeCharacteristic(data: ByteArray): Boolean {
@@ -209,9 +209,8 @@ class GattController(val moveHubService: MoveHubService) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return false
         }
-        // RGB LED WHITE
-        characteristic!!.value = data
-        return bluetoothGatt!!.writeCharacteristic(characteristic)
+        boostCharacteristic!!.value = data
+        return bluetoothGatt!!.writeCharacteristic(boostCharacteristic)
     }
 
     /**
@@ -227,14 +226,14 @@ class GattController(val moveHubService: MoveHubService) {
         }
 
         // Check characteristic property
-        val properties = characteristic!!.properties
+        val properties = boostCharacteristic!!.properties
         if (properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY == 0) {
             Log.e(TAG, "PROPERY_NOTIFY is off")
         }
 
-        bluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
+        bluetoothGatt!!.setCharacteristicNotification(boostCharacteristic, enabled)
 
-        val descriptors = characteristic!!.descriptors
+        val descriptors = boostCharacteristic!!.descriptors
 
         for (descriptor in descriptors) {
             Log.e(TAG, descriptor.toString())
