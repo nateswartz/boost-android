@@ -21,6 +21,8 @@ import java.util.*
 class GattController(val moveHubService: MoveHubService) {
 
     val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
+    val BoostHubManufacturerData = "64"
+    val Lpf2HubManufacturerData = "65"
 
     private var bluetoothManager: BluetoothManager? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
@@ -30,11 +32,17 @@ class GattController(val moveHubService: MoveHubService) {
     private var handler: Handler? = null
 
     private var scanning = false
-    private var found = false
-    private var connected = false
-    
+
     private var boostHub: BluetoothDevice? = null
+    private var boostHubAddress = ""
     private var boostCharacteristic: BluetoothGattCharacteristic? = null
+    private var foundBoost = false
+    private var connectedBoost = false
+
+    private var lpf2Hub: BluetoothDevice? = null
+    private var lpf2Characteristic: BluetoothGattCharacteristic? = null
+    private var foundLpf2 = false
+    private var connectedLpf2 = false
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -48,7 +56,9 @@ class GattController(val moveHubService: MoveHubService) {
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     Log.e(TAG, "Bluetooth Disconnected")
                     val intentAction = ACTION_DEVICE_DISCONNECTED
-                    connected = false
+                    if (gatt.device.address == boostHubAddress) {
+                        connectedBoost = false
+                    }
                     moveHubService.broadcastUpdate(intentAction)
                 }
             }
@@ -57,9 +67,12 @@ class GattController(val moveHubService: MoveHubService) {
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             Log.e(TAG, "Bluetooth Services Discovered")
             val intentAction = ACTION_DEVICE_CONNECTED
-            connected = true
+            if (gatt.device.address == boostHubAddress) {
+                Log.e(TAG, "Connected Boost Hub")
+                connectedBoost = true
+                boostCharacteristic = bluetoothGatt!!.services!![2].characteristics[0]
+            }
             moveHubService.broadcastUpdate(intentAction)
-            boostCharacteristic = bluetoothGatt!!.services!![2].characteristics[0]
             moveHubService.enableNotifications()
         }
 
@@ -112,9 +125,9 @@ class GattController(val moveHubService: MoveHubService) {
     }
 
     fun connect() {
-        if (!found && !scanning && !connected) {
+        if (!foundBoost && !scanning && !connectedBoost) {
             scanLeDevice(true)
-        } else if (found && !scanning && !connected) {
+        } else if (foundBoost && !scanning && !connectedBoost) {
             finishConnection()
         }
     }
@@ -174,7 +187,7 @@ class GattController(val moveHubService: MoveHubService) {
         if (scanning) {
             scanLeDevice(false)
         }
-        if (connected) {
+        if (connectedBoost) {
             bluetoothGatt!!.disconnect()
         }
     }
@@ -276,8 +289,15 @@ class GattController(val moveHubService: MoveHubService) {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             Log.e(TAG, result.toString())
             super.onScanResult(callbackType, result)
-            boostHub = result.device
-            found = true
+            when (result.scanRecord.manufacturerSpecificData[919][1].toString()) {
+                BoostHubManufacturerData -> {
+                    boostHub = result.device
+                    boostHubAddress = result.device.address
+                    foundBoost = true
+                    Log.e(TAG, "Found Boost Hub")
+                }
+                Lpf2HubManufacturerData -> lpf2Hub = result.device
+            }
             scanLeDevice(false)
             finishConnection()
         }
