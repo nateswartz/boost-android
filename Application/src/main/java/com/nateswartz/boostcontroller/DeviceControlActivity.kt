@@ -50,8 +50,11 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     private var click = 0
 
     private var moveHubService: MoveHubService? = null
-    private var connected = false
-    private var connecting = false
+    private var connectedBoost = false
+    private var connectingBoost = false
+
+    private var connectedLpf2 = false
+    private var connectingLpf2 = false
 
     private var colorArray = arrayOf("Off", "Blue", "Pink", "Purple",
             "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
@@ -76,20 +79,29 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-                MoveHubService.ACTION_DEVICE_CONNECTED -> {
-                    connected = true
-                    connecting = false
+                MoveHubService.ACTION_BOOST_CONNECTED -> {
+                    connectedBoost = true
+                    connectingBoost = false
                     enableControls()
                     invalidateOptionsMenu()
                 }
-                MoveHubService.ACTION_DEVICE_DISCONNECTED -> {
-                    connected = false
-                    connecting = false
+                MoveHubService.ACTION_BOOST_DISCONNECTED -> {
+                    connectedBoost = false
+                    connectingBoost = false
                     disableControls()
                     invalidateOptionsMenu()
                 }
+                MoveHubService.ACTION_LPF2_CONNECTED -> {
+                    connectedLpf2 = true
+                    connectingLpf2 = false
+                }
+                MoveHubService.ACTION_LPF2_DISCONNECTED -> {
+                    connectedLpf2 = false
+                    connectingLpf2 = false
+                }
                 MoveHubService.ACTION_DEVICE_CONNECTION_FAILED -> {
-                    connecting = false
+                    connectingBoost = false
+                    connectingLpf2 = false
                     invalidateOptionsMenu()
                     Toast.makeText(this@DeviceControlActivity, "Connection Failed!", Toast.LENGTH_SHORT).show()
                 }
@@ -179,13 +191,13 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        if (connected) {
+        if (connectedBoost) {
             menu.findItem(R.id.menu_connect).isVisible = false
             menu.findItem(R.id.menu_disconnect).isVisible = true
         } else {
             menu.findItem(R.id.menu_connect).isVisible = true
             menu.findItem(R.id.menu_disconnect).isVisible = false
-            if (connecting) {
+            if (connectingBoost) {
                 menu.findItem(R.id.menu_connect).isEnabled = false
             }
         }
@@ -201,7 +213,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             }
             R.id.menu_disconnect -> {
                 moveHubService!!.disconnect()
-                connected = false
+                connectedBoost = false
+                connectedLpf2 = false
                 invalidateOptionsMenu()
                 return true
             }
@@ -230,7 +243,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             finish()
         }
 
-        connecting = true
+        connectingBoost = true
+        connectingLpf2 = true
         moveHubService!!.connect()
 
         val colorAdapter = ArrayAdapter<String>(this,
@@ -331,7 +345,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        if (connected) {
+        if (connectedBoost) {
             when (parent) {
                 spinner_led_colors -> {
                     val item = parent!!.getItemAtPosition(position).toString()
@@ -444,11 +458,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                         Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            if (connecting || connected) {
+            if (connectingBoost || connectedBoost || connectingLpf2 || connectedLpf2) {
                 moveHubService!!.disconnect()
-                connected = false
-                unbindService(serviceConnection)
-                moveHubService = null
+                connectedBoost = false
+                connectingBoost = false
+                connectedLpf2 = false
+                connectingLpf2 = false
             }
         }
         unregisterReceiver(moveHubUpdateReceiver)
@@ -480,8 +495,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         private fun makeMoveHubUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
-            intentFilter.addAction(MoveHubService.ACTION_DEVICE_CONNECTED)
-            intentFilter.addAction(MoveHubService.ACTION_DEVICE_DISCONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_BOOST_CONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_BOOST_DISCONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_LPF2_CONNECTED)
+            intentFilter.addAction(MoveHubService.ACTION_LPF2_DISCONNECTED)
             intentFilter.addAction(MoveHubService.ACTION_DEVICE_CONNECTION_FAILED)
             intentFilter.addAction(MoveHubService.ACTION_DEVICE_NOTIFICATION)
             return intentFilter

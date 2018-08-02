@@ -271,10 +271,15 @@ class MoveHubService : Service() {
     companion object {
         private val TAG = MoveHubService::class.java.simpleName
 
-        val ACTION_DEVICE_CONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_GATT_CONNECTED"
-        val ACTION_DEVICE_DISCONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_GATT_DISCONNECTED"
-        val ACTION_DEVICE_NOTIFICATION = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_NOTIFICATION"
-        val ACTION_DEVICE_CONNECTION_FAILED = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_CONNECTION_FAILED"
-        val NOTIFICATION_DATA = "com.nateswartz.boostcontroller.move.hub.NOTIFICATION_DATA"
+        const val ACTION_BOOST_CONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_BOOST_CONNECTED"
+        const val ACTION_BOOST_DISCONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_BOOST_DISCONNECTED"
+
+        const val ACTION_LPF2_CONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_LPF2_CONNECTED"
+        const val ACTION_LPF2_DISCONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_LPF2_DISCONNECTED"
+
+        const val ACTION_DEVICE_CONNECTION_FAILED = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_CONNECTION_FAILED"
+
+        const val ACTION_DEVICE_NOTIFICATION = "com.nateswartz.boostcontroller.move.hub.ACTION_DEVICE_NOTIFICATION"
+        const val NOTIFICATION_DATA = "com.nateswartz.boostcontroller.move.hub.NOTIFICATION_DATA"
     }
 }
