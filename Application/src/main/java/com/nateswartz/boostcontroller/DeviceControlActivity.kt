@@ -82,22 +82,26 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 MoveHubService.ACTION_BOOST_CONNECTED -> {
                     connectedBoost = true
                     connectingBoost = false
+                    text_boost_connected.visibility = View.VISIBLE
                     enableControls()
                     invalidateOptionsMenu()
                 }
                 MoveHubService.ACTION_BOOST_DISCONNECTED -> {
                     connectedBoost = false
                     connectingBoost = false
+                    text_boost_connected.visibility = View.INVISIBLE
                     disableControls()
                     invalidateOptionsMenu()
                 }
                 MoveHubService.ACTION_LPF2_CONNECTED -> {
                     connectedLpf2 = true
                     connectingLpf2 = false
+                    text_lpf2_connected.visibility = View.VISIBLE
                 }
                 MoveHubService.ACTION_LPF2_DISCONNECTED -> {
                     connectedLpf2 = false
                     connectingLpf2 = false
+                    text_lpf2_connected.visibility = View.INVISIBLE
                 }
                 MoveHubService.ACTION_DEVICE_CONNECTION_FAILED -> {
                     connectingBoost = false
@@ -215,6 +219,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 moveHubService!!.disconnect()
                 connectedBoost = false
                 connectedLpf2 = false
+                text_boost_connected.visibility = View.INVISIBLE
+                text_lpf2_connected.visibility = View.INVISIBLE
                 invalidateOptionsMenu()
                 return true
             }
@@ -464,6 +470,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 connectingBoost = false
                 connectedLpf2 = false
                 connectingLpf2 = false
+                text_boost_connected.visibility = View.INVISIBLE
+                text_lpf2_connected.visibility = View.INVISIBLE
             }
         }
         unregisterReceiver(moveHubUpdateReceiver)
