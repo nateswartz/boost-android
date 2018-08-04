@@ -1,20 +1,15 @@
 package com.nateswartz.boostcontroller
 
-import android.app.Service
 import android.bluetooth.*
 import android.bluetooth.le.*
 import android.content.Context
-import android.content.Intent
-import android.os.Binder
 import android.os.Handler
-import android.os.IBinder
 import android.os.ParcelUuid
 import android.util.Log
-import android.widget.Toast
 import java.util.*
 
 
-class GattController(val moveHubService: MoveHubService) {
+class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
 
     val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
     val BoostHubManufacturerData = "64"
@@ -56,15 +51,15 @@ class GattController(val moveHubService: MoveHubService) {
                     when (gatt.device.address) {
                         boostHubAddress -> {
                             connectedBoost = false
-                            intentAction = MoveHubService.ACTION_BOOST_DISCONNECTED
+                            intentAction = BluetoothDeviceService.ACTION_BOOST_DISCONNECTED
                         }
                         else -> {
                             connectedLpf2 = false
-                            intentAction = MoveHubService.ACTION_LPF2_DISCONNECTED
+                            intentAction = BluetoothDeviceService.ACTION_LPF2_DISCONNECTED
 
                         }
                     }
-                    moveHubService.broadcastUpdate(intentAction)
+                    bluetoothDeviceService.broadcastUpdate(intentAction)
                 }
             }
         }
@@ -77,18 +72,17 @@ class GattController(val moveHubService: MoveHubService) {
                     Log.d(TAG, "Connected Boost Hub")
                     connectedBoost = true
                     boostCharacteristic = bluetoothGatt!!.services!![2].characteristics[0]
-                    intentAction = MoveHubService.ACTION_BOOST_CONNECTED
+                    intentAction = BluetoothDeviceService.ACTION_BOOST_CONNECTED
                 }
                 else -> {
                     Log.d(TAG, "Connected LPF2 Hub")
                     connectedLpf2 = true
                     // TODO: Verify this is the correct characteristic
                     lpf2Characteristic = bluetoothGatt!!.services!![2].characteristics[0]
-                    intentAction = MoveHubService.ACTION_LPF2_CONNECTED
+                    intentAction = BluetoothDeviceService.ACTION_LPF2_CONNECTED
                 }
             }
-            moveHubService.broadcastUpdate(intentAction)
-            moveHubService.enableNotifications()
+            bluetoothDeviceService.broadcastUpdate(intentAction)
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt,
@@ -97,7 +91,7 @@ class GattController(val moveHubService: MoveHubService) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 val data = characteristic.value
                 if (data.isNotEmpty()) {
-                    moveHubService.handleNotification(data)
+                    bluetoothDeviceService.handleNotification(data)
                 }
             }
         }
@@ -106,7 +100,7 @@ class GattController(val moveHubService: MoveHubService) {
                                              characteristic: BluetoothGattCharacteristic) {
             val data = characteristic.value
             if (data.isNotEmpty()) {
-                moveHubService.handleNotification(data)
+                bluetoothDeviceService.handleNotification(data)
             }
         }
     }
@@ -122,7 +116,7 @@ class GattController(val moveHubService: MoveHubService) {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
         if (bluetoothManager == null) {
-            bluetoothManager = moveHubService.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            bluetoothManager = bluetoothDeviceService.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
             if (bluetoothManager == null) {
                 Log.e(TAG, "Unable to initialize BluetoothManager.")
                 return false
@@ -141,9 +135,11 @@ class GattController(val moveHubService: MoveHubService) {
 
     fun connect() {
         Log.d(TAG, "Connecting...")
+        //if ( !scanning && (!foundBoost || !foundLpf2) && (!connectedLpf2 || !connectedBoost)) {
         if (!foundBoost && !scanning && !connectedBoost) {
-            Log.d(TAG, "Scanning...")
+                Log.d(TAG, "Scanning...")
             scanLeDevice(true)
+        //} else if (!scanning && foundBoost && foundLpf2 && (!connectedBoost || !connectedLpf2)) {
         } else if (foundBoost && !scanning && !connectedBoost) {
             Log.d(TAG, "Finishing connection...")
             finishConnection()
@@ -185,7 +181,7 @@ class GattController(val moveHubService: MoveHubService) {
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        bluetoothGatt = device.connectGatt(moveHubService, false, gattCallback)
+        bluetoothGatt = device.connectGatt(bluetoothDeviceService, false, gattCallback)
         Log.d(TAG, "Trying to create a new connection.")
         bluetoothDeviceAddress = boostHub!!.address
         return true
@@ -282,8 +278,8 @@ class GattController(val moveHubService: MoveHubService) {
                 Log.d(TAG, "Scanning timed out")
                 scanning = false
                 bluetoothScanner!!.stopScan(leScanCallback)
-                val intentAction = MoveHubService.ACTION_DEVICE_CONNECTION_FAILED
-                moveHubService.broadcastUpdate(intentAction)
+                val intentAction = BluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED
+                bluetoothDeviceService.broadcastUpdate(intentAction)
             }, DeviceControlActivity.SCAN_PERIOD)
 
             Log.d(TAG, "Scanning")
@@ -292,13 +288,13 @@ class GattController(val moveHubService: MoveHubService) {
                     listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BoostUUID)).build()),
                     ScanSettings.Builder().build(),
                     leScanCallback)
-            moveHubService.showMessage("Scanning...")
+            bluetoothDeviceService.showMessage("Scanning...")
 
         } else {
             Log.d(TAG, "Stop Scanning")
             scanning = false
             bluetoothScanner!!.stopScan(leScanCallback)
-            moveHubService.showMessage("Scanning Stopped")
+            bluetoothDeviceService.showMessage("Scanning Stopped")
         }
     }
 

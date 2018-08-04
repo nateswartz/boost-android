@@ -49,7 +49,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     private var mRobot: ConvenienceRobot? = null
     private var click = 0
 
-    private var moveHubService: MoveHubService? = null
+    private var bluetoothDeviceService: BluetoothDeviceService? = null
     private var connectedBoost = false
     private var connectingBoost = false
 
@@ -65,13 +65,13 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
-            moveHubService = (service as MoveHubService.LocalBinder).service
+            bluetoothDeviceService = (service as BluetoothDeviceService.LocalBinder).service
             finishSetup()
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
             Log.d(TAG, "Service Disconnect")
-            moveHubService = null
+            bluetoothDeviceService = null
         }
     }
 
@@ -79,40 +79,40 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-                MoveHubService.ACTION_BOOST_CONNECTED -> {
+                BluetoothDeviceService.ACTION_BOOST_CONNECTED -> {
                     connectedBoost = true
                     connectingBoost = false
                     text_boost_connected.visibility = View.VISIBLE
                     enableControls()
                     invalidateOptionsMenu()
                 }
-                MoveHubService.ACTION_BOOST_DISCONNECTED -> {
+                BluetoothDeviceService.ACTION_BOOST_DISCONNECTED -> {
                     connectedBoost = false
                     connectingBoost = false
                     text_boost_connected.visibility = View.INVISIBLE
                     disableControls()
                     invalidateOptionsMenu()
                 }
-                MoveHubService.ACTION_LPF2_CONNECTED -> {
+                BluetoothDeviceService.ACTION_LPF2_CONNECTED -> {
                     connectedLpf2 = true
                     connectingLpf2 = false
                     text_lpf2_connected.visibility = View.VISIBLE
                 }
-                MoveHubService.ACTION_LPF2_DISCONNECTED -> {
+                BluetoothDeviceService.ACTION_LPF2_DISCONNECTED -> {
                     connectedLpf2 = false
                     connectingLpf2 = false
                     text_lpf2_connected.visibility = View.INVISIBLE
                 }
-                MoveHubService.ACTION_DEVICE_CONNECTION_FAILED -> {
+                BluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED -> {
                     connectingBoost = false
                     connectingLpf2 = false
                     invalidateOptionsMenu()
                     Toast.makeText(this@DeviceControlActivity, "Connection Failed!", Toast.LENGTH_SHORT).show()
                 }
-                MoveHubService.ACTION_DEVICE_NOTIFICATION -> {
-                    val notification = intent.getParcelableExtra<HubNotification>(MoveHubService.NOTIFICATION_DATA)
+                BluetoothDeviceService.ACTION_DEVICE_NOTIFICATION -> {
+                    val notification = intent.getParcelableExtra<HubNotification>(BluetoothDeviceService.NOTIFICATION_DATA)
                     if (switch_sync_colors.isChecked && notification is ColorSensorNotification) {
-                        moveHubService!!.setLEDColor(getLedColorFromName(notification.color.string))
+                        bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
                     }
                     if (notification is ButtonNotification && mRobot != null) {
                         changeSpheroColor()
@@ -141,7 +141,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     PERMISSION_REQUEST_CODE)
 
         } else {
-            val moveHubServiceIntent = Intent(this, MoveHubService::class.java)
+            val moveHubServiceIntent = Intent(this, BluetoothDeviceService::class.java)
             bindService(moveHubServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
     }
@@ -151,7 +151,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    val moveHubServiceIntent = Intent(this, MoveHubService::class.java)
+                    val moveHubServiceIntent = Intent(this, BluetoothDeviceService::class.java)
                     bindService(moveHubServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
                     return
                 }
@@ -213,12 +213,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             R.id.menu_connect -> {
                 Log.d(TAG, "Connecting...")
                 Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
-                moveHubService!!.connect()
+                bluetoothDeviceService!!.connect()
                 return true
             }
             R.id.menu_disconnect -> {
                 Log.d(TAG, "Disconnecting...")
-                moveHubService!!.disconnect()
+                bluetoothDeviceService!!.disconnect()
                 connectedBoost = false
                 connectedLpf2 = false
                 text_boost_connected.visibility = View.INVISIBLE
@@ -253,7 +253,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         connectingBoost = true
         connectingLpf2 = true
-        moveHubService!!.connect()
+        bluetoothDeviceService!!.connect()
 
         val colorAdapter = ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, colorArray)
@@ -273,51 +273,51 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         switch_color_sensor.setOnClickListener{
             if (switch_color_sensor.isChecked) {
-                moveHubService!!.activateColorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
             } else {
-                moveHubService!!.deactivateColorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
             }
         }
 
         switch_tilt_sensor.setOnClickListener {
             if (switch_tilt_sensor.isChecked) {
-                moveHubService!!.activateTiltSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
             } else {
-                moveHubService!!.deactivateTiltSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
             }
         }
 
         switch_internal_motors.setOnClickListener {
             if (switch_internal_motors.isChecked) {
-                moveHubService!!.activateInternalMotorSensorsNotifications()
+                bluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
             } else {
-                moveHubService!!.deactivateInternalMotorSensorsNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
             }
         }
 
         switch_external_motor.setOnClickListener {
             if (switch_external_motor.isChecked) {
-                moveHubService!!.activateExternalMotorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
             } else {
-                moveHubService!!.deactivateExternalMotorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
             }
         }
 
         switch_button.setOnClickListener {
             if (switch_button.isChecked) {
-                moveHubService!!.activateButtonNotifications()
+                bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
             } else {
                 // Currently not working
-                moveHubService!!.deactivateButtonNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
             }
         }
 
         button_spin.setOnClickListener {
-            moveHubService!!.runInternalMotorsInOpposition(20, 300)
+            bluetoothDeviceService!!.moveHubController.runInternalMotorsInOpposition(20, 300)
         }
 
         button_dump_data.setOnClickListener {
-            moveHubService!!.dumpData()
+            //bluetoothDeviceService!!.dumpData()
         }
 
         button_var_run_motor.setOnClickListener {
@@ -327,10 +327,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             val counterclockwise = switch_counter_clockwise.isChecked
             if (power != "" && time != "") {
                 when (motor) {
-                    "A" -> moveHubService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
-                    "B" -> moveHubService!!.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
-                    "A+B" -> moveHubService!!.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
-                    "External" -> moveHubService!!.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
+                    "A" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
+                    "B" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
+                    "A+B" -> bluetoothDeviceService!!.moveHubController.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
+                    "External" -> bluetoothDeviceService!!.moveHubController.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
                 }
             }
         }
@@ -358,7 +358,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 spinner_led_colors -> {
                     val item = parent!!.getItemAtPosition(position).toString()
                     val color = getLedColorFromName(item)
-                    moveHubService?.setLEDColor(color)
+                    bluetoothDeviceService?.moveHubController?.setLEDColor(color)
                 }
             }
         }
@@ -451,8 +451,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
 
         registerReceiver(moveHubUpdateReceiver, makeMoveHubUpdateIntentFilter())
-        if (moveHubService != null) {
-            val result = moveHubService!!.connect()
+        if (bluetoothDeviceService != null) {
+            val result = bluetoothDeviceService!!.connect()
             Log.d(TAG, "Connect request result=$result")
         }
 
@@ -465,7 +465,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 == PackageManager.PERMISSION_GRANTED) {
 
             if (connectingBoost || connectedBoost || connectingLpf2 || connectedLpf2) {
-                moveHubService!!.disconnect()
+                bluetoothDeviceService!!.disconnect()
                 connectedBoost = false
                 connectingBoost = false
                 connectedLpf2 = false
@@ -480,7 +480,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
-        moveHubService = null
+        bluetoothDeviceService = null
 
         // Sphero
         // If the DiscoveryAgent is in discovery mode, stop it.
@@ -503,12 +503,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         private fun makeMoveHubUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
-            intentFilter.addAction(MoveHubService.ACTION_BOOST_CONNECTED)
-            intentFilter.addAction(MoveHubService.ACTION_BOOST_DISCONNECTED)
-            intentFilter.addAction(MoveHubService.ACTION_LPF2_CONNECTED)
-            intentFilter.addAction(MoveHubService.ACTION_LPF2_DISCONNECTED)
-            intentFilter.addAction(MoveHubService.ACTION_DEVICE_CONNECTION_FAILED)
-            intentFilter.addAction(MoveHubService.ACTION_DEVICE_NOTIFICATION)
+            intentFilter.addAction(BluetoothDeviceService.ACTION_BOOST_CONNECTED)
+            intentFilter.addAction(BluetoothDeviceService.ACTION_BOOST_DISCONNECTED)
+            intentFilter.addAction(BluetoothDeviceService.ACTION_LPF2_CONNECTED)
+            intentFilter.addAction(BluetoothDeviceService.ACTION_LPF2_DISCONNECTED)
+            intentFilter.addAction(BluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED)
+            intentFilter.addAction(BluetoothDeviceService.ACTION_DEVICE_NOTIFICATION)
             return intentFilter
         }
     }
