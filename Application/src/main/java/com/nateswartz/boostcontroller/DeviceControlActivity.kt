@@ -83,6 +83,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     connectedBoost = true
                     connectingBoost = false
                     text_boost_connected.visibility = View.VISIBLE
+                    bluetoothDeviceService!!.moveHubController.enableNotifications()
                     enableControls()
                     invalidateOptionsMenu()
                 }
