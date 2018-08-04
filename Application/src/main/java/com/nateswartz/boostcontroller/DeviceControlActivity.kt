@@ -70,7 +70,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
-            Log.e(TAG, "Service Disconnect")
+            Log.d(TAG, "Service Disconnect")
             moveHubService = null
         }
     }
@@ -168,7 +168,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         //If the DiscoveryAgent is not already looking for robots, start discovery.
         if( !mDiscoveryAgent.isDiscovering ) {
             try {
-                Log.e("Sphero", "Looking for Sphero")
+                Log.d("Sphero", "Looking for Sphero")
                 mDiscoveryAgent.startDiscovery(applicationContext)
             } catch (e: DiscoveryException) {
                 Log.e("Sphero", "DiscoveryException: " + e.message)
@@ -178,7 +178,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     // Sphero
     override fun handleRobotChangedState(robot: Robot, type: RobotChangedStateListener.RobotChangedStateNotificationType) {
-        Log.e("Sphero", "handleRobotChangedState $type")
+        Log.d("Sphero", "handleRobotChangedState $type")
         when (type) {
             RobotChangedStateListener.RobotChangedStateNotificationType.Connected -> {
                 mRobot = ConvenienceRobot(robot)
@@ -211,11 +211,13 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_connect -> {
+                Log.d(TAG, "Connecting...")
                 Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
                 moveHubService!!.connect()
                 return true
             }
             R.id.menu_disconnect -> {
+                Log.d(TAG, "Disconnecting...")
                 moveHubService!!.disconnect()
                 connectedBoost = false
                 connectedLpf2 = false
@@ -231,7 +233,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        Log.e(TAG, "onActivityResult Enter")
+        Log.d(TAG, "onActivityResult Enter")
         // User chose not to enable Bluetooth.
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish()
@@ -241,7 +243,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     }
 
     private fun finishSetup() {
-        Log.e(TAG, "FinishSetup")
+        Log.d(TAG, "FinishSetup")
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -410,10 +412,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         // Request a string response from the provided URL.
         val postRequest = object : StringRequest(Request.Method.POST, url,
-                Response.Listener<String>
-                {response ->
-
-                    Log.e("Volley", "Success: $response")
+                Response.Listener<String> { response ->
+                    Log.d("Volley", "Success: $response")
                 },
                 Response.ErrorListener {
                     // error

@@ -1,17 +1,11 @@
 package com.nateswartz.boostcontroller
 
 import android.app.Service
-import android.bluetooth.*
-import android.bluetooth.le.*
-import android.content.Context
 import android.content.Intent
 import android.os.Binder
-import android.os.Handler
 import android.os.IBinder
-import android.os.ParcelUuid
 import android.util.Log
 import android.widget.Toast
-import java.util.*
 
 
 /**
@@ -181,7 +175,7 @@ class MoveHubService : Service() {
                 }
             }
         }
-        Log.e(TAG, notification.toString())
+        Log.d(TAG, notification.toString())
         val intentAction = ACTION_DEVICE_NOTIFICATION
         broadcastUpdate(intentAction, notification)
     }
@@ -222,13 +216,13 @@ class MoveHubService : Service() {
         }*/
     }
 
-    public fun showMessage(message: String) {
+    fun showMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private val binder = LocalBinder()
 
-    public fun broadcastUpdate(action: String) {
+    fun broadcastUpdate(action: String) {
         val intent = Intent(action)
         sendBroadcast(intent)
     }
@@ -245,18 +239,22 @@ class MoveHubService : Service() {
     }
 
     fun connect() {
+        Log.d(TAG, "Connecting...")
         gattController.connect()
     }
 
     fun disconnect() {
+        Log.d(TAG, "Disconnecting...")
         gattController.disconnect()
     }
 
     override fun onCreate() {
+        Log.d(TAG, "onCreate")
         gattController.initialize()
     }
 
     override fun onBind(intent: Intent): IBinder? {
+        Log.d(TAG, "onBind")
         return binder
     }
 
@@ -264,6 +262,7 @@ class MoveHubService : Service() {
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
+        Log.d(TAG, "onUnbind")
         gattController.close()
         return super.onUnbind(intent)
     }

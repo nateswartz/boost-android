@@ -47,11 +47,11 @@ class GattController(val moveHubService: MoveHubService) {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
-                    Log.e(TAG, "Bluetooth Connected")
+                    Log.d(TAG, "Bluetooth Connected")
                     gatt.discoverServices()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
-                    Log.e(TAG, "Bluetooth Disconnected")
+                    Log.d(TAG, "Bluetooth Disconnected")
                     val intentAction : String
                     when (gatt.device.address) {
                         boostHubAddress -> {
@@ -70,17 +70,17 @@ class GattController(val moveHubService: MoveHubService) {
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            Log.e(TAG, "Bluetooth Services Discovered")
+            Log.d(TAG, "Bluetooth Services Discovered")
             val intentAction : String
             when (gatt.device.address) {
                 boostHubAddress -> {
-                    Log.e(TAG, "Connected Boost Hub")
+                    Log.d(TAG, "Connected Boost Hub")
                     connectedBoost = true
                     boostCharacteristic = bluetoothGatt!!.services!![2].characteristics[0]
                     intentAction = MoveHubService.ACTION_BOOST_CONNECTED
                 }
                 else -> {
-                    Log.e(TAG, "Connected LPF2 Hub")
+                    Log.d(TAG, "Connected LPF2 Hub")
                     connectedLpf2 = true
                     // TODO: Verify this is the correct characteristic
                     lpf2Characteristic = bluetoothGatt!!.services!![2].characteristics[0]
@@ -140,9 +140,12 @@ class GattController(val moveHubService: MoveHubService) {
     }
 
     fun connect() {
+        Log.d(TAG, "Connecting...")
         if (!foundBoost && !scanning && !connectedBoost) {
+            Log.d(TAG, "Scanning...")
             scanLeDevice(true)
         } else if (foundBoost && !scanning && !connectedBoost) {
+            Log.d(TAG, "Finishing connection...")
             finishConnection()
         }
     }
@@ -164,7 +167,7 @@ class GattController(val moveHubService: MoveHubService) {
         }
 
         if (bluetoothAdapter == null || boostHub == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.")
+            Log.e(TAG, "BluetoothAdapter not initialized or unspecified address.")
             return false
         }
 
@@ -177,7 +180,7 @@ class GattController(val moveHubService: MoveHubService) {
 
         val device = bluetoothAdapter!!.getRemoteDevice(boostHub!!.address)
         if (device == null) {
-            Log.w(TAG, "Device not found.  Unable to connect.")
+            Log.e(TAG, "Device not found.  Unable to connect.")
             return false
         }
         // We want to directly connect to the device, so we are setting the autoConnect
@@ -196,7 +199,7 @@ class GattController(val moveHubService: MoveHubService) {
      */
     fun disconnect() {
         if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
+            Log.e(TAG, "BluetoothAdapter not initialized")
             return
         }
         if (scanning) {
@@ -226,7 +229,7 @@ class GattController(val moveHubService: MoveHubService) {
      * */
     private fun readCharacteristic() {
         if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
+            Log.e(TAG, "BluetoothAdapter not initialized")
             return
         }
         bluetoothGatt!!.readCharacteristic(boostCharacteristic)
@@ -234,7 +237,7 @@ class GattController(val moveHubService: MoveHubService) {
 
     fun writeCharacteristic(data: ByteArray): Boolean {
         if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
+            Log.e(TAG, "BluetoothAdapter not initialized")
             return false
         }
         boostCharacteristic!!.value = data
@@ -247,9 +250,9 @@ class GattController(val moveHubService: MoveHubService) {
      * @param enabled If true, enable notification.  False otherwise.
      */
     fun setCharacteristicNotification(enabled: Boolean) {
-        Log.e(TAG, "Enabling notifications")
+        Log.d(TAG, "Enabling notifications")
         if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
+            Log.e(TAG, "BluetoothAdapter not initialized")
             return
         }
 
@@ -264,7 +267,7 @@ class GattController(val moveHubService: MoveHubService) {
         val descriptors = boostCharacteristic!!.descriptors
 
         for (descriptor in descriptors) {
-            Log.e(TAG, descriptor.toString())
+            Log.d(TAG, descriptor.toString())
             if (descriptor != null) {
                 descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                 bluetoothGatt!!.writeDescriptor(descriptor)
@@ -276,14 +279,14 @@ class GattController(val moveHubService: MoveHubService) {
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             handler!!.postDelayed({
-                Log.e(TAG, "Scanning timed out")
+                Log.d(TAG, "Scanning timed out")
                 scanning = false
                 bluetoothScanner!!.stopScan(leScanCallback)
                 val intentAction = MoveHubService.ACTION_DEVICE_CONNECTION_FAILED
                 moveHubService.broadcastUpdate(intentAction)
             }, DeviceControlActivity.SCAN_PERIOD)
 
-            Log.e(TAG, "Scanning")
+            Log.d(TAG, "Scanning")
             scanning = true
             bluetoothScanner!!.startScan(
                     listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BoostUUID)).build()),
@@ -292,7 +295,7 @@ class GattController(val moveHubService: MoveHubService) {
             moveHubService.showMessage("Scanning...")
 
         } else {
-            Log.e(TAG, "Stop Scanning")
+            Log.d(TAG, "Stop Scanning")
             scanning = false
             bluetoothScanner!!.stopScan(leScanCallback)
             moveHubService.showMessage("Scanning Stopped")
@@ -302,20 +305,20 @@ class GattController(val moveHubService: MoveHubService) {
     // Device scan callback.
     private val leScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
-            Log.e(TAG, result.toString())
+            Log.d(TAG, result.toString())
             super.onScanResult(callbackType, result)
             when (result.scanRecord.manufacturerSpecificData[919][1].toString()) {
                 BoostHubManufacturerData -> {
                     boostHub = result.device
                     boostHubAddress = result.device.address
                     foundBoost = true
-                    Log.e(TAG, "Found Boost Hub")
+                    Log.d(TAG, "Found Boost Hub")
                 }
                 Lpf2HubManufacturerData -> {
                     lpf2Hub = result.device
                     lpf2HubAddress = result.device.address
                     foundLpf2 = true
-                    Log.e(TAG, "Found LPF2 Hub")
+                    Log.d(TAG, "Found LPF2 Hub")
                 }
             }
             scanLeDevice(false)
