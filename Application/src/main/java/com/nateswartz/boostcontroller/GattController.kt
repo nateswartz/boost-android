@@ -8,6 +8,9 @@ import android.os.ParcelUuid
 import android.util.Log
 import java.util.*
 
+enum class DeviceType {
+    BOOST, LPF2
+}
 
 class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
 
@@ -221,21 +224,23 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
      * asynchronously through the `BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)`
      * callback.
      * */
-    private fun readCharacteristic() {
+    private fun readCharacteristic(deviceType: DeviceType) {
         if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.e(TAG, "BluetoothAdapter not initialized")
             return
         }
-        bluetoothGatt!!.readCharacteristic(boostCharacteristic)
+        val characteristic = if (deviceType == DeviceType.BOOST) boostCharacteristic else lpf2Characteristic
+        bluetoothGatt!!.readCharacteristic(characteristic)
     }
 
-    fun writeCharacteristic(data: ByteArray): Boolean {
+    fun writeCharacteristic(deviceType: DeviceType, data: ByteArray): Boolean {
         if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.e(TAG, "BluetoothAdapter not initialized")
             return false
         }
-        boostCharacteristic!!.value = data
-        return bluetoothGatt!!.writeCharacteristic(boostCharacteristic)
+        val characteristic = if (deviceType == DeviceType.BOOST) boostCharacteristic else lpf2Characteristic
+        characteristic!!.value = data
+        return bluetoothGatt!!.writeCharacteristic(characteristic)
     }
 
     /**
@@ -243,22 +248,23 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
      *
      * @param enabled If true, enable notification.  False otherwise.
      */
-    fun setCharacteristicNotification(enabled: Boolean) {
+    fun setCharacteristicNotification(deviceType: DeviceType, enabled: Boolean) {
         Log.d(TAG, "Enabling notifications")
         if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.e(TAG, "BluetoothAdapter not initialized")
             return
         }
+        val characteristic = if (deviceType == DeviceType.BOOST) boostCharacteristic else lpf2Characteristic
 
         // Check characteristic property
-        val properties = boostCharacteristic!!.properties
+        val properties = characteristic!!.properties
         if (properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY == 0) {
             Log.e(TAG, "PROPERY_NOTIFY is off")
         }
 
-        bluetoothGatt!!.setCharacteristicNotification(boostCharacteristic, enabled)
+        bluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
 
-        val descriptors = boostCharacteristic!!.descriptors
+        val descriptors = characteristic!!.descriptors
 
         for (descriptor in descriptors) {
             Log.d(TAG, descriptor.toString())
