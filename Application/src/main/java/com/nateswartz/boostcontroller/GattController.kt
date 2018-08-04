@@ -135,12 +135,10 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
 
     fun connect() {
         Log.d(TAG, "Connecting...")
-        //if ( !scanning && (!foundBoost || !foundLpf2) && (!connectedLpf2 || !connectedBoost)) {
-        if (!foundBoost && !scanning && !connectedBoost) {
-                Log.d(TAG, "Scanning...")
+        if ( !scanning && (!foundBoost || !foundLpf2) && (!connectedLpf2 || !connectedBoost)) {
+            Log.d(TAG, "Scanning...")
             scanLeDevice(true)
-        //} else if (!scanning && foundBoost && foundLpf2 && (!connectedBoost || !connectedLpf2)) {
-        } else if (foundBoost && !scanning && !connectedBoost) {
+        } else if (!scanning && foundBoost && foundLpf2 && (!connectedBoost || !connectedLpf2)) {
             Log.d(TAG, "Finishing connection...")
             finishConnection()
         }

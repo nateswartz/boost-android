@@ -196,13 +196,13 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        if (connectedBoost) {
-            menu.findItem(R.id.menu_connect).isVisible = false
+        if (connectedBoost || connectedLpf2) {
             menu.findItem(R.id.menu_disconnect).isVisible = true
+            menu.findItem(R.id.menu_connect).isVisible = !(connectedBoost && connectedLpf2)
         } else {
             menu.findItem(R.id.menu_connect).isVisible = true
             menu.findItem(R.id.menu_disconnect).isVisible = false
-            if (connectingBoost) {
+            if (connectingBoost || connectingLpf2) {
                 menu.findItem(R.id.menu_connect).isEnabled = false
             }
         }
@@ -214,6 +214,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             R.id.menu_connect -> {
                 Log.d(TAG, "Connecting...")
                 Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
+                connectingBoost = !connectedBoost
+                connectingLpf2 = !connectedLpf2
                 bluetoothDeviceService!!.connect()
                 return true
             }
