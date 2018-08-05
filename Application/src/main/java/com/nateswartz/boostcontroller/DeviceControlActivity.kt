@@ -22,27 +22,18 @@ import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
 import com.orbotix.DualStackDiscoveryAgent
 import android.widget.*
-import com.android.volley.Request
-import com.android.volley.Response
-import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
 import com.orbotix.ConvenienceRobot
 import com.orbotix.common.DiscoveryException
 import com.orbotix.common.Robot
 import com.orbotix.common.RobotChangedStateListener
 
-/*
-Handle to send data to:
-attr handle: 0x000c, end grp handle: 0x000f uuid: 00001623-1212-efde-1623-785feabcd123
 
-handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624-1212-efde-1623-785feabcd123
-*/
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener {
 
     // Lifx
-    private val apiToken = ""
-    private val lightID = ""
+    private var lifxController: LifxController? = null
     private var connectBoostToLifx = false
+    private var currentColor = ""
 
     // Sphero
     private val mDiscoveryAgent = DualStackDiscoveryAgent()
@@ -118,8 +109,15 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     if (notification is ButtonNotification && mRobot != null) {
                         changeSpheroColor()
                     }
-                    if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification) {
-                        toggleLifx()
+                    if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification && notification.buttonState == "Pressed") {
+                        val color = if (currentColor == "" || currentColor == "kelvin:3200") "red"
+                                    else if (currentColor == "red") "blue"
+                                    else if (currentColor == "blue") "purple"
+                                    else if (currentColor == "purple") "green"
+                                    else "kelvin:3200"
+                        currentColor = color
+                        lifxController!!.changeLightColor(color)
+                        bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(color))
                     }
                 }
             }
@@ -128,6 +126,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifxController = LifxController(this)
 
         mDiscoveryAgent.addRobotStateListener(this)
 
@@ -404,32 +403,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         } else {
             mRobot!!.setLed(1.0f, 0.0f, 0.0f)
         }
-    }
-
-    private fun toggleLifx() {
-        // Instantiate the RequestQueue.
-        val queue = Volley.newRequestQueue(this)
-        val url = "https://api.lifx.com/v1/lights/id:$lightID/toggle"
-        val headers = HashMap<String, String>()
-        headers["Authorization"] = "Bearer $apiToken"
-
-        // Request a string response from the provided URL.
-        val postRequest = object : StringRequest(Request.Method.POST, url,
-                Response.Listener<String> { response ->
-                    Log.d("Volley", "Success: $response")
-                },
-                Response.ErrorListener {
-                    // error
-                    Log.e("Volley", "Error")
-                }
-        ) {
-            override fun getHeaders(): MutableMap<String, String> {
-                return headers
-            }
-        }
-
-        // Add the request to the RequestQueue.
-        queue.add(postRequest)
     }
 
     override fun onResume() {

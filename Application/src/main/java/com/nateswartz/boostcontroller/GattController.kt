@@ -12,6 +12,12 @@ enum class DeviceType {
     BOOST, LPF2
 }
 
+/*
+Handle to send data to:
+attr handle: 0x000c, end grp handle: 0x000f uuid: 00001623-1212-efde-1623-785feabcd123
+
+handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624-1212-efde-1623-785feabcd123
+*/
 class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
 
     val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
