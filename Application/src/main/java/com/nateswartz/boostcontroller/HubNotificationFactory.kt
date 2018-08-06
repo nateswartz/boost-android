@@ -14,6 +14,8 @@ object HubNotificationFactory {
             return ButtonNotification(stringData)
         } else if (stringData.startsWith("05 00 82 32")) {
             return LedColorChangeNotification(stringData)
+        } else if (stringData.startsWith("08 00 45")) {
+            return InternalMotorNotification(stringData)
         } else if (stringData.substring(9, 11) == "01" && ColorSensorPort == "C"
                 || stringData.substring(9, 11) == "02" && ColorSensorPort == "D") {
             return ColorSensorNotification(stringData)

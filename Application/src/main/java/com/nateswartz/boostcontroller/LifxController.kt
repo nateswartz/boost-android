@@ -35,9 +35,7 @@ class LifxController (context: Context){
                 }
         ) {
             override fun getHeaders(): MutableMap<String, String> {
-                val headers = HashMap<String, String>()
-                headers["Authorization"] = "Bearer $apiToken"
-                return headers
+                return getAuthHeader()
             }
             override fun getParams(): MutableMap<String, String> {
                 val params = HashMap<String, String>()
@@ -60,9 +58,7 @@ class LifxController (context: Context){
                 }
         ) {
             override fun getHeaders(): MutableMap<String, String> {
-                val headers = HashMap<String, String>()
-                headers["Authorization"] = "Bearer $apiToken"
-                return headers
+                return getAuthHeader()
             }
             override fun getParams(): MutableMap<String, String> {
                 val params = HashMap<String, String>()
@@ -85,9 +81,7 @@ class LifxController (context: Context){
                 }
         ) {
             override fun getHeaders(): MutableMap<String, String> {
-                val headers = HashMap<String, String>()
-                headers["Authorization"] = "Bearer $apiToken"
-                return headers
+                return getAuthHeader()
             }
             override fun getParams(): MutableMap<String, String> {
                 val params = HashMap<String, String>()
@@ -96,5 +90,11 @@ class LifxController (context: Context){
             }
         }
         requestQueue.add(request)
+    }
+
+    private fun getAuthHeader() : MutableMap<String, String> {
+        val headers = HashMap<String, String>()
+        headers["Authorization"] = "Bearer $apiToken"
+        return headers
     }
 }

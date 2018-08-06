@@ -240,6 +240,7 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
     }
 
     fun writeCharacteristic(deviceType: DeviceType, data: ByteArray): Boolean {
+        Log.d(TAG, "Writing characteristic: $data")
         if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.e(TAG, "BluetoothAdapter not initialized")
             return false

@@ -28,8 +28,8 @@ class MoveHubController (private val gattController: GattController) {
     private val DEACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
     private val DEACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
 
-    private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-    private val DEACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
+    private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01)
+    private val DEACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00)
 
     private val ACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
     private val DEACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
@@ -39,6 +39,9 @@ class MoveHubController (private val gattController: GattController) {
     private val AB_PORT_BYTE = 0x39.toByte()
     private val A_PORT_BYTE = 0x37.toByte()
     private val B_PORT_BYTE = 0x38.toByte()
+
+    private val SPEED_BYTE = 0x01.toByte()
+    private val ANGLE_BYTE = 0x02.toByte()
 
     var ColorSensorPort = ""
     var ExternalMotorPort = ""
@@ -119,15 +122,21 @@ class MoveHubController (private val gattController: GattController) {
     }
 
     fun activateInternalMotorSensorsNotifications() {
-        activateInternalMotorSensorNotifications("A")
-        activateInternalMotorSensorNotifications("B")
+        activateInternalMotorSensorNotifications("A", "angle")
+        activateInternalMotorSensorNotifications("B", "angle")
+        //activateInternalMotorSensorNotifications("A+B")
     }
 
-    fun activateInternalMotorSensorNotifications(motor: String) {
+    fun activateInternalMotorSensorNotifications(motor: String, type: String) {
         var data = ACTIVATE_MOTOR_PORT
         when (motor) {
             "A" -> data[3] = A_PORT_BYTE
             "B" -> data[3] = B_PORT_BYTE
+            "A+B" -> data[3] = AB_PORT_BYTE
+        }
+        when (type) {
+            "speed" -> data[4] = SPEED_BYTE
+            "angle" -> data[4] = ANGLE_BYTE
         }
         gattController.writeCharacteristic(DeviceType.BOOST, data)
     }

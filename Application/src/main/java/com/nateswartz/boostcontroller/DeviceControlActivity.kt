@@ -26,14 +26,19 @@ import com.orbotix.ConvenienceRobot
 import com.orbotix.common.DiscoveryException
 import com.orbotix.common.Robot
 import com.orbotix.common.RobotChangedStateListener
+import kotlin.math.absoluteValue
 
 
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener {
 
+    private var currentRotation = ""
+    private var currentAngle: Long = 0
+    private var colors = arrayOf("kelvin:3200", "red", "blue", "purple", "green")
+
     // Lifx
     private var lifxController: LifxController? = null
     private var connectBoostToLifx = false
-    private var currentColor = ""
+    private var currentColor = 0
 
     // Sphero
     private val mDiscoveryAgent = DualStackDiscoveryAgent()
@@ -110,14 +115,17 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                         changeSpheroColor()
                     }
                     if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification && notification.buttonState == "Pressed") {
-                        val color = if (currentColor == "" || currentColor == "kelvin:3200") "red"
-                                    else if (currentColor == "red") "blue"
-                                    else if (currentColor == "blue") "purple"
-                                    else if (currentColor == "purple") "green"
-                                    else "kelvin:3200"
-                        currentColor = color
-                        lifxController!!.changeLightColor(color)
-                        bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(color))
+                        //currentColor = if (currentColor == colors.size - 1) 0 else currentColor + 1
+                        //bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColor]))
+                        lifxController!!.changeLightColor(colors[currentColor])
+                    }
+                    if (switch_connect_boost_lifx.isChecked && notification is InternalMotorNotification) {
+                        val angle = notification.angle.toLong(16)
+                        if ((angle - currentAngle).absoluteValue > 60) {
+                            currentColor = if (currentColor == colors.size - 1) 0 else currentColor + 1
+                            bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColor]))
+                            currentAngle = angle
+                        }
                     }
                 }
             }
