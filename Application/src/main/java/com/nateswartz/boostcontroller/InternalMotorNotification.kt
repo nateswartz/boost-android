@@ -6,11 +6,11 @@ import android.os.Parcelable
 class InternalMotorNotification(private var rawData: String) : HubNotification, Parcelable{
 
     val port = if (rawData[10] == '7') 'A' else if (rawData[10] == '8') 'B' else "A + B"
-    val rotation = (rawData.substring(15, 17))
-    val angle = (rawData.substring(12, 14))
+    private val rotation = (rawData.substring(15, 17))
+    private val angle = (rawData.substring(12, 14))
+    val rotationValue = getRotationValue(rotation, angle)
 
-    constructor(parcel: Parcel) : this(parcel.readString()) {
-    }
+    constructor(parcel: Parcel) : this(parcel.readString())
 
     override fun toString(): String {
         return "Internal Motor Notification - Port $port - Rotation $rotation - Angle $angle - $rawData"
@@ -22,6 +22,18 @@ class InternalMotorNotification(private var rawData: String) : HubNotification, 
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    private fun getRotationValue(rotation: String, angle: String) : Int {
+        var result = 0
+        val rotationValue = java.lang.Short.valueOf(rotation,16)
+        if (rotationValue > 128) {
+            result += ((rotationValue - 256) * 256)
+        }
+
+        val angleValue = angle.toLong(16)
+        result += angleValue.toInt()
+        return result
     }
 
     companion object CREATOR : Parcelable.Creator<InternalMotorNotification> {

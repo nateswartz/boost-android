@@ -31,8 +31,7 @@ import kotlin.math.absoluteValue
 
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener {
 
-    private var currentRotation = ""
-    private var currentAngle: Long = 0
+    private var currentRotationValue = 0
     private var colors = arrayOf("kelvin:3200", "red", "blue", "purple", "green")
 
     // Lifx
@@ -120,11 +119,16 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                         lifxController!!.changeLightColor(colors[currentColor])
                     }
                     if (switch_connect_boost_lifx.isChecked && notification is InternalMotorNotification) {
-                        val angle = notification.angle.toLong(16)
-                        if ((angle - currentAngle).absoluteValue > 60) {
-                            currentColor = if (currentColor == colors.size - 1) 0 else currentColor + 1
+                        val rotationValue = notification.rotationValue
+
+                        if ((rotationValue - currentRotationValue).absoluteValue > 100) {
+                            if (rotationValue > currentRotationValue) {
+                                currentColor = if (currentColor == colors.size - 1) 0 else currentColor + 1
+                            } else if (currentRotationValue > rotationValue) {
+                                currentColor = if (currentColor == 0) colors.size - 1 else currentColor - 1
+                            }
                             bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColor]))
-                            currentAngle = angle
+                            currentRotationValue = rotationValue
                         }
                     }
                 }
