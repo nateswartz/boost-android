@@ -9,7 +9,7 @@ object HubNotificationFactory {
         return build(convertBytesToString(byteData))
     }
 
-    fun build(stringData: String): HubNotification {
+    private fun build(stringData: String): HubNotification {
         if (stringData.startsWith("06 00 01 02 06 ")) {
             return ButtonNotification(stringData)
         } else if (stringData.startsWith("05 00 82 32")) {
@@ -29,10 +29,11 @@ object HubNotificationFactory {
     }
 
     private fun convertBytesToString(bytes: ByteArray): String {
-        var result = ""
-        for (b in bytes) {
-            result += String.format("%02X", b)
-        }
-        return result
+        val stringBuilder = StringBuilder(bytes.size)
+        for (byteChar in bytes)
+            stringBuilder.append(String.format("%02X ", byteChar))
+        val pieces = (String(bytes) + "\n" + stringBuilder.toString()).split("\n")
+        val encodedData = pieces[pieces.size - 1].trim()
+        return encodedData
     }
 }

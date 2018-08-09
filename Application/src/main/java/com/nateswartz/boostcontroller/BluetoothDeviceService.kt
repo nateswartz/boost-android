@@ -18,12 +18,7 @@ class BluetoothDeviceService : Service() {
     var moveHubController = MoveHubController(gattController)
 
     fun handleNotification(data: ByteArray) {
-        val stringBuilder = StringBuilder(data.size)
-        for (byteChar in data)
-            stringBuilder.append(String.format("%02X ", byteChar))
-        val pieces = (String(data) + "\n" + stringBuilder.toString()).split("\n")
-        val encodedData = pieces[pieces.size - 1]
-        val notification = HubNotificationFactory.build(encodedData.trim())
+        val notification = HubNotificationFactory.build(data)
         if (notification is PortInfoNotification) {
             when (notification.sensor) {
                 "DistanceColor" -> {
