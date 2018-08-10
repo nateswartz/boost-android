@@ -5,7 +5,7 @@ import android.os.Parcelable
 
 class InternalMotorNotification(private var rawData: String) : HubNotification, Parcelable{
 
-    val port = if (rawData[10] == '7') 'A' else if (rawData[10] == '8') 'B' else "A + B"
+    val port = if (rawData[10] == '7') Port.A else if (rawData[10] == '8') Port.B else "A + B"
     private val rotation = (rawData.substring(15, 17))
     private val angle = (rawData.substring(12, 14))
     val rotationValue = getRotationValue(rotation, angle)

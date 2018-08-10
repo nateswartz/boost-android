@@ -3,8 +3,12 @@ package com.nateswartz.boostcontroller
 import android.os.Parcel
 import android.os.Parcelable
 
+enum class ButtonState {
+    RELEASED, PRESSED
+}
+
 class ButtonNotification(private var rawData: String) : HubNotification, Parcelable {
-    val buttonState : String = if (rawData[16] == '0') "Released" else "Pressed"
+    val buttonState : ButtonState = if (rawData[16] == '0') ButtonState.RELEASED else ButtonState.PRESSED
 
     constructor(parcel: Parcel) : this(parcel.readString())
 

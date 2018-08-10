@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 
 class ColorSensorNotification(private var rawData: String) : HubNotification, Parcelable{
-    val port = if (rawData[10] == '1') 'C' else 'D'
+    val port = if (rawData[10] == '1') Port.C else Port.D
     val color = getColorFromHex("${rawData[12]}${rawData[13]}")
     val distance = getDistance(rawData.substring(15, 17), rawData.substring(21, 23))
 

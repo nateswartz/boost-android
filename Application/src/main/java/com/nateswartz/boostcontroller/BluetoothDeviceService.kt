@@ -21,11 +21,11 @@ class BluetoothDeviceService : Service() {
         val notification = HubNotificationFactory.build(data)
         if (notification is PortInfoNotification) {
             when (notification.sensor) {
-                "DistanceColor" -> {
+                Sensor.DISTANCECOLOR -> {
                     moveHubController.ColorSensorPort = notification.port
                     HubNotificationFactory.ColorSensorPort = notification.port
                 }
-                "ExternalMotor" -> {
+                Sensor.EXTERNALMOTOR -> {
                     moveHubController.ExternalMotorPort = notification.port
                     HubNotificationFactory.ExternalMotorPort = notification.port
                 }

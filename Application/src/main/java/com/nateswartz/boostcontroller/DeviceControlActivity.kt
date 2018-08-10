@@ -123,7 +123,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     if (notification is ButtonNotification && mRobot != null) {
                         changeSpheroColor()
                     }
-                    if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification && notification.buttonState == "Pressed") {
+                    if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
                         //currentColor = if (currentColor == colors.size - 1) 0 else currentColor + 1
                         //bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColor]))
                         lifxController!!.changeLightColor(colors[currentColor])

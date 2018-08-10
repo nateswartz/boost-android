@@ -1,8 +1,5 @@
 package com.nateswartz.boostcontroller
 
-import android.widget.Button
-
-
 interface HubNotificationListener {
     fun checkNotification(notification: HubNotification): Boolean
     fun execute()
@@ -10,7 +7,7 @@ interface HubNotificationListener {
 
 class RunMotorOnButtonClick(private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
     override fun checkNotification(notification: HubNotification): Boolean {
-        return (notification is ButtonNotification)
+        return (notification is ButtonNotification && notification.buttonState == ButtonState.RELEASED)
     }
 
     override fun execute() {
@@ -20,7 +17,7 @@ class RunMotorOnButtonClick(private val bluetoothDeviceService: BluetoothDeviceS
 
 class ChangeLEDOnButtonClick(private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
     override fun checkNotification(notification: HubNotification): Boolean {
-        return (notification is ButtonNotification)
+        return (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED)
     }
     override fun execute() {
         val color = when ((1..3).shuffled().last()) {

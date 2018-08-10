@@ -3,23 +3,31 @@ package com.nateswartz.boostcontroller
 import android.os.Parcel
 import android.os.Parcelable
 
+enum class Port {
+    A, B, C, D, UNKNOWN
+}
+
+enum class Sensor {
+    LED, DISTANCECOLOR, EXTERNALMOTOR, MOTOR, TILT, UNKNOWN
+}
+
 class PortInfoNotification(private var rawData: String) : HubNotification, Parcelable{
 
     val port = when (rawData.substring(9, 11)) {
-        "01" -> "C"
-        "02" -> "D"
-        "37" -> "A"
-        "38" -> "B"
-        else -> "Unknown"
+        "01" -> Port.C
+        "02" -> Port.D
+        "37" -> Port.A
+        "38" -> Port.B
+        else -> Port.UNKNOWN
     }
 
     val sensor = when (rawData.substring(15, 17)) {
-        "17" -> "LED"
-        "25" -> "DistanceColor"
-        "26" -> "ExternalMotor"
-        "27" -> "Motor"
-        "28" -> "Tilt"
-        else -> "Unknown"
+        "17" -> Sensor.LED
+        "25" -> Sensor.DISTANCECOLOR
+        "26" -> Sensor.EXTERNALMOTOR
+        "27" -> Sensor.MOTOR
+        "28" -> Sensor.TILT
+        else -> Sensor.UNKNOWN
     }
 
     constructor(parcel: Parcel) : this(parcel.readString()) {

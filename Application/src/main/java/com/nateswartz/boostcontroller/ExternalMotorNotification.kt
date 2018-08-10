@@ -5,7 +5,7 @@ import android.os.Parcelable
 
 class ExternalMotorNotification(private var rawData: String) : HubNotification, Parcelable{
 
-    val port = if (rawData[10] == '1') 'C' else 'D'
+    val port = if (rawData[10] == '1') Port.C else Port.D
 
     constructor(parcel: Parcel) : this(parcel.readString()) {
     }

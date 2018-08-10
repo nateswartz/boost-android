@@ -43,8 +43,8 @@ class MoveHubController (private val gattController: GattController) {
     private val SPEED_BYTE = 0x01.toByte()
     private val ANGLE_BYTE = 0x02.toByte()
 
-    var ColorSensorPort = ""
-    var ExternalMotorPort = ""
+    var ColorSensorPort = Port.UNKNOWN
+    var ExternalMotorPort = Port.UNKNOWN
 
     fun setLEDColor(color: LEDColorCommand) {
         gattController.writeCharacteristic(DeviceType.BOOST, color.data)
@@ -52,9 +52,9 @@ class MoveHubController (private val gattController: GattController) {
 
     fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
         var portByte : Byte? = null
-        if (ExternalMotorPort == "C") {
+        if (ExternalMotorPort == Port.C) {
             portByte = C_PORT_BYTE
-        } else if (ExternalMotorPort == "D") {
+        } else if (ExternalMotorPort == Port.D) {
             portByte = D_PORT_BYTE
         }
         runMotor(powerPercentage, timeInMilliseconds, counterclockwise, portByte!!)
@@ -95,29 +95,29 @@ class MoveHubController (private val gattController: GattController) {
 
     fun activateColorSensorNotifications() {
         when (ColorSensorPort) {
-            "C" -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_C)
-            "D" -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_D)
+            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_C)
+            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_D)
         }
     }
 
     fun deactivateColorSensorNotifications() {
         when (ColorSensorPort) {
-            "C" -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_C)
-            "D" -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_D)
+            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_C)
+            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_D)
         }
     }
 
     fun activateExternalMotorSensorNotifications() {
         when (ExternalMotorPort) {
-            "C" -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
-            "D" -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
+            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
+            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
         }
     }
 
     fun deactivateExternalMotorSensorNotifications() {
         when (ExternalMotorPort) {
-            "C" -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_C)
-            "D" -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_D)
+            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_C)
+            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_D)
         }
     }
 
