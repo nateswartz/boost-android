@@ -317,6 +317,14 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             }
         }
 
+        switch_all.setOnClickListener {
+            switch_button.performClick()
+            switch_internal_motors.performClick()
+            switch_external_motor.performClick()
+            switch_color_sensor.performClick()
+            switch_tilt_sensor.performClick()
+        }
+
         switch_button.setOnClickListener {
             if (switch_button.isChecked) {
                 bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
@@ -328,10 +336,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         button_spin.setOnClickListener {
             bluetoothDeviceService!!.moveHubController.runInternalMotorsInOpposition(20, 300)
-        }
-
-        button_dump_data.setOnClickListener {
-            //bluetoothDeviceService!!.dumpData()
         }
 
         button_var_run_motor.setOnClickListener {
@@ -390,7 +394,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     }
 
     private fun setControlsState(enabled : Boolean) {
-        button_dump_data.isEnabled = enabled
         button_spin.isEnabled = enabled
         spinner_led_colors.isEnabled = enabled
         spinner_motor_types.isEnabled = enabled
@@ -406,6 +409,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_button.isEnabled = enabled
         switch_external_motor.isEnabled = enabled
         switch_internal_motors.isEnabled = enabled
+        switch_all.isEnabled = enabled
     }
 
     private fun changeSpheroColor() {

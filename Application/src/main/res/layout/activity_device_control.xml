@@ -7,7 +7,9 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="148dp">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -17,20 +19,20 @@
                 android:id="@+id/switch_sync_colors"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:text="Sync Colors"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/button_spin" />
+                android:text="Sync"
+                app:layout_constraintStart_toEndOf="@+id/spinner_led_colors"
+                app:layout_constraintTop_toBottomOf="@+id/button_var_run_motor" />
 
             <Switch
                 android:id="@+id/switch_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:text="Button"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/switch_all"
                 app:layout_constraintTop_toBottomOf="@+id/textView" />
 
             <Switch
@@ -39,9 +41,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="External Motor"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_internal_motors" />
+                android:text="E\ Motor"
+                app:layout_constraintStart_toEndOf="@+id/switch_internal_motors"
+                app:layout_constraintTop_toBottomOf="@+id/switch_all" />
 
             <TextView
                 android:id="@+id/text_time"
@@ -66,12 +68,12 @@
             <Button
                 android:id="@+id/button_spin"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
                 android:text="Spin"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/button_var_run_motor" />
+                app:layout_constraintStart_toEndOf="@+id/button_var_run_motor"
+                app:layout_constraintTop_toBottomOf="@+id/spinner_motor_types" />
 
             <Button
                 android:id="@+id/button_var_run_motor"
@@ -89,9 +91,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="Color Sensor"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_tilt_sensor" />
+                android:text="Color"
+                app:layout_constraintStart_toEndOf="@+id/switch_tilt_sensor"
+                app:layout_constraintTop_toBottomOf="@+id/switch_internal_motors" />
 
             <Switch
                 android:id="@+id/switch_counter_clockwise"
@@ -118,9 +120,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="Internal Motors"
+                android:text="I Motors"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_button" />
+                app:layout_constraintTop_toBottomOf="@+id/switch_all" />
 
             <EditText
                 android:id="@+id/input_power"
@@ -156,12 +158,12 @@
 
             <Spinner
                 android:id="@+id/spinner_led_colors"
-                android:layout_width="395dp"
+                android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_sync_colors" />
+                app:layout_constraintTop_toBottomOf="@+id/button_var_run_motor" />
 
             <Switch
                 android:id="@+id/switch_tilt_sensor"
@@ -169,7 +171,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="Tilt Sensor"
+                android:text="Tilt"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_external_motor" />
 
@@ -194,16 +196,6 @@
                 app:layout_constraintStart_toEndOf="@+id/text_time"
                 app:layout_constraintTop_toBottomOf="@+id/input_power" />
 
-            <Button
-                android:id="@+id/button_dump_data"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="Dump Data"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_color_sensor" />
-
             <TextView
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
@@ -220,11 +212,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:text="Actions"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/button_dump_data" />
+                app:layout_constraintTop_toBottomOf="@+id/switch_color_sensor" />
 
             <TextView
                 android:id="@+id/textView3"
@@ -243,7 +235,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_marginTop="16dp"
-                android:text="Boost Connected"
+                android:text="Boost"
                 android:visibility="invisible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -254,10 +246,21 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_marginTop="16dp"
-                android:text="LPF2 Connected"
+                android:text="LPF2"
                 android:visibility="invisible"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/text_boost_connected" />
+                app:layout_constraintEnd_toStartOf="@+id/text_boost_connected"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Switch
+                android:id="@+id/switch_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="All"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView" />
+
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
 
