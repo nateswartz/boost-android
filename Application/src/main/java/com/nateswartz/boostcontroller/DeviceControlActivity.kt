@@ -107,6 +107,16 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 }
                 BluetoothDeviceService.ACTION_DEVICE_NOTIFICATION -> {
                     val notification = intent.getParcelableExtra<HubNotification>(BluetoothDeviceService.NOTIFICATION_DATA)
+
+                    val listeners = listOf(ChangeLEDOnButtonClick(bluetoothDeviceService!!),
+                                            RunMotorOnButtonClick(bluetoothDeviceService!!))
+
+                    for (listener in listeners) {
+                        if (listener.checkNotification(notification)) {
+                            listener.execute()
+                        }
+                    }
+
                     if (switch_sync_colors.isChecked && notification is ColorSensorNotification) {
                         bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
                     }
