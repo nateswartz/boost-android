@@ -45,3 +45,11 @@ fun getByteArrayFromInt(number: Int, size: Int): Array<Byte> {
     }
     return result
 }
+
+fun convertBytesToString(bytes: ByteArray): String {
+    val stringBuilder = StringBuilder(bytes.size)
+    for (byteChar in bytes)
+        stringBuilder.append(String.format("%02X ", byteChar))
+    val pieces = (String(bytes) + "\n" + stringBuilder.toString()).split("\n")
+    return pieces[pieces.size - 1].trim()
+}

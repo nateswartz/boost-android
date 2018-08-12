@@ -28,12 +28,5 @@ object HubNotificationFactory {
         return UnknownHubNotification(stringData)
     }
 
-    private fun convertBytesToString(bytes: ByteArray): String {
-        val stringBuilder = StringBuilder(bytes.size)
-        for (byteChar in bytes)
-            stringBuilder.append(String.format("%02X ", byteChar))
-        val pieces = (String(bytes) + "\n" + stringBuilder.toString()).split("\n")
-        val encodedData = pieces[pieces.size - 1].trim()
-        return encodedData
-    }
+
 }
