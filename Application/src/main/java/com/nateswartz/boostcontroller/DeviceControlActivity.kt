@@ -36,7 +36,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     // Lifx
     private var lifxController: LifxController? = null
-    private var connectBoostToLifx = false
     private var currentColor = 0
 
     // Sphero
@@ -55,6 +54,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
 
     private var motorTypes = arrayOf("A", "B", "A+B", "External")
+
+    private var notificationListeners = mutableMapOf<String, HubNotificationListener>()
 
     private val PERMISSION_REQUEST_CODE = 1
 
@@ -108,18 +109,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 BluetoothDeviceService.ACTION_DEVICE_NOTIFICATION -> {
                     val notification = intent.getParcelableExtra<HubNotification>(BluetoothDeviceService.NOTIFICATION_DATA)
 
-                    val listeners = listOf(ChangeLEDOnButtonClick(bluetoothDeviceService!!),
-                                            RunMotorOnButtonClick(bluetoothDeviceService!!))
-
-                    for (listener in listeners) {
-                        if (listener.checkNotification(notification)) {
-                            listener.execute()
-                        }
+                    for (listener in notificationListeners) {
+                        listener.value.execute(notification)
                     }
 
-                    if (switch_sync_colors.isChecked && notification is ColorSensorNotification) {
-                        bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
-                    }
                     if (notification is ButtonNotification && mRobot != null) {
                         changeSpheroColor()
                     }
@@ -375,8 +368,30 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         // Lifx
         switch_sync_colors.setOnClickListener {
-            connectBoostToLifx = switch_sync_colors.isChecked
+            if (switch_sync_colors.isChecked) {
+                notificationListeners["sync_colors"] = ChangeLEDOnColorSensor(bluetoothDeviceService!!)
+            }
+            else {
+                notificationListeners.remove("sync_colors")
+            }
+        }
 
+        switch_button_change_light.setOnClickListener {
+            if (switch_button_change_light.isChecked) {
+                notificationListeners["button_change_light"] = ChangeLEDOnButtonClick(bluetoothDeviceService!!)
+            }
+            else {
+                notificationListeners.remove("button_change_light")
+            }
+        }
+
+        switch_button_change_motor.setOnClickListener {
+            if (switch_button_change_motor.isChecked) {
+                notificationListeners["button_change_motor"] = RunMotorOnButtonClick(bluetoothDeviceService!!)
+            }
+            else {
+                notificationListeners.remove("button_change_motor")
+            }
         }
     }
 

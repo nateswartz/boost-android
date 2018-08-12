@@ -8,8 +8,8 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="148dp">
+        tools:layout_editor_absoluteX="142dp"
+        tools:layout_editor_absoluteY="16dp">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -18,7 +18,7 @@
             <Switch
                 android:id="@+id/switch_sync_colors"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="24dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:text="Sync"
@@ -260,6 +260,26 @@
                 android:text="All"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+            <Switch
+                android:id="@+id/switch_button_change_light"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:text="Button/Light"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/button_sphero_connect" />
+
+            <Switch
+                android:id="@+id/switch_button_change_motor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Button/Motor"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/switch_button_change_light" />
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
