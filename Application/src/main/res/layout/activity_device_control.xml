@@ -60,10 +60,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:text="Connect Sphero"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_connect_boost_lifx" />
+                app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
             <Button
                 android:id="@+id/button_spin"
@@ -139,22 +139,22 @@
                 android:id="@+id/button_sphero_color"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
                 android:enabled="false"
                 android:text="Sphero Color"
                 app:layout_constraintStart_toEndOf="@+id/button_sphero_connect"
-                app:layout_constraintTop_toBottomOf="@+id/switch_connect_boost_lifx" />
+                app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
             <Switch
-                android:id="@+id/switch_connect_boost_lifx"
+                android:id="@+id/switch_motor_button_lifx"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="Boost2Lifx"
+                android:text="Motor+Button/LED+Lifx"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView3" />
+                app:layout_constraintTop_toBottomOf="@+id/switch_button_change_motor" />
 
             <Spinner
                 android:id="@+id/spinner_led_colors"
@@ -267,7 +267,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:text="Button/Light"
+                android:text="Button/LED"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/button_sphero_connect" />
 

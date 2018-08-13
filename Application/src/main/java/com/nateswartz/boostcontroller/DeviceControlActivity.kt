@@ -31,12 +31,8 @@ import kotlin.math.absoluteValue
 
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener {
 
-    private var currentRotationValue = 0
-    private var colors = arrayOf("kelvin:3200", "red", "blue", "purple", "green")
-
     // Lifx
     private var lifxController: LifxController? = null
-    private var currentColor = 0
 
     // Sphero
     private val mDiscoveryAgent = DualStackDiscoveryAgent()
@@ -115,24 +111,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
                     if (notification is ButtonNotification && mRobot != null) {
                         changeSpheroColor()
-                    }
-                    if (switch_connect_boost_lifx.isChecked && notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
-                        //currentColor = if (currentColor == colors.size - 1) 0 else currentColor + 1
-                        //bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColor]))
-                        lifxController!!.changeLightColor(colors[currentColor])
-                    }
-                    if (switch_connect_boost_lifx.isChecked && notification is InternalMotorNotification) {
-                        val rotationValue = notification.rotationValue
-
-                        if ((rotationValue - currentRotationValue).absoluteValue > 100) {
-                            if (rotationValue > currentRotationValue) {
-                                currentColor = if (currentColor == colors.size - 1) 0 else currentColor + 1
-                            } else if (currentRotationValue > rotationValue) {
-                                currentColor = if (currentColor == 0) colors.size - 1 else currentColor - 1
-                            }
-                            bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColor]))
-                            currentRotationValue = rotationValue
-                        }
                     }
                 }
             }
@@ -366,12 +344,10 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             changeSpheroColor()
         }
 
-        // Lifx
         switch_sync_colors.setOnClickListener {
             if (switch_sync_colors.isChecked) {
                 notificationListeners["sync_colors"] = ChangeLEDOnColorSensor(bluetoothDeviceService!!)
-            }
-            else {
+            } else {
                 notificationListeners.remove("sync_colors")
             }
         }
@@ -379,8 +355,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_button_change_light.setOnClickListener {
             if (switch_button_change_light.isChecked) {
                 notificationListeners["button_change_light"] = ChangeLEDOnButtonClick(bluetoothDeviceService!!)
-            }
-            else {
+            } else {
                 notificationListeners.remove("button_change_light")
             }
         }
@@ -388,9 +363,16 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_button_change_motor.setOnClickListener {
             if (switch_button_change_motor.isChecked) {
                 notificationListeners["button_change_motor"] = RunMotorOnButtonClick(bluetoothDeviceService!!)
-            }
-            else {
+            } else {
                 notificationListeners.remove("button_change_motor")
+            }
+        }
+
+        switch_motor_button_lifx.setOnClickListener {
+            if (switch_motor_button_lifx.isChecked) {
+                notificationListeners["motor_button_led_lifx"] = ChangeLifxLEDOnMotorButton(bluetoothDeviceService!!, lifxController!!)
+            } else {
+                notificationListeners.remove("motor_button_led_lifx")
             }
         }
     }

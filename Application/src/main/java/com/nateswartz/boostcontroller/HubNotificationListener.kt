@@ -1,5 +1,7 @@
 package com.nateswartz.boostcontroller
 
+import kotlin.math.absoluteValue
+
 interface HubNotificationListener {
     fun execute(notification: HubNotification)
 }
@@ -31,6 +33,31 @@ class ChangeLEDOnColorSensor(private val bluetoothDeviceService: BluetoothDevice
     override fun execute(notification: HubNotification) {
         if (notification is ColorSensorNotification) {
             bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
+        }
+    }
+}
+
+class ChangeLifxLEDOnMotorButton(private val bluetoothDeviceService: BluetoothDeviceService, private val lifxController: LifxController) : HubNotificationListener {
+    private var currentRotationValue = 0
+    private var colors = arrayOf("kelvin:3200", "red", "blue", "purple", "green")
+    private var currentColorIndex = 0
+
+    override fun execute(notification: HubNotification) {
+        if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
+            lifxController!!.changeLightColor(colors[currentColorIndex])
+        }
+        if (notification is InternalMotorNotification) {
+            val rotationValue = notification.rotationValue
+
+            if ((rotationValue - currentRotationValue).absoluteValue > 100) {
+                if (rotationValue > currentRotationValue) {
+                    currentColorIndex = if (currentColorIndex == colors.size - 1) 0 else currentColorIndex + 1
+                } else if (currentRotationValue > rotationValue) {
+                    currentColorIndex = if (currentColorIndex == 0) colors.size - 1 else currentColorIndex - 1
+                }
+                bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
+                currentRotationValue = rotationValue
+            }
         }
     }
 }
