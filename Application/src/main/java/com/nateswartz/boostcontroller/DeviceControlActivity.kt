@@ -108,10 +108,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     for (listener in notificationListeners) {
                         listener.value.execute(notification)
                     }
-
-                    if (notification is ButtonNotification && mRobot != null) {
-                        changeSpheroColor()
-                    }
                 }
             }
         }
@@ -175,12 +171,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         when (type) {
             RobotChangedStateListener.RobotChangedStateNotificationType.Connected -> {
                 mRobot = ConvenienceRobot(robot)
-                button_sphero_color.isEnabled = true
+                switch_sphero_color_button.isEnabled = true
                 button_sphero_connect.isEnabled = false
             }
             RobotChangedStateListener.RobotChangedStateNotificationType.Online -> {
                 mRobot = ConvenienceRobot(robot)
-                button_sphero_color.isEnabled = true
+                switch_sphero_color_button.isEnabled = true
                 button_sphero_connect.isEnabled = false
             }
         }
@@ -340,8 +336,12 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             startDiscovery()
         }
 
-        button_sphero_color.setOnClickListener {
-            changeSpheroColor()
+        switch_sphero_color_button.setOnClickListener {
+            if (switch_sphero_color_button.isChecked) {
+                notificationListeners["button_sphero"] = ChangeSpheroColorOnButton(mRobot!!)
+            } else {
+                notificationListeners.remove("button_sphero")
+            }
         }
 
         switch_sync_colors.setOnClickListener {
@@ -417,15 +417,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_external_motor.isEnabled = enabled
         switch_internal_motors.isEnabled = enabled
         switch_all.isEnabled = enabled
-    }
-
-    private fun changeSpheroColor() {
-        click++
-        if (click % 2 == 0) {
-            mRobot!!.setLed(0.0f, 1.0f, 0.0f)
-        } else {
-            mRobot!!.setLed(1.0f, 0.0f, 0.0f)
-        }
+        switch_sphero_color_button.isEnabled = enabled
     }
 
     override fun onResume() {
@@ -490,7 +482,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         // If a robot is connected to the device, disconnect it
         mRobot?.disconnect()
         mRobot = null
-        button_sphero_color.isEnabled = false
+        switch_sphero_color_button.isEnabled = false
     }
 
     companion object {

@@ -271,7 +271,7 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
 
         bluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
 
-        val descriptors = characteristic!!.descriptors
+        val descriptors = characteristic.descriptors
 
         for (descriptor in descriptors) {
             Log.d(TAG, descriptor.toString())

@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 
 enum class Port {
-    A, B, C, D, UNKNOWN
+    A, B, A_B, C, D, UNKNOWN
 }
 
 enum class Sensor {

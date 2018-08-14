@@ -1,5 +1,6 @@
 package com.nateswartz.boostcontroller
 
+import com.orbotix.ConvenienceRobot
 import kotlin.math.absoluteValue
 
 interface HubNotificationListener {
@@ -32,7 +33,7 @@ class ChangeLEDOnButtonClick(private val bluetoothDeviceService: BluetoothDevice
 class ChangeLEDOnColorSensor(private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
     override fun execute(notification: HubNotification) {
         if (notification is ColorSensorNotification) {
-            bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
+            bluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
         }
     }
 }
@@ -44,7 +45,7 @@ class ChangeLifxLEDOnMotorButton(private val bluetoothDeviceService: BluetoothDe
 
     override fun execute(notification: HubNotification) {
         if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
-            lifxController!!.changeLightColor(colors[currentColorIndex])
+            lifxController.changeLightColor(colors[currentColorIndex])
         }
         if (notification is InternalMotorNotification) {
             val rotationValue = notification.rotationValue
@@ -55,9 +56,17 @@ class ChangeLifxLEDOnMotorButton(private val bluetoothDeviceService: BluetoothDe
                 } else if (currentRotationValue > rotationValue) {
                     currentColorIndex = if (currentColorIndex == 0) colors.size - 1 else currentColorIndex - 1
                 }
-                bluetoothDeviceService!!.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
+                bluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
                 currentRotationValue = rotationValue
             }
+        }
+    }
+}
+
+class ChangeSpheroColorOnButton(private val robot: ConvenienceRobot) : HubNotificationListener {
+    override fun execute(notification: HubNotification) {
+        if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
+            robot.setLed(((1..10).shuffled().last()/1.0).toFloat(), ((1..10).shuffled().last()/1.0).toFloat(), ((1..10).shuffled().last()/1.0).toFloat())
         }
     }
 }
