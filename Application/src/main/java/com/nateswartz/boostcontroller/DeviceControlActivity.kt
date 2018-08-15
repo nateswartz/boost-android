@@ -37,7 +37,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     // Sphero
     private val mDiscoveryAgent = DualStackDiscoveryAgent()
     private var mRobot: ConvenienceRobot? = null
-    private var click = 0
 
     private var bluetoothDeviceService: BluetoothDeviceService? = null
     private var connectedBoost = false
@@ -369,6 +368,14 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             }
         }
 
+        switch_roller_coaster.setOnClickListener {
+            if (switch_roller_coaster.isChecked) {
+                notificationListeners["roller_coaster"] = RollerCoaster(input_time.text.toString(), switch_counter_clockwise.isChecked, bluetoothDeviceService!!)
+            } else {
+                notificationListeners.remove("roller_coaster")
+            }
+        }
+
         switch_motor_button_lifx.setOnClickListener {
             if (switch_motor_button_lifx.isChecked) {
                 notificationListeners["motor_button_led_lifx"] = ChangeLifxLEDOnMotorButton(bluetoothDeviceService!!, lifxController!!)
@@ -421,6 +428,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_button_change_motor.isEnabled = enabled
         switch_button_change_light.isEnabled = enabled
         switch_motor_button_lifx.isEnabled = enabled
+        switch_roller_coaster.isEnabled = enabled
     }
 
     override fun onResume() {

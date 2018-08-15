@@ -76,3 +76,33 @@ class ChangeSpheroColorOnButton(private val robot: ConvenienceRobot) : HubNotifi
         }
     }
 }
+
+class RollerCoaster(private val time: String, private val counterclockwise: Boolean, private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
+    private var currentRotationValue = 0
+    private var colors = arrayOf("red", "blue", "green")
+    private var currentColorIndex = 0
+
+    override fun execute(notification: HubNotification) {
+        if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
+            val power = when (currentColorIndex) {
+                0 -> 10
+                1 -> 20
+                else -> 30
+            }
+            bluetoothDeviceService.moveHubController.runExternalMotor(power, time.toInt(), counterclockwise)
+        }
+        if (notification is InternalMotorNotification && (notification.port == Port.A || notification.port == Port.B)) {
+            val rotationValue = notification.rotationValue
+
+            if ((rotationValue - currentRotationValue).absoluteValue > 150) {
+                if (rotationValue > currentRotationValue) {
+                    currentColorIndex = if (currentColorIndex == colors.size - 1) 0 else currentColorIndex + 1
+                } else if (currentRotationValue > rotationValue) {
+                    currentColorIndex = if (currentColorIndex == 0) colors.size - 1 else currentColorIndex - 1
+                }
+                bluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
+                currentRotationValue = rotationValue
+            }
+        }
+    }
+}

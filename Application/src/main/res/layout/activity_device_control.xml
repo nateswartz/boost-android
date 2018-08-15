@@ -280,6 +280,16 @@
                 app:layout_constraintStart_toEndOf="@+id/button_sphero_connect"
                 app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
+            <Switch
+                android:id="@+id/switch_roller_coaster"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Roller Coaster"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/switch_sync_colors" />
+
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
 
