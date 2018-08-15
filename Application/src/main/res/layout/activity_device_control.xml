@@ -8,8 +8,8 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="142dp"
-        tools:layout_editor_absoluteY="16dp">
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -24,26 +24,6 @@
                 android:text="ColorSensor/LED"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_motor_button_lifx" />
-
-            <Switch
-                android:id="@+id/switch_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:text="Button"
-                app:layout_constraintStart_toEndOf="@+id/switch_all"
-                app:layout_constraintTop_toBottomOf="@+id/textView" />
-
-            <Switch
-                android:id="@+id/switch_external_motor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="E\ Motor"
-                app:layout_constraintStart_toEndOf="@+id/switch_internal_motors"
-                app:layout_constraintTop_toBottomOf="@+id/switch_all" />
 
             <TextView
                 android:id="@+id/text_time"
@@ -86,16 +66,6 @@
                 app:layout_constraintTop_toBottomOf="@+id/spinner_motor_types" />
 
             <Switch
-                android:id="@+id/switch_color_sensor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="Color"
-                app:layout_constraintStart_toEndOf="@+id/switch_tilt_sensor"
-                app:layout_constraintTop_toBottomOf="@+id/switch_internal_motors" />
-
-            <Switch
                 android:id="@+id/switch_counter_clockwise"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -113,16 +83,6 @@
                 android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/input_time" />
-
-            <Switch
-                android:id="@+id/switch_internal_motors"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="I Motors"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_all" />
 
             <EditText
                 android:id="@+id/input_power"
@@ -153,16 +113,6 @@
                 android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/button_var_run_motor" />
-
-            <Switch
-                android:id="@+id/switch_tilt_sensor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="Tilt"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_external_motor" />
 
             <TextView
                 android:id="@+id/text_power"
@@ -201,11 +151,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
                 android:text="Actions"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_color_sensor" />
+                tools:layout_editor_absoluteY="144dp" />
 
             <TextView
                 android:id="@+id/textView3"
@@ -239,16 +188,6 @@
                 android:visibility="invisible"
                 app:layout_constraintEnd_toStartOf="@+id/text_boost_connected"
                 app:layout_constraintTop_toTopOf="parent" />
-
-            <Switch
-                android:id="@+id/switch_all"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="All"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView" />
 
             <Switch
                 android:id="@+id/switch_button_change_light"
@@ -289,6 +228,66 @@
                 android:text="Roller Coaster"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_sync_colors" />
+
+            <CheckBox
+                android:id="@+id/checkbox_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:text="All"
+                app:layout_constraintStart_toEndOf="@+id/textView"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <CheckBox
+                android:id="@+id/checkbox_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+            <CheckBox
+                android:id="@+id/checkbox_internal_motors"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Internal Motors"
+                app:layout_constraintStart_toEndOf="@+id/checkbox_external_motor"
+                app:layout_constraintTop_toBottomOf="@+id/checkbox_button" />
+
+            <CheckBox
+                android:id="@+id/checkbox_external_motor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="External Motor"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/checkbox_button" />
+
+            <CheckBox
+                android:id="@+id/checkbox_tilt_sensor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Tilt Sensor"
+                app:layout_constraintStart_toEndOf="@+id/checkbox_button"
+                app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+            <CheckBox
+                android:id="@+id/checkbox_color_sensor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Color Sensor"
+                app:layout_constraintStart_toEndOf="@+id/checkbox_tilt_sensor"
+                app:layout_constraintTop_toBottomOf="@+id/textView" />
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
