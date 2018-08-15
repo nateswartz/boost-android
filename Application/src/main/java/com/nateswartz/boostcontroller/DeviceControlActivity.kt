@@ -261,6 +261,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         spinner_motor_types.onItemSelectedListener = this
 
         disableControls()
+        switch_sphero_color_button.isEnabled = false
 
         switch_color_sensor.setOnClickListener{
             if (switch_color_sensor.isChecked) {
@@ -417,7 +418,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         switch_external_motor.isEnabled = enabled
         switch_internal_motors.isEnabled = enabled
         switch_all.isEnabled = enabled
-        switch_sphero_color_button.isEnabled = enabled
+        switch_button_change_motor.isEnabled = enabled
+        switch_button_change_light.isEnabled = enabled
+        switch_motor_button_lifx.isEnabled = enabled
     }
 
     override fun onResume() {
