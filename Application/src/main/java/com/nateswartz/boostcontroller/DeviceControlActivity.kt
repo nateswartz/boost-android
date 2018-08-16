@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v13.app.ActivityCompat
@@ -28,7 +29,12 @@ import com.orbotix.common.Robot
 import com.orbotix.common.RobotChangedStateListener
 
 
-class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener {
+class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener, NotificationSettingsFragment.OnFragmentInteractionListener {
+    override fun onFragmentInteraction(uri: Uri) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private var notificationSettingsFragment: NotificationSettingsFragment? = null
 
     // Lifx
     private var lifxController: LifxController? = null
@@ -72,6 +78,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 BluetoothDeviceService.ACTION_BOOST_CONNECTED -> {
                     connectedBoost = true
                     connectingBoost = false
+                    notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
+                    notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
                     text_boost_connected.visibility = View.VISIBLE
                     bluetoothDeviceService!!.moveHubController.enableNotifications()
                     enableControls()
@@ -80,6 +88,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 BluetoothDeviceService.ACTION_BOOST_DISCONNECTED -> {
                     connectedBoost = false
                     connectingBoost = false
+                    notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
+                    notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
                     text_boost_connected.visibility = View.INVISIBLE
                     disableControls()
                     invalidateOptionsMenu()
@@ -113,6 +123,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
+
         lifxController = LifxController(this)
 
         mDiscoveryAgent.addRobotStateListener(this)
@@ -210,6 +222,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 bluetoothDeviceService!!.disconnect()
                 connectedBoost = false
                 connectedLpf2 = false
+                notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
+                notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
                 text_boost_connected.visibility = View.INVISIBLE
                 text_lpf2_connected.visibility = View.INVISIBLE
                 invalidateOptionsMenu()
@@ -471,6 +485,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 connectingBoost = false
                 connectedLpf2 = false
                 connectingLpf2 = false
+                notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
+                notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
                 text_boost_connected.visibility = View.INVISIBLE
                 text_lpf2_connected.visibility = View.INVISIBLE
             }
