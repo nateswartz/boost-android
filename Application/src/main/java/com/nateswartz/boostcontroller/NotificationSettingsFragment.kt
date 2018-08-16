@@ -7,7 +7,7 @@ import android.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.activity_device_control.*
+import kotlinx.android.synthetic.main.fragment_notification_settings.*
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -49,6 +49,14 @@ class NotificationSettingsFragment : Fragment() {
             text_boost_connected.visibility = View.VISIBLE
         } else {
             text_boost_connected.visibility = View.INVISIBLE
+        }
+    }
+
+    fun lpf2ConnectionChanged(isConnected: Boolean) {
+        if (isConnected) {
+            text_lpf2_connected.visibility = View.VISIBLE
+        } else {
+            text_lpf2_connected.visibility = View.INVISIBLE
         }
     }
 

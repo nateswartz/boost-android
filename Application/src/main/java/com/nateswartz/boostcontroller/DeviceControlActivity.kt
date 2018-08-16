@@ -78,9 +78,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 BluetoothDeviceService.ACTION_BOOST_CONNECTED -> {
                     connectedBoost = true
                     connectingBoost = false
-                    notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
                     notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
-                    text_boost_connected.visibility = View.VISIBLE
                     bluetoothDeviceService!!.moveHubController.enableNotifications()
                     enableControls()
                     invalidateOptionsMenu()
@@ -88,21 +86,19 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 BluetoothDeviceService.ACTION_BOOST_DISCONNECTED -> {
                     connectedBoost = false
                     connectingBoost = false
-                    notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
                     notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
-                    text_boost_connected.visibility = View.INVISIBLE
                     disableControls()
                     invalidateOptionsMenu()
                 }
                 BluetoothDeviceService.ACTION_LPF2_CONNECTED -> {
                     connectedLpf2 = true
                     connectingLpf2 = false
-                    text_lpf2_connected.visibility = View.VISIBLE
+                    notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
                 }
                 BluetoothDeviceService.ACTION_LPF2_DISCONNECTED -> {
                     connectedLpf2 = false
                     connectingLpf2 = false
-                    text_lpf2_connected.visibility = View.INVISIBLE
+                    notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
                 }
                 BluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED -> {
                     connectingBoost = false
@@ -123,7 +119,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
 
         lifxController = LifxController(this)
 
@@ -160,6 +155,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
     public override fun onStart() {
         super.onStart()
+        notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
     }
 
     // Sphero
@@ -222,10 +218,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 bluetoothDeviceService!!.disconnect()
                 connectedBoost = false
                 connectedLpf2 = false
-                notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
                 notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
-                text_boost_connected.visibility = View.INVISIBLE
-                text_lpf2_connected.visibility = View.INVISIBLE
+                notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
                 invalidateOptionsMenu()
                 return true
             }
@@ -485,10 +479,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 connectingBoost = false
                 connectedLpf2 = false
                 connectingLpf2 = false
-                notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
                 notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
-                text_boost_connected.visibility = View.INVISIBLE
-                text_lpf2_connected.visibility = View.INVISIBLE
+                notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
             }
         }
         unregisterReceiver(moveHubUpdateReceiver)
