@@ -1,9 +1,9 @@
 package com.nateswartz.boostcontroller
 
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,10 +44,20 @@ class NotificationSettingsFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_notification_settings, container, false)
     }
 
+    override fun onStart() {
+        super.onStart()
+        checkbox_all_notifications.setOnClickListener {
+            Log.e("Fragment", "Click")
+            listener?.onChangeAllNotifications()
+        }
+    }
+
     fun boostConnectionChanged(isConnected: Boolean) {
         if (isConnected) {
+            checkbox_all_notifications.isEnabled = true
             text_boost_connected.visibility = View.VISIBLE
         } else {
+            checkbox_all_notifications.isEnabled = false
             text_boost_connected.visibility = View.INVISIBLE
         }
     }
@@ -58,11 +68,6 @@ class NotificationSettingsFragment : Fragment() {
         } else {
             text_lpf2_connected.visibility = View.INVISIBLE
         }
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
     }
 
     override fun onAttach(context: Context) {
@@ -91,8 +96,7 @@ class NotificationSettingsFragment : Fragment() {
      * for more information.
      */
     interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun onFragmentInteraction(uri: Uri)
+        fun onChangeAllNotifications()
     }
 
     companion object {

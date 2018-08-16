@@ -205,16 +205,6 @@
                 app:layout_constraintTop_toBottomOf="@+id/switch_sync_colors" />
 
             <CheckBox
-                android:id="@+id/checkbox_all"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="All"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
-
-            <CheckBox
                 android:id="@+id/checkbox_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -222,7 +212,7 @@
                 android:layout_marginTop="8dp"
                 android:text="Button"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/checkbox_all" />
+                app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
 
             <CheckBox
                 android:id="@+id/checkbox_internal_motors"
@@ -252,7 +242,7 @@
                 android:layout_marginTop="8dp"
                 android:text="Tilt Sensor"
                 app:layout_constraintStart_toEndOf="@+id/checkbox_button"
-                app:layout_constraintTop_toBottomOf="@+id/checkbox_all" />
+                app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
 
             <CheckBox
                 android:id="@+id/checkbox_color_sensor"
@@ -262,7 +252,7 @@
                 android:layout_marginTop="8dp"
                 android:text="Color Sensor"
                 app:layout_constraintStart_toEndOf="@+id/checkbox_tilt_sensor"
-                app:layout_constraintTop_toBottomOf="@+id/checkbox_all" />
+                app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>

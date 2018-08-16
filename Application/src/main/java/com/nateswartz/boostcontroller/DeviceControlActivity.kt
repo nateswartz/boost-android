@@ -30,10 +30,6 @@ import com.orbotix.common.RobotChangedStateListener
 
 
 class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener, NotificationSettingsFragment.OnFragmentInteractionListener {
-    override fun onFragmentInteraction(uri: Uri) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     private var notificationSettingsFragment: NotificationSettingsFragment? = null
 
     // Lifx
@@ -301,14 +297,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             }
         }
 
-        checkbox_all.setOnClickListener {
-            checkbox_button.performClick()
-            checkbox_internal_motors.performClick()
-            checkbox_external_motor.performClick()
-            checkbox_color_sensor.performClick()
-            checkbox_tilt_sensor.performClick()
-        }
-
         checkbox_button.setOnClickListener {
             if (checkbox_button.isChecked) {
                 bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
@@ -392,6 +380,14 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
     }
 
+    override fun onChangeAllNotifications() {
+        checkbox_button.performClick()
+        checkbox_internal_motors.performClick()
+        checkbox_external_motor.performClick()
+        checkbox_color_sensor.performClick()
+        checkbox_tilt_sensor.performClick()
+    }
+
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         if (connectedBoost) {
             when (parent) {
@@ -431,7 +427,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         checkbox_button.isEnabled = enabled
         checkbox_external_motor.isEnabled = enabled
         checkbox_internal_motors.isEnabled = enabled
-        checkbox_all.isEnabled = enabled
         switch_button_change_motor.isEnabled = enabled
         switch_button_change_light.isEnabled = enabled
         switch_motor_button_lifx.isEnabled = enabled
