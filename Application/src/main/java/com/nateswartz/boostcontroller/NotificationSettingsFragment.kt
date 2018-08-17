@@ -31,6 +31,7 @@ class NotificationSettingsFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+    private var BluetoothDeviceService: BluetoothDeviceService? = null
     private var listener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,20 +68,46 @@ class NotificationSettingsFragment : Fragment() {
             }
         }
         checkbox_button.setOnClickListener {
-            listener?.onChangeNotification(NotificationType.BUTTON, checkbox_button.isChecked)
+            if (checkbox_button.isChecked) {
+                BluetoothDeviceService!!.moveHubController.activateButtonNotifications()
+            } else {
+                // Currently not working
+                BluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
+            }
         }
         checkbox_color_sensor.setOnClickListener {
-            listener?.onChangeNotification(NotificationType.COLOR_SENSOR, checkbox_color_sensor.isChecked)
+            if (checkbox_color_sensor.isChecked) {
+                BluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
+            } else {
+                BluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
+            }
         }
         checkbox_tilt_sensor.setOnClickListener {
-            listener?.onChangeNotification(NotificationType.TILT_SENSOR, checkbox_tilt_sensor.isChecked)
+            if (checkbox_tilt_sensor.isChecked) {
+                BluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
+            } else {
+                BluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
+            }
         }
         checkbox_external_motor.setOnClickListener {
-            listener?.onChangeNotification(NotificationType.EXTERNAL_MOTOR, checkbox_external_motor.isChecked)
+            if (checkbox_external_motor.isChecked) {
+                BluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
+            } else {
+                BluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
+            }
         }
         checkbox_internal_motors.setOnClickListener {
-            listener?.onChangeNotification(NotificationType.INTERNAL_MOTORS, checkbox_internal_motors.isChecked)
+            if (checkbox_internal_motors.isChecked) {
+                BluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
+            } else {
+                BluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
+            }
         }
+    }
+
+    // TODO: Find a better way to access the BluetoothDeviceService
+    fun setBluetoothDeviceService(bluetoothDeviceService: BluetoothDeviceService) {
+        BluetoothDeviceService = bluetoothDeviceService
     }
 
     fun boostConnectionChanged(isConnected: Boolean) {
@@ -132,7 +159,7 @@ class NotificationSettingsFragment : Fragment() {
      * for more information.
      */
     interface OnFragmentInteractionListener {
-        fun onChangeNotification(type: NotificationType, enabled: Boolean)
+        //fun onChangeNotification(type: NotificationType, enabled: Boolean)
     }
 
     companion object {

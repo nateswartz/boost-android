@@ -58,6 +58,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             bluetoothDeviceService = (service as BluetoothDeviceService.LocalBinder).service
+            notificationSettingsFragment!!.setBluetoothDeviceService(bluetoothDeviceService!!)
             finishSetup()
         }
 
@@ -336,49 +337,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 notificationListeners["motor_button_led_lifx"] = ChangeLifxLEDOnMotorButton(bluetoothDeviceService!!, lifxController!!)
             } else {
                 notificationListeners.remove("motor_button_led_lifx")
-            }
-        }
-    }
-
-
-
-    override fun onChangeNotification(type: NotificationType, enabled: Boolean) {
-        when (type) {
-            NotificationType.BUTTON -> {
-                if (enabled) {
-                    bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
-                } else {
-                    // Currently not working
-                    bluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
-                }
-            }
-            NotificationType.COLOR_SENSOR -> {
-                if (enabled) {
-                    bluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
-                } else {
-                    bluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
-                }
-            }
-            NotificationType.TILT_SENSOR ->  {
-                if (enabled) {
-                    bluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
-                } else {
-                    bluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
-                }
-            }
-            NotificationType.INTERNAL_MOTORS ->  {
-                if (enabled) {
-                    bluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
-                } else {
-                    bluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
-                }
-            }
-            NotificationType.EXTERNAL_MOTOR ->  {
-                if (enabled) {
-                    bluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
-                } else {
-                    bluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
-                }
             }
         }
     }
