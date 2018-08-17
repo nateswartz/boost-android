@@ -3,12 +3,15 @@ package com.nateswartz.boostcontroller
 import android.content.Context
 import android.os.Bundle
 import android.app.Fragment
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_notification_settings.*
 
+
+enum class NotificationType {
+    BUTTON, COLOR_SENSOR, TILT_SENSOR, INTERNAL_MOTORS, EXTERNAL_MOTOR
+}
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -47,17 +50,50 @@ class NotificationSettingsFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         checkbox_all_notifications.setOnClickListener {
-            Log.e("Fragment", "Click")
-            listener?.onChangeAllNotifications()
+            if (checkbox_button.isChecked != checkbox_all_notifications.isChecked) {
+                checkbox_button.performClick()
+            }
+            if (checkbox_internal_motors.isChecked != checkbox_all_notifications.isChecked) {
+                checkbox_internal_motors.performClick()
+            }
+            if (checkbox_external_motor.isChecked != checkbox_all_notifications.isChecked) {
+                checkbox_external_motor.performClick()
+            }
+            if (checkbox_color_sensor.isChecked != checkbox_all_notifications.isChecked) {
+                checkbox_color_sensor.performClick()
+            }
+            if (checkbox_tilt_sensor.isChecked != checkbox_all_notifications.isChecked) {
+                checkbox_tilt_sensor.performClick()
+            }
+        }
+        checkbox_button.setOnClickListener {
+            listener?.onChangeNotification(NotificationType.BUTTON, checkbox_button.isChecked)
+        }
+        checkbox_color_sensor.setOnClickListener {
+            listener?.onChangeNotification(NotificationType.COLOR_SENSOR, checkbox_color_sensor.isChecked)
+        }
+        checkbox_tilt_sensor.setOnClickListener {
+            listener?.onChangeNotification(NotificationType.TILT_SENSOR, checkbox_tilt_sensor.isChecked)
+        }
+        checkbox_external_motor.setOnClickListener {
+            listener?.onChangeNotification(NotificationType.EXTERNAL_MOTOR, checkbox_external_motor.isChecked)
+        }
+        checkbox_internal_motors.setOnClickListener {
+            listener?.onChangeNotification(NotificationType.INTERNAL_MOTORS, checkbox_internal_motors.isChecked)
         }
     }
 
     fun boostConnectionChanged(isConnected: Boolean) {
+        checkbox_all_notifications.isEnabled = isConnected
+        checkbox_button.isEnabled = isConnected
+        checkbox_color_sensor.isEnabled = isConnected
+        checkbox_tilt_sensor.isEnabled = isConnected
+        checkbox_external_motor.isEnabled = isConnected
+        checkbox_internal_motors.isEnabled = isConnected
+
         if (isConnected) {
-            checkbox_all_notifications.isEnabled = true
             text_boost_connected.visibility = View.VISIBLE
         } else {
-            checkbox_all_notifications.isEnabled = false
             text_boost_connected.visibility = View.INVISIBLE
         }
     }
@@ -96,7 +132,7 @@ class NotificationSettingsFragment : Fragment() {
      * for more information.
      */
     interface OnFragmentInteractionListener {
-        fun onChangeAllNotifications()
+        fun onChangeNotification(type: NotificationType, enabled: Boolean)
     }
 
     companion object {

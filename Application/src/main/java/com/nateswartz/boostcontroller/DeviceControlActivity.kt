@@ -265,46 +265,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         disableControls()
         switch_sphero_color_button.isEnabled = false
 
-        checkbox_color_sensor.setOnClickListener{
-            if (checkbox_color_sensor.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
-            } else {
-                bluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
-            }
-        }
-
-        checkbox_tilt_sensor.setOnClickListener {
-            if (checkbox_tilt_sensor.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
-            } else {
-                bluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
-            }
-        }
-
-        checkbox_internal_motors.setOnClickListener {
-            if (checkbox_internal_motors.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
-            } else {
-                bluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
-            }
-        }
-
-        checkbox_external_motor.setOnClickListener {
-            if (checkbox_external_motor.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
-            } else {
-                bluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
-            }
-        }
-
-        checkbox_button.setOnClickListener {
-            if (checkbox_button.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
-            } else {
-                // Currently not working
-                bluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
-            }
-        }
 
         button_spin.setOnClickListener {
             bluetoothDeviceService!!.moveHubController.runInternalMotorsInOpposition(20, 300)
@@ -380,12 +340,47 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
     }
 
-    override fun onChangeAllNotifications() {
-        checkbox_button.performClick()
-        checkbox_internal_motors.performClick()
-        checkbox_external_motor.performClick()
-        checkbox_color_sensor.performClick()
-        checkbox_tilt_sensor.performClick()
+
+
+    override fun onChangeNotification(type: NotificationType, enabled: Boolean) {
+        when (type) {
+            NotificationType.BUTTON -> {
+                if (enabled) {
+                    bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
+                } else {
+                    // Currently not working
+                    bluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
+                }
+            }
+            NotificationType.COLOR_SENSOR -> {
+                if (enabled) {
+                    bluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
+                } else {
+                    bluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
+                }
+            }
+            NotificationType.TILT_SENSOR ->  {
+                if (enabled) {
+                    bluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
+                } else {
+                    bluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
+                }
+            }
+            NotificationType.INTERNAL_MOTORS ->  {
+                if (enabled) {
+                    bluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
+                } else {
+                    bluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
+                }
+            }
+            NotificationType.EXTERNAL_MOTOR ->  {
+                if (enabled) {
+                    bluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
+                } else {
+                    bluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
+                }
+            }
+        }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -422,11 +417,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         button_var_run_motor.isEnabled = enabled
         switch_counter_clockwise.isEnabled = enabled
         switch_sync_colors.isEnabled = enabled
-        checkbox_color_sensor.isEnabled = enabled
-        checkbox_tilt_sensor.isEnabled = enabled
-        checkbox_button.isEnabled = enabled
-        checkbox_external_motor.isEnabled = enabled
-        checkbox_internal_motors.isEnabled = enabled
         switch_button_change_motor.isEnabled = enabled
         switch_button_change_light.isEnabled = enabled
         switch_motor_button_lifx.isEnabled = enabled
