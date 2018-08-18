@@ -11,7 +11,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v13.app.ActivityCompat
@@ -337,6 +336,23 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 notificationListeners["motor_button_led_lifx"] = ChangeLifxLEDOnMotorButton(bluetoothDeviceService!!, lifxController!!)
             } else {
                 notificationListeners.remove("motor_button_led_lifx")
+            }
+        }
+
+        button_hide_show_fragment.setOnClickListener {
+            val fm = fragmentManager
+            if (notificationSettingsFragment!!.isHidden){
+                fm.beginTransaction()
+                        .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                        .show(notificationSettingsFragment)
+                        .commit()
+                button_hide_show_fragment.text = "Hide Settings"
+            } else {
+                fm.beginTransaction()
+                        .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                        .hide(notificationSettingsFragment)
+                        .commit()
+                button_hide_show_fragment.text = "Show Settings"
             }
         }
     }

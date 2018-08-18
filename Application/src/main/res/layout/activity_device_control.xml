@@ -204,6 +204,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_sync_colors" />
 
+            <Button
+                android:id="@+id/button_hide_show_fragment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:text="Hide Settings"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
+
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
 
