@@ -12,22 +12,10 @@
         android:layout_height="match_parent">
 
         <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
-            android:text="Notifications"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
             android:id="@+id/text_boost_connected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:layout_marginTop="16dp"
             android:text="Boost"
             android:visibility="invisible"
             app:layout_constraintEnd_toEndOf="parent"
@@ -38,7 +26,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:layout_marginTop="16dp"
             android:text="LPF2"
             android:visibility="invisible"
             app:layout_constraintEnd_toStartOf="@+id/text_boost_connected"
@@ -48,11 +35,10 @@
             android:id="@+id/checkbox_all_notifications"
             android:layout_width="wrap_content"
             android:layout_height="32dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
             android:enabled="false"
             android:text="All"
-            app:layout_constraintStart_toEndOf="@+id/textView"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <CheckBox
@@ -60,33 +46,33 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:enabled="false"
             android:text="Button"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_all_notifications" />
 
         <CheckBox
             android:id="@+id/checkbox_tilt_sensor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:enabled="false"
             android:text="Tilt Sensor"
             app:layout_constraintStart_toEndOf="@+id/checkbox_button"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_all_notifications" />
 
         <CheckBox
             android:id="@+id/checkbox_color_sensor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:enabled="false"
             android:text="Color Sensor"
             app:layout_constraintStart_toEndOf="@+id/checkbox_tilt_sensor"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
+            app:layout_constraintTop_toBottomOf="@+id/checkbox_all_notifications" />
 
         <CheckBox
             android:id="@+id/checkbox_external_motor"

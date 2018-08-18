@@ -17,11 +17,13 @@
             android:paddingBottom="16dp">
 
             <fragment
-                android:name="com.nateswartz.boostcontroller.NotificationSettingsFragment"
                 android:id="@+id/notifications_fragement"
+                android:name="com.nateswartz.boostcontroller.NotificationSettingsFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                />
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textview_notifications" />
             <Switch
                 android:id="@+id/switch_sync_colors"
                 android:layout_width="wrap_content"
@@ -154,6 +156,17 @@
                 app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
 
             <TextView
+                android:id="@+id/textview_notifications"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:text="Notifications"
+                android:textSize="24sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
                 android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -203,16 +216,6 @@
                 android:text="Roller Coaster"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_sync_colors" />
-
-            <Button
-                android:id="@+id/button_hide_show_fragment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginTop="8dp"
-                android:text="Hide Settings"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>

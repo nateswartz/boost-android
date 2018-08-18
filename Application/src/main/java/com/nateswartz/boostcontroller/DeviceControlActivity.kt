@@ -339,20 +339,18 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             }
         }
 
-        button_hide_show_fragment.setOnClickListener {
+        textview_notifications.setOnClickListener {
             val fm = fragmentManager
             if (notificationSettingsFragment!!.isHidden){
                 fm.beginTransaction()
                         .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                         .show(notificationSettingsFragment)
                         .commit()
-                button_hide_show_fragment.text = "Hide Settings"
             } else {
                 fm.beginTransaction()
                         .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                         .hide(notificationSettingsFragment)
                         .commit()
-                button_hide_show_fragment.text = "Show Settings"
             }
         }
     }
