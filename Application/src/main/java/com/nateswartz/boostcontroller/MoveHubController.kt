@@ -1,17 +1,7 @@
 package com.nateswartz.boostcontroller
 
-import android.app.Service
-import android.content.Intent
-import android.os.Binder
-import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 
-
-/**
- * Service for managing connection and data communication with a GATT server hosted on a
- * given Bluetooth LE device.
- */
 class MoveHubController (private val gattController: GattController) {
 
     private val ACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02)
@@ -51,20 +41,23 @@ class MoveHubController (private val gattController: GattController) {
     }
 
     fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
-        var portByte : Byte? = null
-        if (ExternalMotorPort == Port.C) {
-            portByte = C_PORT_BYTE
-        } else if (ExternalMotorPort == Port.D) {
-            portByte = D_PORT_BYTE
+        val portByte = when (ExternalMotorPort) {
+            Port.C -> C_PORT_BYTE
+            Port.D -> D_PORT_BYTE
+            else -> {
+                Log.w(TAG, "No external motor detected")
+                return
+            }
         }
-        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, portByte!!)
+        runMotor(powerPercentage, timeInMilliseconds, counterclockwise, portByte)
     }
 
-    fun runInternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, motor: String)
+    fun runInternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, motor: Port)
     {
         when (motor) {
-            "A" -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, A_PORT_BYTE)
-            "B" -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, B_PORT_BYTE)
+            Port.A -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, A_PORT_BYTE)
+            Port.B -> runMotor(powerPercentage, timeInMilliseconds, counterclockwise, B_PORT_BYTE)
+            else -> Log.w(TAG, "Invalid motor specified")
         }
     }
 
@@ -97,6 +90,7 @@ class MoveHubController (private val gattController: GattController) {
         when (ColorSensorPort) {
             Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_C)
             Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_D)
+            else -> Log.w(TAG, "No Color Sensor detected")
         }
     }
 
@@ -104,6 +98,7 @@ class MoveHubController (private val gattController: GattController) {
         when (ColorSensorPort) {
             Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_C)
             Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_D)
+            else -> Log.w(TAG, "No Color Sensor detected")
         }
     }
 
@@ -111,6 +106,7 @@ class MoveHubController (private val gattController: GattController) {
         when (ExternalMotorPort) {
             Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
             Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
+            else -> Log.w(TAG, "No External Motor detected")
         }
     }
 
@@ -118,6 +114,7 @@ class MoveHubController (private val gattController: GattController) {
         when (ExternalMotorPort) {
             Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_C)
             Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_D)
+            else -> Log.w(TAG, "No External Motor detected")
         }
     }
 
@@ -128,7 +125,7 @@ class MoveHubController (private val gattController: GattController) {
     }
 
     fun activateInternalMotorSensorNotifications(motor: String, type: String) {
-        var data = ACTIVATE_MOTOR_PORT
+        val data = ACTIVATE_MOTOR_PORT
         when (motor) {
             "A" -> data[3] = A_PORT_BYTE
             "B" -> data[3] = B_PORT_BYTE
@@ -147,7 +144,7 @@ class MoveHubController (private val gattController: GattController) {
     }
 
     fun deactivateInternalMotorSensorNotifications(motor: String) {
-        var data = DEACTIVATE_MOTOR_PORT
+        val data = DEACTIVATE_MOTOR_PORT
         when (motor) {
             "A" -> data[3] = A_PORT_BYTE
             "B" -> data[3] = B_PORT_BYTE

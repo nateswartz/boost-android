@@ -277,8 +277,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
             val counterclockwise = switch_counter_clockwise.isChecked
             if (power != "" && time != "") {
                 when (motor) {
-                    "A" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "A")
-                    "B" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, "B")
+                    "A" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.A)
+                    "B" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.B)
                     "A+B" -> bluetoothDeviceService!!.moveHubController.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
                     "External" -> bluetoothDeviceService!!.moveHubController.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
                 }
@@ -325,7 +325,8 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         switch_roller_coaster.setOnClickListener {
             if (switch_roller_coaster.isChecked) {
-                notificationListeners["roller_coaster"] = RollerCoaster(input_time.text.toString(), switch_counter_clockwise.isChecked, bluetoothDeviceService!!)
+                val time = if (input_time.text.toString() == "") "1000" else input_time.text.toString()
+                notificationListeners["roller_coaster"] = RollerCoaster(time, switch_counter_clockwise.isChecked, bluetoothDeviceService!!)
             } else {
                 notificationListeners.remove("roller_coaster")
             }
