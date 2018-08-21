@@ -34,16 +34,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_motor_button_lifx" />
 
-            <TextView
-                android:id="@+id/text_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:text="Time (ms)"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/input_power" />
-
             <Button
                 android:id="@+id/button_sphero_connect"
                 android:layout_width="wrap_content"
@@ -53,56 +43,6 @@
                 android:text="Connect Sphero"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView3" />
-
-            <Button
-                android:id="@+id/button_spin"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="Spin"
-                app:layout_constraintStart_toEndOf="@+id/button_var_run_motor"
-                app:layout_constraintTop_toBottomOf="@+id/spinner_motor_types" />
-
-            <Button
-                android:id="@+id/button_var_run_motor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="Run Motor"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/spinner_motor_types" />
-
-            <Switch
-                android:id="@+id/switch_counter_clockwise"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:text="Counter Clockwise"
-                app:layout_constraintStart_toEndOf="@+id/spinner_motor_types"
-                app:layout_constraintTop_toBottomOf="@+id/input_time" />
-
-            <Spinner
-                android:id="@+id/spinner_motor_types"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/input_time" />
-
-            <EditText
-                android:id="@+id/input_power"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:ems="10"
-                android:inputType="number"
-                app:layout_constraintStart_toEndOf="@+id/text_power"
-                app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
             <Switch
                 android:id="@+id/switch_motor_button_lifx"
@@ -114,36 +54,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_button_change_motor" />
 
-            <Spinner
-                android:id="@+id/spinner_led_colors"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/button_var_run_motor" />
-
-            <TextView
-                android:id="@+id/text_power"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:text="Power (%)"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView2" />
-
-            <EditText
-                android:id="@+id/input_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="16dp"
-                android:ems="10"
-                android:inputType="number"
-                app:layout_constraintStart_toEndOf="@+id/text_time"
-                app:layout_constraintTop_toBottomOf="@+id/input_power" />
-
             <TextView
                 android:id="@+id/textView2"
                 android:layout_width="wrap_content"
@@ -154,6 +64,15 @@
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/notifications_fragement" />
+
+            <fragment
+                android:id="@+id/actions_fragment"
+                android:name="com.nateswartz.boostcontroller.ActionsFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
             <TextView
                 android:id="@+id/textview_notifications"
@@ -171,11 +90,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:text="Other Integrations"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/spinner_led_colors" />
+                app:layout_constraintTop_toBottomOf="@+id/actions_fragment" />
 
             <Switch
                 android:id="@+id/switch_button_change_light"

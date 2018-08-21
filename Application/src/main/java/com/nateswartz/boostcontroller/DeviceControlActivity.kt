@@ -18,7 +18,6 @@ import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import kotlinx.android.synthetic.main.activity_device_control.*
 import com.orbotix.DualStackDiscoveryAgent
 import android.widget.*
@@ -28,8 +27,9 @@ import com.orbotix.common.Robot
 import com.orbotix.common.RobotChangedStateListener
 
 
-class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, RobotChangedStateListener, NotificationSettingsFragment.OnFragmentInteractionListener {
+class DeviceControlActivity : Activity(), RobotChangedStateListener, NotificationSettingsFragment.OnFragmentInteractionListener {
     private var notificationSettingsFragment: NotificationSettingsFragment? = null
+    private var actionsFragment: ActionsFragment? = null
 
     // Lifx
     private var lifxController: LifxController? = null
@@ -45,11 +45,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     private var connectedLpf2 = false
     private var connectingLpf2 = false
 
-    private var colorArray = arrayOf("Off", "Blue", "Pink", "Purple",
-            "Light Blue", "Cyan", "Green", "Yellow", "Orange", "Red", "White")
-
-    private var motorTypes = arrayOf("A", "B", "A+B", "External")
-
     private var notificationListeners = mutableMapOf<String, HubNotificationListener>()
 
     private val PERMISSION_REQUEST_CODE = 1
@@ -58,6 +53,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             bluetoothDeviceService = (service as BluetoothDeviceService.LocalBinder).service
             notificationSettingsFragment!!.setBluetoothDeviceService(bluetoothDeviceService!!)
+            actionsFragment!!.setBluetoothDeviceService(bluetoothDeviceService!!)
             finishSetup()
         }
 
@@ -75,6 +71,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     connectedBoost = true
                     connectingBoost = false
                     notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
+                    actionsFragment!!.boostConnectionChanged(connectedBoost)
                     bluetoothDeviceService!!.moveHubController.enableNotifications()
                     enableControls()
                     invalidateOptionsMenu()
@@ -83,6 +80,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                     connectedBoost = false
                     connectingBoost = false
                     notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
+                    actionsFragment!!.boostConnectionChanged(connectedBoost)
                     disableControls()
                     invalidateOptionsMenu()
                 }
@@ -152,6 +150,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     public override fun onStart() {
         super.onStart()
         notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
+        actionsFragment = fragmentManager.findFragmentById(R.id.actions_fragment) as ActionsFragment
     }
 
     // Sphero
@@ -216,6 +215,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 connectedLpf2 = false
                 notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
                 notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
+                actionsFragment!!.boostConnectionChanged(connectedBoost)
                 invalidateOptionsMenu()
                 return true
             }
@@ -248,42 +248,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         connectingLpf2 = true
         bluetoothDeviceService!!.connect()
 
-        val colorAdapter = ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, colorArray)
-        colorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner_led_colors.adapter = colorAdapter
-        spinner_led_colors.onItemSelectedListener = this
-        // Set Spinner to Blue to start (since that's the Hub default)
-        spinner_led_colors.setSelection(1)
-
-        val motorAdapter = ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, motorTypes)
-        motorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner_motor_types.adapter = motorAdapter
-        spinner_motor_types.onItemSelectedListener = this
-
         disableControls()
         switch_sphero_color_button.isEnabled = false
 
-
-        button_spin.setOnClickListener {
-            bluetoothDeviceService!!.moveHubController.runInternalMotorsInOpposition(20, 300)
-        }
-
-        button_var_run_motor.setOnClickListener {
-            val power = input_power.text.toString()
-            val time = input_time.text.toString()
-            val motor = spinner_motor_types.selectedItem.toString()
-            val counterclockwise = switch_counter_clockwise.isChecked
-            if (power != "" && time != "") {
-                when (motor) {
-                    "A" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.A)
-                    "B" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.B)
-                    "A+B" -> bluetoothDeviceService!!.moveHubController.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
-                    "External" -> bluetoothDeviceService!!.moveHubController.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
-                }
-            }
-        }
 
         // Sphero
         button_sphero_connect.setOnClickListener {
@@ -325,8 +292,9 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
 
         switch_roller_coaster.setOnClickListener {
             if (switch_roller_coaster.isChecked) {
-                val time = if (input_time.text.toString() == "") "1000" else input_time.text.toString()
-                notificationListeners["roller_coaster"] = RollerCoaster(time, switch_counter_clockwise.isChecked, bluetoothDeviceService!!)
+                //val time = if (input_time.text.toString() == "") "1000" else input_time.text.toString()
+                //notificationListeners["roller_coaster"] = RollerCoaster(time, switch_counter_clockwise.isChecked, bluetoothDeviceService!!)
+                notificationListeners["roller_coaster"] = RollerCoaster("2000", true, bluetoothDeviceService!!)
             } else {
                 notificationListeners.remove("roller_coaster")
             }
@@ -356,21 +324,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
         }
     }
 
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        if (connectedBoost) {
-            when (parent) {
-                spinner_led_colors -> {
-                    val item = parent!!.getItemAtPosition(position).toString()
-                    val color = getLedColorFromName(item)
-                    bluetoothDeviceService?.moveHubController?.setLEDColor(color)
-                }
-            }
-        }
-    }
-
-    override fun onNothingSelected(parent: AdapterView<*>?) {
-    }
-
     private fun enableControls() {
         setControlsState(true)
     }
@@ -380,15 +333,6 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
     }
 
     private fun setControlsState(enabled : Boolean) {
-        button_spin.isEnabled = enabled
-        spinner_led_colors.isEnabled = enabled
-        spinner_motor_types.isEnabled = enabled
-        text_power.isEnabled = enabled
-        text_time.isEnabled = enabled
-        input_power.isEnabled = enabled
-        input_time.isEnabled = enabled
-        button_var_run_motor.isEnabled = enabled
-        switch_counter_clockwise.isEnabled = enabled
         switch_sync_colors.isEnabled = enabled
         switch_button_change_motor.isEnabled = enabled
         switch_button_change_light.isEnabled = enabled
@@ -438,6 +382,7 @@ class DeviceControlActivity : Activity(), AdapterView.OnItemSelectedListener, Ro
                 connectedLpf2 = false
                 connectingLpf2 = false
                 notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
+                actionsFragment!!.boostConnectionChanged(connectedBoost)
                 notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
             }
         }
