@@ -7,8 +7,7 @@ class ExternalMotorNotification(private var rawData: String) : HubNotification, 
 
     val port = if (rawData[10] == '1') Port.C else Port.D
 
-    constructor(parcel: Parcel) : this(parcel.readString()) {
-    }
+    constructor(parcel: Parcel) : this(parcel.readString())
 
     override fun toString(): String {
         return "External Motor Notification - Port $port - $rawData"

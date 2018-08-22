@@ -18,7 +18,7 @@ fun getColorFromHex(str: String) : Color {
 }
 
 fun getLedColorFromName(name: String) : LEDColorCommand {
-    val color = when (name.toLowerCase()) {
+    return when (name.toLowerCase()) {
         "pink" -> LEDColorCommand.PINK
         "purple" -> LEDColorCommand.PURPLE
         "blue" -> LEDColorCommand.BLUE
@@ -31,13 +31,12 @@ fun getLedColorFromName(name: String) : LEDColorCommand {
         "white" -> LEDColorCommand.WHITE
         else -> LEDColorCommand.BLACK
     }
-    return color
 }
 
 fun getByteArrayFromInt(number: Int, size: Int): Array<Byte> {
-    val result = Array<Byte>(size, {0})
+    val result = Array<Byte>(size) {0}
     var intermediateNumber = number
-    var mask = 0xFF
+    val mask = 0xFF
 
     for ( i in 0 until result.size) {
         result[i] = intermediateNumber.and(mask).toByte()

@@ -22,6 +22,15 @@ class ColorSensorNotification(private var rawData: String) : HubNotification, Pa
         return 0
     }
 
+    private fun getDistance(inches: String, partial: String): String {
+        var result = "${inches.toLong(16)}"
+        if (partial != "0") {
+            result += ".${partial.toLong(16)}"
+        }
+        result += " inches"
+        return result
+    }
+
     companion object CREATOR : Parcelable.Creator<ColorSensorNotification> {
         override fun createFromParcel(parcel: Parcel): ColorSensorNotification {
             return ColorSensorNotification(parcel)
@@ -33,12 +42,4 @@ class ColorSensorNotification(private var rawData: String) : HubNotification, Pa
     }
 }
 
-private fun getDistance(inches: String, partial: String): String {
-    var result = ""
-    result += "${inches.toLong(16)}"
-    if (partial != "0") {
-        result += ".${partial.toLong(16)}"
-    }
-    result += " inches"
-    return result
-}
+

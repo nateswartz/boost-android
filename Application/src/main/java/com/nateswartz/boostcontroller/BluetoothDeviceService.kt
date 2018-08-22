@@ -8,10 +8,6 @@ import android.util.Log
 import android.widget.Toast
 
 
-/**
- * Service for managing connection and data communication with a GATT server hosted on a
- * given Bluetooth LE device.
- */
 class BluetoothDeviceService : Service() {
 
     private var gattController = GattController(this)

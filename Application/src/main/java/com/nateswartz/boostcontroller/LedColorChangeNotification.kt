@@ -6,8 +6,7 @@ import android.os.Parcelable
 class LedColorChangeNotification(private var rawData: String) : HubNotification, Parcelable {
     val color =  getColorFromHex("${rawData[12]}${rawData[13]}")
 
-    constructor(parcel: Parcel) : this(parcel.readString()) {
-    }
+    constructor(parcel: Parcel) : this(parcel.readString())
 
     override fun toString(): String {
         return "LED Color Change Notification - Color $color - $rawData"

@@ -8,11 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_notification_settings.*
 
-
-enum class NotificationType {
-    BUTTON, COLOR_SENSOR, TILT_SENSOR, INTERNAL_MOTORS, EXTERNAL_MOTOR
-}
-
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
@@ -31,7 +26,7 @@ class NotificationSettingsFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-    private var BluetoothDeviceService: BluetoothDeviceService? = null
+    private var bluetoothDeviceService: BluetoothDeviceService? = null
     private var listener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,45 +64,45 @@ class NotificationSettingsFragment : Fragment() {
         }
         checkbox_button.setOnClickListener {
             if (checkbox_button.isChecked) {
-                BluetoothDeviceService!!.moveHubController.activateButtonNotifications()
+                bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
             } else {
                 // Currently not working
-                BluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
             }
         }
         checkbox_color_sensor.setOnClickListener {
             if (checkbox_color_sensor.isChecked) {
-                BluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
             } else {
-                BluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
             }
         }
         checkbox_tilt_sensor.setOnClickListener {
             if (checkbox_tilt_sensor.isChecked) {
-                BluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
             } else {
-                BluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
             }
         }
         checkbox_external_motor.setOnClickListener {
             if (checkbox_external_motor.isChecked) {
-                BluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
+                bluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
             } else {
-                BluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
             }
         }
         checkbox_internal_motors.setOnClickListener {
             if (checkbox_internal_motors.isChecked) {
-                BluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
             } else {
-                BluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
+                bluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
             }
         }
     }
 
-    // TODO: Find a better way to access the BluetoothDeviceService
+    // TODO: Find a better way to access the bluetoothDeviceService
     fun setBluetoothDeviceService(bluetoothDeviceService: BluetoothDeviceService) {
-        BluetoothDeviceService = bluetoothDeviceService
+        this.bluetoothDeviceService = bluetoothDeviceService
     }
 
     fun boostConnectionChanged(isConnected: Boolean) {

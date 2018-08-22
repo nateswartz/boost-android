@@ -47,8 +47,6 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
     private var notificationListeners = mutableMapOf<String, HubNotificationListener>()
 
-    private val PERMISSION_REQUEST_CODE = 1
-
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             bluetoothDeviceService = (service as BluetoothDeviceService.LocalBinder).service
@@ -172,18 +170,20 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
     // Sphero
     override fun handleRobotChangedState(robot: Robot, type: RobotChangedStateListener.RobotChangedStateNotificationType) {
-        Log.d("Sphero", "handleRobotChangedState $type")
         when (type) {
             RobotChangedStateListener.RobotChangedStateNotificationType.Connected -> {
+                Log.i("Sphero", "Sphero connected")
                 mRobot = ConvenienceRobot(robot)
                 switch_sphero_color_button.isEnabled = true
                 button_sphero_connect.isEnabled = false
             }
             RobotChangedStateListener.RobotChangedStateNotificationType.Online -> {
+                Log.i("Sphero", "Sphero online")
                 mRobot = ConvenienceRobot(robot)
                 switch_sphero_color_button.isEnabled = true
                 button_sphero_connect.isEnabled = false
             }
+            else -> Log.d("Sphero", "handleRobotChangedState $type")
         }
     }
 
@@ -419,6 +419,8 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
     companion object {
         private val TAG = DeviceControlActivity::class.java.simpleName
+
+        const val PERMISSION_REQUEST_CODE = 1
 
         const val REQUEST_ENABLE_BT = 1
         // Stops scanning after 10 seconds.

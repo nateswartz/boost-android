@@ -8,8 +8,7 @@ interface HubNotification : Parcelable{
 }
 
 open class UnknownHubNotification(var rawData: String) : HubNotification, Parcelable{
-    constructor(parcel: Parcel) : this(parcel.readString()) {
-    }
+    constructor(parcel: Parcel) : this(parcel.readString())
 
     override fun toString(): String {
         return "Hub Notification - $rawData"

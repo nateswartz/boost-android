@@ -20,10 +20,6 @@ handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624
 */
 class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
 
-    val BoostUUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")!!
-    val BoostHubManufacturerData = "64"
-    val Lpf2HubManufacturerData = "65"
-
     private var bluetoothManager: BluetoothManager? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothDeviceAddress: String? = null
@@ -114,11 +110,6 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
         }
     }
 
-    /**
-     * Initializes a reference to the local Bluetooth adapter.
-     *
-     * @return Return true if the initialization is successful.
-     */
     fun initialize(): Boolean {
         handler = Handler()
 
@@ -153,16 +144,6 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
         }
     }
 
-    /**
-     * Connects to the GATT server hosted on the Bluetooth LE device.
-     *
-     * @param address The device address of the destination device.
-     *
-     * @return Return true if the connection is initiated successfully. The connection result
-     * is reported asynchronously through the
-     * `BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)`
-     * callback.
-     */
     private fun finishConnection(): Boolean {
         if (scanning) {
             bluetoothScanner!!.stopScan(leScanCallback)
@@ -194,12 +175,6 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
         return true
     }
 
-    /**
-     * Disconnects an existing connection or cancel a pending connection. The disconnection result
-     * is reported asynchronously through the
-     * `BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)`
-     * callback.
-     */
     fun disconnect() {
         if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.e(TAG, "BluetoothAdapter not initialized")
@@ -213,30 +188,12 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
         }
     }
 
-    /**
-     * After using a given BLE device, the app must call this method to ensure resources are
-     * released properly.
-     */
     fun close() {
         if (bluetoothGatt == null) {
             return
         }
         bluetoothGatt!!.close()
         bluetoothGatt = null
-    }
-
-    /**
-     * Request a read on a given `BluetoothGattCharacteristic`. The read result is reported
-     * asynchronously through the `BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)`
-     * callback.
-     * */
-    private fun readCharacteristic(deviceType: DeviceType) {
-        if (bluetoothAdapter == null || bluetoothGatt == null) {
-            Log.e(TAG, "BluetoothAdapter not initialized")
-            return
-        }
-        val characteristic = if (deviceType == DeviceType.BOOST) boostCharacteristic else lpf2Characteristic
-        bluetoothGatt!!.readCharacteristic(characteristic)
     }
 
     fun writeCharacteristic(deviceType: DeviceType, data: ByteArray): Boolean {
@@ -250,11 +207,6 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
         return bluetoothGatt!!.writeCharacteristic(characteristic)
     }
 
-    /**
-     * Enables or disables notification on a give characteristic.
-     *
-     * @param enabled If true, enable notification.  False otherwise.
-     */
     fun setCharacteristicNotification(deviceType: DeviceType, enabled: Boolean) {
         Log.d(TAG, "Enabling notifications")
         if (bluetoothAdapter == null || bluetoothGatt == null) {
@@ -296,7 +248,7 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
             Log.d(TAG, "Scanning")
             scanning = true
             bluetoothScanner!!.startScan(
-                    listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BoostUUID)).build()),
+                    listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BOOST_UUID)).build()),
                     ScanSettings.Builder().build(),
                     leScanCallback)
             bluetoothDeviceService.showMessage("Scanning...")
@@ -315,13 +267,13 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
             Log.d(TAG, result.toString())
             super.onScanResult(callbackType, result)
             when (result.scanRecord.manufacturerSpecificData[919][1].toString()) {
-                BoostHubManufacturerData -> {
+                BOOST_HUB_MANUFACTURER_DATA -> {
                     boostHub = result.device
                     boostHubAddress = result.device.address
                     foundBoost = true
                     Log.d(TAG, "Found Boost Hub")
                 }
-                Lpf2HubManufacturerData -> {
+                LPF2_HUB_MANUFACTURER_DATA -> {
                     lpf2Hub = result.device
                     lpf2HubAddress = result.device.address
                     foundLpf2 = true
@@ -335,5 +287,9 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
 
     companion object {
         private val TAG = GattController::class.java.simpleName
+
+        val BOOST_UUID : UUID = UUID.fromString("00001623-1212-efde-1623-785feabcd123")
+        const val BOOST_HUB_MANUFACTURER_DATA = "64"
+        const val LPF2_HUB_MANUFACTURER_DATA = "65"
     }
 }

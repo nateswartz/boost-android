@@ -30,8 +30,7 @@ class PortInfoNotification(private var rawData: String) : HubNotification, Parce
         else -> Sensor.UNKNOWN
     }
 
-    constructor(parcel: Parcel) : this(parcel.readString()) {
-    }
+    constructor(parcel: Parcel) : this(parcel.readString())
 
     override fun toString(): String {
         return "Port Info Notification - Port $port - Sensor $sensor - $rawData"
