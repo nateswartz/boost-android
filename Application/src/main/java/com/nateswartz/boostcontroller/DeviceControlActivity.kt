@@ -114,11 +114,11 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        setContentView(R.layout.activity_device_control)
+
         lifxController = LifxController(this)
 
         mDiscoveryAgent.addRobotStateListener(this)
-
-        setContentView(R.layout.activity_device_control)
 
         if (ContextCompat.checkSelfPermission(this,
                         Manifest.permission.ACCESS_FINE_LOCATION)
@@ -127,7 +127,6 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
             ActivityCompat.requestPermissions(this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     PERMISSION_REQUEST_CODE)
-
         } else {
             val moveHubServiceIntent = Intent(this, BluetoothDeviceService::class.java)
             bindService(moveHubServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
@@ -151,6 +150,11 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
         super.onStart()
         notificationSettingsFragment = fragmentManager.findFragmentById(R.id.notifications_fragement) as NotificationSettingsFragment
         actionsFragment = fragmentManager.findFragmentById(R.id.actions_fragment) as ActionsFragment
+        fragmentManager
+                .beginTransaction()
+                .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                .hide(actionsFragment)
+                .commit()
     }
 
     // Sphero
@@ -309,18 +313,25 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
         }
 
         textview_notifications.setOnClickListener {
-            val fm = fragmentManager
+            val transaction = fragmentManager.beginTransaction()
+                                    .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
             if (notificationSettingsFragment!!.isHidden){
-                fm.beginTransaction()
-                        .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
-                        .show(notificationSettingsFragment)
-                        .commit()
+                transaction.show(notificationSettingsFragment)
             } else {
-                fm.beginTransaction()
-                        .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
-                        .hide(notificationSettingsFragment)
-                        .commit()
+                transaction.hide(notificationSettingsFragment)
             }
+            transaction.commit()
+        }
+
+        textview_actions.setOnClickListener {
+            val transaction = fragmentManager.beginTransaction()
+                    .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+            if (actionsFragment!!.isHidden){
+                transaction.show(actionsFragment)
+            } else {
+                transaction.hide(actionsFragment)
+            }
+            transaction.commit()
         }
     }
 
