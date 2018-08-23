@@ -18,7 +18,7 @@ attr handle: 0x000c, end grp handle: 0x000f uuid: 00001623-1212-efde-1623-785fea
 
 handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624-1212-efde-1623-785feabcd123
 */
-class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
+class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService) {
 
     private var bluetoothManager: BluetoothManager? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
@@ -56,15 +56,15 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
                     when (gatt.device.address) {
                         boostHubAddress -> {
                             connectedBoost = false
-                            intentAction = BluetoothDeviceService.ACTION_BOOST_DISCONNECTED
+                            intentAction = LegoBluetoothDeviceService.ACTION_BOOST_DISCONNECTED
                         }
                         else -> {
                             connectedLpf2 = false
-                            intentAction = BluetoothDeviceService.ACTION_LPF2_DISCONNECTED
+                            intentAction = LegoBluetoothDeviceService.ACTION_LPF2_DISCONNECTED
 
                         }
                     }
-                    bluetoothDeviceService.broadcastUpdate(intentAction)
+                    legoBluetoothDeviceService.broadcastUpdate(intentAction)
                 }
             }
         }
@@ -77,17 +77,17 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
                     Log.d(TAG, "Connected Boost Hub")
                     connectedBoost = true
                     boostCharacteristic = bluetoothGatt!!.services!![2].characteristics[0]
-                    intentAction = BluetoothDeviceService.ACTION_BOOST_CONNECTED
+                    intentAction = LegoBluetoothDeviceService.ACTION_BOOST_CONNECTED
                 }
                 else -> {
                     Log.d(TAG, "Connected LPF2 Hub")
                     connectedLpf2 = true
                     // TODO: Verify this is the correct characteristic
                     lpf2Characteristic = bluetoothGatt!!.services!![2].characteristics[0]
-                    intentAction = BluetoothDeviceService.ACTION_LPF2_CONNECTED
+                    intentAction = LegoBluetoothDeviceService.ACTION_LPF2_CONNECTED
                 }
             }
-            bluetoothDeviceService.broadcastUpdate(intentAction)
+            legoBluetoothDeviceService.broadcastUpdate(intentAction)
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt,
@@ -96,7 +96,7 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 val data = characteristic.value
                 if (data.isNotEmpty()) {
-                    bluetoothDeviceService.handleNotification(data)
+                    legoBluetoothDeviceService.handleNotification(data)
                 }
             }
         }
@@ -105,7 +105,7 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
                                              characteristic: BluetoothGattCharacteristic) {
             val data = characteristic.value
             if (data.isNotEmpty()) {
-                bluetoothDeviceService.handleNotification(data)
+                legoBluetoothDeviceService.handleNotification(data)
             }
         }
     }
@@ -116,7 +116,7 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
         if (bluetoothManager == null) {
-            bluetoothManager = bluetoothDeviceService.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            bluetoothManager = legoBluetoothDeviceService.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
             if (bluetoothManager == null) {
                 Log.e(TAG, "Unable to initialize BluetoothManager.")
                 return false
@@ -169,7 +169,7 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        bluetoothGatt = device.connectGatt(bluetoothDeviceService, false, gattCallback)
+        bluetoothGatt = device.connectGatt(legoBluetoothDeviceService, false, gattCallback)
         Log.d(TAG, "Trying to create a new connection.")
         bluetoothDeviceAddress = boostHub!!.address
         return true
@@ -241,8 +241,8 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
                 Log.d(TAG, "Scanning timed out")
                 scanning = false
                 bluetoothScanner!!.stopScan(leScanCallback)
-                val intentAction = BluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED
-                bluetoothDeviceService.broadcastUpdate(intentAction)
+                val intentAction = LegoBluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED
+                legoBluetoothDeviceService.broadcastUpdate(intentAction)
             }, DeviceControlActivity.SCAN_PERIOD)
 
             Log.d(TAG, "Scanning")
@@ -251,13 +251,13 @@ class GattController(val bluetoothDeviceService: BluetoothDeviceService) {
                     listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BOOST_UUID)).build()),
                     ScanSettings.Builder().build(),
                     leScanCallback)
-            bluetoothDeviceService.showMessage("Scanning...")
+            legoBluetoothDeviceService.showMessage("Scanning...")
 
         } else {
             Log.d(TAG, "Stop Scanning")
             scanning = false
             bluetoothScanner!!.stopScan(leScanCallback)
-            bluetoothDeviceService.showMessage("Scanning Stopped")
+            legoBluetoothDeviceService.showMessage("Scanning Stopped")
         }
     }
 

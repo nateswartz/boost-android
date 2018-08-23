@@ -16,18 +16,16 @@ import android.os.IBinder
 import android.support.v13.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_device_control.*
-import com.orbotix.DualStackDiscoveryAgent
 import android.widget.*
 import com.orbotix.ConvenienceRobot
-import com.orbotix.common.DiscoveryException
-import com.orbotix.common.Robot
 import com.orbotix.common.RobotChangedStateListener
 
 
-class DeviceControlActivity : Activity(), RobotChangedStateListener, NotificationSettingsFragment.OnFragmentInteractionListener {
+class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSettingsFragment.OnFragmentInteractionListener {
     private var notificationSettingsFragment: NotificationSettingsFragment? = null
     private var actionsFragment: ActionsFragment? = null
 
@@ -35,10 +33,10 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
     private var lifxController: LifxController? = null
 
     // Sphero
-    private val mDiscoveryAgent = DualStackDiscoveryAgent()
-    private var mRobot: ConvenienceRobot? = null
+    private var isSpheroServiceBound = false
+    private var sphero: ConvenienceRobot? = null
 
-    private var bluetoothDeviceService: BluetoothDeviceService? = null
+    private var legoBluetoothDeviceService: LegoBluetoothDeviceService? = null
     private var connectedBoost = false
     private var connectingBoost = false
 
@@ -49,15 +47,15 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
-            bluetoothDeviceService = (service as BluetoothDeviceService.LocalBinder).service
-            notificationSettingsFragment!!.setBluetoothDeviceService(bluetoothDeviceService!!)
-            actionsFragment!!.setBluetoothDeviceService(bluetoothDeviceService!!)
+            legoBluetoothDeviceService = (service as LegoBluetoothDeviceService.LocalBinder).service
+            notificationSettingsFragment!!.setLegoBluetoothDeviceService(legoBluetoothDeviceService!!)
+            actionsFragment!!.setLegoBluetoothDeviceService(legoBluetoothDeviceService!!)
             finishSetup()
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
             Log.d(TAG, "Service Disconnect")
-            bluetoothDeviceService = null
+            legoBluetoothDeviceService = null
         }
     }
 
@@ -65,16 +63,16 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-                BluetoothDeviceService.ACTION_BOOST_CONNECTED -> {
+                LegoBluetoothDeviceService.ACTION_BOOST_CONNECTED -> {
                     connectedBoost = true
                     connectingBoost = false
                     notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
                     actionsFragment!!.boostConnectionChanged(connectedBoost)
-                    bluetoothDeviceService!!.moveHubController.enableNotifications()
+                    legoBluetoothDeviceService!!.moveHubController.enableNotifications()
                     enableControls()
                     invalidateOptionsMenu()
                 }
-                BluetoothDeviceService.ACTION_BOOST_DISCONNECTED -> {
+                LegoBluetoothDeviceService.ACTION_BOOST_DISCONNECTED -> {
                     connectedBoost = false
                     connectingBoost = false
                     notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
@@ -82,29 +80,83 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
                     disableControls()
                     invalidateOptionsMenu()
                 }
-                BluetoothDeviceService.ACTION_LPF2_CONNECTED -> {
+                LegoBluetoothDeviceService.ACTION_LPF2_CONNECTED -> {
                     connectedLpf2 = true
                     connectingLpf2 = false
                     notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
                 }
-                BluetoothDeviceService.ACTION_LPF2_DISCONNECTED -> {
+                LegoBluetoothDeviceService.ACTION_LPF2_DISCONNECTED -> {
                     connectedLpf2 = false
                     connectingLpf2 = false
                     notificationSettingsFragment!!.lpf2ConnectionChanged(connectedLpf2)
                 }
-                BluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED -> {
+                LegoBluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED -> {
                     connectingBoost = false
                     connectingLpf2 = false
                     invalidateOptionsMenu()
                     Toast.makeText(this@DeviceControlActivity, "Connection Failed!", Toast.LENGTH_SHORT).show()
                 }
-                BluetoothDeviceService.ACTION_DEVICE_NOTIFICATION -> {
-                    val notification = intent.getParcelableExtra<HubNotification>(BluetoothDeviceService.NOTIFICATION_DATA)
+                LegoBluetoothDeviceService.ACTION_DEVICE_NOTIFICATION -> {
+                    val notification = intent.getParcelableExtra<HubNotification>(LegoBluetoothDeviceService.NOTIFICATION_DATA)
 
                     for (listener in notificationListeners) {
                         listener.value.execute(notification)
                     }
                 }
+            }
+        }
+    }
+
+    private val spheroServiceConnection = object : ServiceConnection {
+        private var boundService: SpheroProviderService? = null
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            Log.d(TAG,"onServiceConnected")
+            boundService = (service as SpheroProviderService.RobotBinder).service
+            isSpheroServiceBound = true
+            boundService?.addListener(this@DeviceControlActivity)
+            if (boundService?.hasActiveSphero() == true) {
+                handleSpheroChange(boundService!!.getSphero(), RobotChangedStateListener.RobotChangedStateNotificationType.Online)
+            } else {
+                val toast = Toast.makeText(this@DeviceControlActivity, "Discovering...",
+                        Toast.LENGTH_LONG)
+                toast.setGravity(Gravity.BOTTOM, 0, 10)
+                toast.show()
+            }
+        }
+
+        override fun onServiceDisconnected(className: ComponentName) {
+            Log.d(TAG,"onServiceDisconnected")
+            boundService = null
+            isSpheroServiceBound = false
+            boundService?.removeListener(this@DeviceControlActivity)
+        }
+    }
+
+    override fun handleSpheroChange(robot: ConvenienceRobot, type: RobotChangedStateListener.RobotChangedStateNotificationType) {
+        when (type) {
+            RobotChangedStateListener.RobotChangedStateNotificationType.Online -> {
+                Log.d(TAG, "handleRobotOnline")
+                val toast = Toast.makeText(this@DeviceControlActivity, "Connected!",
+                        Toast.LENGTH_LONG)
+                toast.setGravity(Gravity.BOTTOM, 0, 10)
+                toast.show()
+                sphero = robot
+                switch_sphero_color_button.isEnabled = true
+                button_sphero_connect.isEnabled = false
+            }
+            RobotChangedStateListener.RobotChangedStateNotificationType.Offline -> {
+                Log.d(TAG, "handleRobotDisconnected")
+                sphero = null
+            }
+            RobotChangedStateListener.RobotChangedStateNotificationType.Connecting -> {
+                Log.d(TAG, "handleRobotConnecting")
+                val toast = Toast.makeText(this@DeviceControlActivity, "Connecting..",
+                        Toast.LENGTH_LONG)
+                toast.setGravity(Gravity.BOTTOM, 0, 10)
+                toast.show()
+            }
+            else -> {
             }
         }
     }
@@ -116,8 +168,6 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
         lifxController = LifxController(this)
 
-        mDiscoveryAgent.addRobotStateListener(this)
-
         if (ContextCompat.checkSelfPermission(this,
                         Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -126,7 +176,7 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     PERMISSION_REQUEST_CODE)
         } else {
-            val moveHubServiceIntent = Intent(this, BluetoothDeviceService::class.java)
+            val moveHubServiceIntent = Intent(this, LegoBluetoothDeviceService::class.java)
             bindService(moveHubServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
     }
@@ -136,8 +186,9 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
         when (requestCode) {
             PERMISSION_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    val moveHubServiceIntent = Intent(this, BluetoothDeviceService::class.java)
+                    val moveHubServiceIntent = Intent(this, LegoBluetoothDeviceService::class.java)
                     bindService(moveHubServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+
                     return
                 }
             }
@@ -153,38 +204,6 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
                 .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                 .hide(actionsFragment)
                 .commit()
-    }
-
-    // Sphero
-    private fun startDiscovery() {
-        //If the DiscoveryAgent is not already looking for robots, start discovery.
-        if( !mDiscoveryAgent.isDiscovering ) {
-            try {
-                Log.d("Sphero", "Looking for Sphero")
-                mDiscoveryAgent.startDiscovery(applicationContext)
-            } catch (e: DiscoveryException) {
-                Log.e("Sphero", "DiscoveryException: " + e.message)
-            }
-        }
-    }
-
-    // Sphero
-    override fun handleRobotChangedState(robot: Robot, type: RobotChangedStateListener.RobotChangedStateNotificationType) {
-        when (type) {
-            RobotChangedStateListener.RobotChangedStateNotificationType.Connected -> {
-                Log.i("Sphero", "Sphero connected")
-                mRobot = ConvenienceRobot(robot)
-                switch_sphero_color_button.isEnabled = true
-                button_sphero_connect.isEnabled = false
-            }
-            RobotChangedStateListener.RobotChangedStateNotificationType.Online -> {
-                Log.i("Sphero", "Sphero online")
-                mRobot = ConvenienceRobot(robot)
-                switch_sphero_color_button.isEnabled = true
-                button_sphero_connect.isEnabled = false
-            }
-            else -> Log.d("Sphero", "handleRobotChangedState $type")
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -209,12 +228,12 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
                 Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show()
                 connectingBoost = !connectedBoost
                 connectingLpf2 = !connectedLpf2
-                bluetoothDeviceService!!.connect()
+                legoBluetoothDeviceService!!.connect()
                 return true
             }
             R.id.menu_disconnect -> {
                 Log.d(TAG, "Disconnecting...")
-                bluetoothDeviceService!!.disconnect()
+                legoBluetoothDeviceService!!.disconnect()
                 connectedBoost = false
                 connectedLpf2 = false
                 notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
@@ -250,7 +269,7 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
         connectingBoost = true
         connectingLpf2 = true
-        bluetoothDeviceService!!.connect()
+        legoBluetoothDeviceService!!.connect()
 
         disableControls()
         switch_sphero_color_button.isEnabled = false
@@ -259,12 +278,13 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
         // Sphero
         button_sphero_connect.setOnClickListener {
             Toast.makeText(this, "Connecting to Sphero...", Toast.LENGTH_SHORT).show()
-            startDiscovery()
+            val spheroServiceIntent = Intent(this, SpheroProviderService::class.java)
+            bindService(spheroServiceIntent, spheroServiceConnection, Context.BIND_AUTO_CREATE)
         }
 
         switch_sphero_color_button.setOnClickListener {
             if (switch_sphero_color_button.isChecked) {
-                notificationListeners["button_sphero"] = ChangeSpheroColorOnButton(mRobot!!)
+                notificationListeners["button_sphero"] = ChangeSpheroColorOnButton(sphero!!)
             } else {
                 notificationListeners.remove("button_sphero")
             }
@@ -272,7 +292,7 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
         switch_sync_colors.setOnClickListener {
             if (switch_sync_colors.isChecked) {
-                notificationListeners["sync_colors"] = ChangeLEDOnColorSensor(bluetoothDeviceService!!)
+                notificationListeners["sync_colors"] = ChangeLEDOnColorSensor(legoBluetoothDeviceService!!)
             } else {
                 notificationListeners.remove("sync_colors")
             }
@@ -280,7 +300,7 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
         switch_button_change_light.setOnClickListener {
             if (switch_button_change_light.isChecked) {
-                notificationListeners["button_change_light"] = ChangeLEDOnButtonClick(bluetoothDeviceService!!)
+                notificationListeners["button_change_light"] = ChangeLEDOnButtonClick(legoBluetoothDeviceService!!)
             } else {
                 notificationListeners.remove("button_change_light")
             }
@@ -288,7 +308,7 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
         switch_button_change_motor.setOnClickListener {
             if (switch_button_change_motor.isChecked) {
-                notificationListeners["button_change_motor"] = RunMotorOnButtonClick(bluetoothDeviceService!!)
+                notificationListeners["button_change_motor"] = RunMotorOnButtonClick(legoBluetoothDeviceService!!)
             } else {
                 notificationListeners.remove("button_change_motor")
             }
@@ -297,8 +317,8 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
         switch_roller_coaster.setOnClickListener {
             if (switch_roller_coaster.isChecked) {
                 //val time = if (input_time.text.toString() == "") "1000" else input_time.text.toString()
-                //notificationListeners["roller_coaster"] = RollerCoaster(time, switch_counter_clockwise.isChecked, bluetoothDeviceService!!)
-                notificationListeners["roller_coaster"] = RollerCoaster("2000", true, bluetoothDeviceService!!)
+                //notificationListeners["roller_coaster"] = RollerCoaster(time, switch_counter_clockwise.isChecked, legoBluetoothDeviceService!!)
+                notificationListeners["roller_coaster"] = RollerCoaster("2000", true, legoBluetoothDeviceService!!)
             } else {
                 notificationListeners.remove("roller_coaster")
             }
@@ -306,7 +326,7 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
         switch_motor_button_lifx.setOnClickListener {
             if (switch_motor_button_lifx.isChecked) {
-                notificationListeners["motor_button_led_lifx"] = ChangeLifxLEDOnMotorButton(bluetoothDeviceService!!, lifxController!!)
+                notificationListeners["motor_button_led_lifx"] = ChangeLifxLEDOnMotorButton(legoBluetoothDeviceService!!, lifxController!!)
             } else {
                 notificationListeners.remove("motor_button_led_lifx")
             }
@@ -373,8 +393,8 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
         }
 
         registerReceiver(moveHubUpdateReceiver, makeMoveHubUpdateIntentFilter())
-        if (bluetoothDeviceService != null) {
-            val result = bluetoothDeviceService!!.connect()
+        if (legoBluetoothDeviceService != null) {
+            val result = legoBluetoothDeviceService!!.connect()
             Log.d(TAG, "Connect request result=$result")
         }
 
@@ -387,7 +407,7 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
                 == PackageManager.PERMISSION_GRANTED) {
 
             if (connectingBoost || connectedBoost || connectingLpf2 || connectedLpf2) {
-                bluetoothDeviceService!!.disconnect()
+                legoBluetoothDeviceService!!.disconnect()
                 connectedBoost = false
                 connectingBoost = false
                 connectedLpf2 = false
@@ -403,17 +423,11 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
-        bluetoothDeviceService = null
-
-        // Sphero
-        // If the DiscoveryAgent is in discovery mode, stop it.
-        if (mDiscoveryAgent.isDiscovering) {
-            mDiscoveryAgent.stopDiscovery()
+        if (isSpheroServiceBound) {
+            unbindService(spheroServiceConnection)
         }
+        legoBluetoothDeviceService = null
 
-        // If a robot is connected to the device, disconnect it
-        mRobot?.disconnect()
-        mRobot = null
         switch_sphero_color_button.isEnabled = false
     }
 
@@ -428,12 +442,12 @@ class DeviceControlActivity : Activity(), RobotChangedStateListener, Notificatio
 
         private fun makeMoveHubUpdateIntentFilter(): IntentFilter {
             val intentFilter = IntentFilter()
-            intentFilter.addAction(BluetoothDeviceService.ACTION_BOOST_CONNECTED)
-            intentFilter.addAction(BluetoothDeviceService.ACTION_BOOST_DISCONNECTED)
-            intentFilter.addAction(BluetoothDeviceService.ACTION_LPF2_CONNECTED)
-            intentFilter.addAction(BluetoothDeviceService.ACTION_LPF2_DISCONNECTED)
-            intentFilter.addAction(BluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED)
-            intentFilter.addAction(BluetoothDeviceService.ACTION_DEVICE_NOTIFICATION)
+            intentFilter.addAction(LegoBluetoothDeviceService.ACTION_BOOST_CONNECTED)
+            intentFilter.addAction(LegoBluetoothDeviceService.ACTION_BOOST_DISCONNECTED)
+            intentFilter.addAction(LegoBluetoothDeviceService.ACTION_LPF2_CONNECTED)
+            intentFilter.addAction(LegoBluetoothDeviceService.ACTION_LPF2_DISCONNECTED)
+            intentFilter.addAction(LegoBluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED)
+            intentFilter.addAction(LegoBluetoothDeviceService.ACTION_DEVICE_NOTIFICATION)
             return intentFilter
         }
     }

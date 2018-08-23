@@ -11,7 +11,7 @@ import kotlinx.android.synthetic.main.fragment_actions.*
 
 class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
-    private var bluetoothDeviceService: BluetoothDeviceService? = null
+    private var legoBluetoothDeviceService: LegoBluetoothDeviceService? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -36,7 +36,7 @@ class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
         spinner_motor_types.onItemSelectedListener = this
 
         button_spin.setOnClickListener {
-            bluetoothDeviceService!!.moveHubController.runInternalMotorsInOpposition(20, 300)
+            legoBluetoothDeviceService!!.moveHubController.runInternalMotorsInOpposition(20, 300)
         }
 
         button_var_run_motor.setOnClickListener {
@@ -46,22 +46,22 @@ class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
             val counterclockwise = switch_counter_clockwise.isChecked
             if (power != "" && time != "") {
                 when (motor) {
-                    "A" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.A)
-                    "B" -> bluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.B)
-                    "A+B" -> bluetoothDeviceService!!.moveHubController.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
-                    "External" -> bluetoothDeviceService!!.moveHubController.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
+                    "A" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.A)
+                    "B" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.B)
+                    "A+B" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
+                    "External" -> legoBluetoothDeviceService!!.moveHubController.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
                 }
             }
         }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        if (bluetoothDeviceService?.moveHubController != null) {
+        if (legoBluetoothDeviceService?.moveHubController != null) {
             when (parent) {
                 spinner_led_colors -> {
                     val item = parent!!.getItemAtPosition(position).toString()
                     val color = getLedColorFromName(item)
-                    bluetoothDeviceService?.moveHubController?.setLEDColor(color)
+                    legoBluetoothDeviceService?.moveHubController?.setLEDColor(color)
                 }
             }
         }
@@ -69,9 +69,9 @@ class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     override fun onNothingSelected(parent: AdapterView<*>?) {}
 
-    // TODO: Find a better way to access the bluetoothDeviceService
-    fun setBluetoothDeviceService(bluetoothDeviceService: BluetoothDeviceService) {
-        this.bluetoothDeviceService = bluetoothDeviceService
+    // TODO: Find a better way to access the legoBluetoothDeviceService
+    fun setLegoBluetoothDeviceService(legoBluetoothDeviceService: LegoBluetoothDeviceService) {
+        this.legoBluetoothDeviceService = legoBluetoothDeviceService
     }
 
     fun boostConnectionChanged(isConnected: Boolean) {

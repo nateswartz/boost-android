@@ -48,7 +48,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <service android:name=".BluetoothDeviceService" android:enabled="true"/>
+        <service android:name=".LegoBluetoothDeviceService" android:enabled="true"/>
+        <service android:name=".SpheroProviderService" android:enabled="true"/>
     </application>
 
 </manifest>

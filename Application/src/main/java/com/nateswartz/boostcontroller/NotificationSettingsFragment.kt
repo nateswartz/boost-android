@@ -26,7 +26,7 @@ class NotificationSettingsFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-    private var bluetoothDeviceService: BluetoothDeviceService? = null
+    private var legoBluetoothDeviceService: LegoBluetoothDeviceService? = null
     private var listener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,45 +64,45 @@ class NotificationSettingsFragment : Fragment() {
         }
         checkbox_button.setOnClickListener {
             if (checkbox_button.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateButtonNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateButtonNotifications()
             } else {
                 // Currently not working
-                bluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
             }
         }
         checkbox_color_sensor.setOnClickListener {
             if (checkbox_color_sensor.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateColorSensorNotifications()
             } else {
-                bluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateColorSensorNotifications()
             }
         }
         checkbox_tilt_sensor.setOnClickListener {
             if (checkbox_tilt_sensor.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
             } else {
-                bluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
             }
         }
         checkbox_external_motor.setOnClickListener {
             if (checkbox_external_motor.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
             } else {
-                bluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
             }
         }
         checkbox_internal_motors.setOnClickListener {
             if (checkbox_internal_motors.isChecked) {
-                bluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
             } else {
-                bluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
             }
         }
     }
 
-    // TODO: Find a better way to access the bluetoothDeviceService
-    fun setBluetoothDeviceService(bluetoothDeviceService: BluetoothDeviceService) {
-        this.bluetoothDeviceService = bluetoothDeviceService
+    // TODO: Find a better way to access the legoBluetoothDeviceService
+    fun setLegoBluetoothDeviceService(legoBluetoothDeviceService: LegoBluetoothDeviceService) {
+        this.legoBluetoothDeviceService = legoBluetoothDeviceService
     }
 
     fun boostConnectionChanged(isConnected: Boolean) {

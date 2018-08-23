@@ -8,7 +8,7 @@ import android.util.Log
 import android.widget.Toast
 
 
-class BluetoothDeviceService : Service() {
+class LegoBluetoothDeviceService : Service() {
 
     private var gattController = GattController(this)
     var moveHubController = MoveHubController(gattController)
@@ -76,8 +76,8 @@ class BluetoothDeviceService : Service() {
     }
 
     inner class LocalBinder : Binder() {
-        internal val service: BluetoothDeviceService
-            get() = this@BluetoothDeviceService
+        internal val service: LegoBluetoothDeviceService
+            get() = this@LegoBluetoothDeviceService
     }
 
     fun connect() {
@@ -110,7 +110,7 @@ class BluetoothDeviceService : Service() {
     }
 
     companion object {
-        private val TAG = BluetoothDeviceService::class.java.simpleName
+        private val TAG = LegoBluetoothDeviceService::class.java.simpleName
 
         const val ACTION_BOOST_CONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_BOOST_CONNECTED"
         const val ACTION_BOOST_DISCONNECTED = "com.nateswartz.boostcontroller.move.hub.ACTION_BOOST_DISCONNECTED"

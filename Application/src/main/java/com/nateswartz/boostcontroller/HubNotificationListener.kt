@@ -7,15 +7,15 @@ interface HubNotificationListener {
     fun execute(notification: HubNotification)
 }
 
-class RunMotorOnButtonClick(private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
+class RunMotorOnButtonClick(private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
     override fun execute(notification: HubNotification) {
         if (notification is ButtonNotification && notification.buttonState == ButtonState.RELEASED) {
-            bluetoothDeviceService.moveHubController.runInternalMotors(50, 500, true)
+            legoBluetoothDeviceService.moveHubController.runInternalMotors(50, 500, true)
         }
     }
 }
 
-class ChangeLEDOnButtonClick(private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
+class ChangeLEDOnButtonClick(private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
     override fun execute(notification: HubNotification) {
         if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
             val color = when ((1..5).shuffled().last()) {
@@ -25,20 +25,20 @@ class ChangeLEDOnButtonClick(private val bluetoothDeviceService: BluetoothDevice
                 4 -> LEDColorCommand.PURPLE
                 else -> LEDColorCommand.ORANGE
             }
-            bluetoothDeviceService.moveHubController.setLEDColor(color)
+            legoBluetoothDeviceService.moveHubController.setLEDColor(color)
         }
     }
 }
 
-class ChangeLEDOnColorSensor(private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
+class ChangeLEDOnColorSensor(private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
     override fun execute(notification: HubNotification) {
         if (notification is ColorSensorNotification) {
-            bluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
+            legoBluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(notification.color.string))
         }
     }
 }
 
-class ChangeLifxLEDOnMotorButton(private val bluetoothDeviceService: BluetoothDeviceService, private val lifxController: LifxController) : HubNotificationListener {
+class ChangeLifxLEDOnMotorButton(private val legoBluetoothDeviceService: LegoBluetoothDeviceService, private val lifxController: LifxController) : HubNotificationListener {
     private var currentRotationValue = 0
     private var colors = arrayOf("kelvin:3200", "red", "blue", "purple", "green")
     private var currentColorIndex = 0
@@ -56,7 +56,7 @@ class ChangeLifxLEDOnMotorButton(private val bluetoothDeviceService: BluetoothDe
                 } else if (currentRotationValue > rotationValue) {
                     currentColorIndex = if (currentColorIndex == 0) colors.size - 1 else currentColorIndex - 1
                 }
-                bluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
+                legoBluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
                 currentRotationValue = rotationValue
             }
         }
@@ -77,7 +77,7 @@ class ChangeSpheroColorOnButton(private val robot: ConvenienceRobot) : HubNotifi
     }
 }
 
-class RollerCoaster(private val time: String, private val counterclockwise: Boolean, private val bluetoothDeviceService: BluetoothDeviceService) : HubNotificationListener {
+class RollerCoaster(private val time: String, private val counterclockwise: Boolean, private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
     private var currentRotationValue = 0
     private var colors = arrayOf("red", "blue", "green")
     private var currentColorIndex = 0
@@ -89,7 +89,7 @@ class RollerCoaster(private val time: String, private val counterclockwise: Bool
                 1 -> 20
                 else -> 30
             }
-            bluetoothDeviceService.moveHubController.runExternalMotor(power, time.toInt(), counterclockwise)
+            legoBluetoothDeviceService.moveHubController.runExternalMotor(power, time.toInt(), counterclockwise)
         }
         if (notification is InternalMotorNotification && (notification.port == Port.A || notification.port == Port.B)) {
             val rotationValue = notification.rotationValue
@@ -100,7 +100,7 @@ class RollerCoaster(private val time: String, private val counterclockwise: Bool
                 } else if (currentRotationValue > rotationValue) {
                     currentColorIndex = if (currentColorIndex == 0) colors.size - 1 else currentColorIndex - 1
                 }
-                bluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
+                legoBluetoothDeviceService.moveHubController.setLEDColor(getLedColorFromName(colors[currentColorIndex]))
                 currentRotationValue = rotationValue
             }
         }
