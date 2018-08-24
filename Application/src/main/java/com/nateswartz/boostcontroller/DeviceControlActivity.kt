@@ -99,6 +99,18 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
                 LegoBluetoothDeviceService.ACTION_DEVICE_NOTIFICATION -> {
                     val notification = intent.getParcelableExtra<HubNotification>(LegoBluetoothDeviceService.NOTIFICATION_DATA)
 
+                    if (notification is PortInfoNotification) {
+                        when (notification.sensor) {
+                            Sensor.DISTANCECOLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(true)
+                            Sensor.EXTERNALMOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(true)
+                        }
+                    }
+                    if (notification is PortDisconnectedNotification) {
+                        when (notification.sensor) {
+                            Sensor.EXTERNALMOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(false)
+                            Sensor.DISTANCECOLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(false)
+                        }
+                    }
                     for (listener in notificationListeners) {
                         listener.value.execute(notification)
                     }

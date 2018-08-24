@@ -46,19 +46,24 @@ class NotificationSettingsFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         checkbox_all_notifications.setOnClickListener {
-            if (checkbox_button.isChecked != checkbox_all_notifications.isChecked) {
+            if (checkbox_button.isEnabled &&
+                    checkbox_button.isChecked != checkbox_all_notifications.isChecked) {
                 checkbox_button.performClick()
             }
-            if (checkbox_internal_motors.isChecked != checkbox_all_notifications.isChecked) {
+            if (checkbox_internal_motors.isEnabled &&
+                    checkbox_internal_motors.isChecked != checkbox_all_notifications.isChecked) {
                 checkbox_internal_motors.performClick()
             }
-            if (checkbox_external_motor.isChecked != checkbox_all_notifications.isChecked) {
+            if (checkbox_external_motor.isEnabled &&
+                    checkbox_external_motor.isChecked != checkbox_all_notifications.isChecked) {
                 checkbox_external_motor.performClick()
             }
-            if (checkbox_color_sensor.isChecked != checkbox_all_notifications.isChecked) {
+            if (checkbox_color_sensor.isEnabled &&
+                    checkbox_color_sensor.isChecked != checkbox_all_notifications.isChecked) {
                 checkbox_color_sensor.performClick()
             }
-            if (checkbox_tilt_sensor.isChecked != checkbox_all_notifications.isChecked) {
+            if (checkbox_tilt_sensor.isEnabled &&
+                    checkbox_tilt_sensor.isChecked != checkbox_all_notifications.isChecked) {
                 checkbox_tilt_sensor.performClick()
             }
         }
@@ -86,16 +91,16 @@ class NotificationSettingsFragment : Fragment() {
         }
         checkbox_external_motor.setOnClickListener {
             if (checkbox_external_motor.isChecked) {
-                legoBluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
             } else {
-                legoBluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
             }
         }
         checkbox_internal_motors.setOnClickListener {
             if (checkbox_internal_motors.isChecked) {
-                legoBluetoothDeviceService!!.moveHubController.activateExternalMotorSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateInternalMotorSensorsNotifications()
             } else {
-                legoBluetoothDeviceService!!.moveHubController.deactivateExternalMotorSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateInternalMotorSensorsNotifications()
             }
         }
     }
@@ -105,18 +110,32 @@ class NotificationSettingsFragment : Fragment() {
         this.legoBluetoothDeviceService = legoBluetoothDeviceService
     }
 
+    fun externalMotorConnectionChanged(isConnected: Boolean) {
+        checkbox_external_motor.isEnabled = isConnected
+    }
+
+    fun colorSensorConnectionChanged(isConnected: Boolean) {
+        checkbox_color_sensor.isEnabled = isConnected
+    }
+
     fun boostConnectionChanged(isConnected: Boolean) {
         checkbox_all_notifications.isEnabled = isConnected
         checkbox_button.isEnabled = isConnected
-        checkbox_color_sensor.isEnabled = isConnected
         checkbox_tilt_sensor.isEnabled = isConnected
-        checkbox_external_motor.isEnabled = isConnected
         checkbox_internal_motors.isEnabled = isConnected
 
         if (isConnected) {
             text_boost_connected.visibility = View.VISIBLE
+            if (legoBluetoothDeviceService!!.moveHubController.ColorSensorPort != Port.UNKNOWN) {
+                checkbox_color_sensor.isEnabled = isConnected
+            }
+            if (legoBluetoothDeviceService!!.moveHubController.ExternalMotorPort != Port.UNKNOWN) {
+                checkbox_external_motor.isEnabled = isConnected
+            }
         } else {
             text_boost_connected.visibility = View.INVISIBLE
+            checkbox_color_sensor.isEnabled = isConnected
+            checkbox_external_motor.isEnabled = isConnected
         }
     }
 

@@ -10,22 +10,48 @@ object HubNotificationFactory {
     }
 
     private fun build(stringData: String): HubNotification {
-        if (stringData.startsWith("06 00 01 02 06 ")) {
-            return ButtonNotification(stringData)
-        } else if (stringData.startsWith("05 00 82 32")) {
-            return LedColorChangeNotification(stringData)
-        } else if (stringData.startsWith("08 00 45")) {
-            return InternalMotorNotification(stringData)
-        } else if (stringData.substring(9, 11) == "01" && ColorSensorPort == Port.C
-                || stringData.substring(9, 11) == "02" && ColorSensorPort == Port.D) {
-            return ColorSensorNotification(stringData)
-        } else if (stringData.substring(9, 11) == "01" && ExternalMotorPort == Port.C
-                || stringData.substring(9, 11) == "02" && ExternalMotorPort == Port.D) {
-            return ExternalMotorNotification(stringData)
-        } else if (stringData.startsWith("0F 00 04")) {
-            return PortInfoNotification(stringData)
+        when (stringData.substring(6, 8)) {
+            "01" -> return ButtonNotification(stringData)
+            "82" -> return LedColorChangeNotification(stringData)
+            // Sensor data from port
+            "45" -> return if (stringData.substring(9, 11) == "01" && ColorSensorPort == Port.C
+                    || stringData.substring(9, 11) == "02" && ColorSensorPort == Port.D) {
+                ColorSensorNotification(stringData)
+            } else if (stringData.substring(9, 11) == "01" && ExternalMotorPort == Port.C
+                    || stringData.substring(9, 11) == "02" && ExternalMotorPort == Port.D) {
+                ExternalMotorNotification(stringData)
+            } else if (stringData.substring(9, 11) == "3A") {
+                // TODO: This is tilt sensor data
+                UnknownHubNotification(stringData)
+            } else {
+                InternalMotorNotification(stringData)
+            }
+            // Port information
+            "04" -> return when (stringData.substring(12, 14)) {
+                "01" -> PortInfoNotification(stringData)
+                "00" -> {
+                    when (stringData.substring(9, 11)) {
+                        "01" -> {
+                            when (Port.C) {
+                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCECOLOR)
+                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNALMOTOR)
+                                else -> UnknownHubNotification(stringData)
+                            }
+                        }
+                        "02" -> {
+                            when (Port.D) {
+                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCECOLOR)
+                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNALMOTOR)
+                                else -> UnknownHubNotification(stringData)
+                            }
+                        }
+                        else -> UnknownHubNotification(stringData)
+                    }
+                }
+                else -> UnknownHubNotification(stringData)
+            }
+            else -> return UnknownHubNotification(stringData)
         }
-        return UnknownHubNotification(stringData)
     }
 
 
