@@ -56,6 +56,7 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
         override fun onServiceDisconnected(componentName: ComponentName) {
             Log.d(TAG, "Service Disconnect")
             legoBluetoothDeviceService = null
+            actionsFragment!!.setLegoBluetoothDeviceService(null)
         }
     }
 

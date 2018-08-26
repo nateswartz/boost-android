@@ -70,7 +70,7 @@ class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
     override fun onNothingSelected(parent: AdapterView<*>?) {}
 
     // TODO: Find a better way to access the legoBluetoothDeviceService
-    fun setLegoBluetoothDeviceService(legoBluetoothDeviceService: LegoBluetoothDeviceService) {
+    fun setLegoBluetoothDeviceService(legoBluetoothDeviceService: LegoBluetoothDeviceService?) {
         this.legoBluetoothDeviceService = legoBluetoothDeviceService
     }
 

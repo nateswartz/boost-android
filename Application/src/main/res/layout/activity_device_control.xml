@@ -23,7 +23,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textview_notifications" />
+                app:layout_constraintTop_toBottomOf="@+id/textview_notifications"
+                tools:layout="@layout/fragment_notification_settings" />
+
             <Switch
                 android:id="@+id/switch_sync_colors"
                 android:layout_width="wrap_content"
@@ -72,7 +74,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textview_actions" />
+                app:layout_constraintTop_toBottomOf="@+id/textview_actions"
+                tools:layout="@layout/fragment_actions" />
 
             <TextView
                 android:id="@+id/textview_notifications"

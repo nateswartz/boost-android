@@ -106,7 +106,7 @@ class NotificationSettingsFragment : Fragment() {
     }
 
     // TODO: Find a better way to access the legoBluetoothDeviceService
-    fun setLegoBluetoothDeviceService(legoBluetoothDeviceService: LegoBluetoothDeviceService) {
+    fun setLegoBluetoothDeviceService(legoBluetoothDeviceService: LegoBluetoothDeviceService?) {
         this.legoBluetoothDeviceService = legoBluetoothDeviceService
     }
 
