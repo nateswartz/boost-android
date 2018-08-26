@@ -24,12 +24,12 @@ class SpheroProviderService : Service(), RobotChangedStateListener {
     }
 
     override fun onCreate() {
-        Log.e("Service", "onCreate")
+        Log.d("Service", "onCreate")
         discoveryAgent.addRobotStateListener(this)
     }
 
     override fun onDestroy() {
-        Log.e("Service", "onDestroy")
+        Log.d("Service", "onDestroy")
         //If the DiscoveryAgent is in discovery mode, stop it.
         if (discoveryAgent.isDiscovering) {
             discoveryAgent.stopDiscovery()
@@ -41,7 +41,7 @@ class SpheroProviderService : Service(), RobotChangedStateListener {
     }
 
     override fun onBind(intent: Intent): IBinder {
-        Log.e("Service", "onBind")
+        Log.d("Service", "onBind")
         if (!discoveryAgent.isDiscovering) {
             try {
                 Log.e("Service", "Discovering...")
@@ -54,7 +54,7 @@ class SpheroProviderService : Service(), RobotChangedStateListener {
     }
 
     override fun handleRobotChangedState(robot: Robot, type: RobotChangedStateListener.RobotChangedStateNotificationType) {
-        Log.e("Service", "handleRobotChangedState $type")
+        Log.d("Service", "handleRobotChangedState $type")
         when (type)
         {
             RobotChangedStateListener.RobotChangedStateNotificationType.Online -> this.sphero = ConvenienceRobot(robot)
