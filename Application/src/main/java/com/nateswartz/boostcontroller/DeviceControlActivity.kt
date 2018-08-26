@@ -155,10 +155,13 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
                 toast.show()
                 sphero = robot
                 switch_sphero_color_button.isEnabled = true
-                button_sphero_connect.isEnabled = false
+                button_sphero_connect.text = "Disconnect Sphero"
+                button_sphero_connect.isEnabled = true
             }
             RobotChangedStateListener.RobotChangedStateNotificationType.Offline -> {
                 Log.d(TAG, "handleRobotDisconnected")
+                button_sphero_connect.text = "Connect Sphero"
+                button_sphero_connect.isEnabled = true
                 sphero = null
             }
             RobotChangedStateListener.RobotChangedStateNotificationType.Connecting -> {
@@ -289,9 +292,15 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
 
         // Sphero
         button_sphero_connect.setOnClickListener {
-            Toast.makeText(this, "Connecting to Sphero...", Toast.LENGTH_SHORT).show()
-            val spheroServiceIntent = Intent(this, SpheroProviderService::class.java)
-            bindService(spheroServiceIntent, spheroServiceConnection, Context.BIND_AUTO_CREATE)
+            if (isSpheroServiceBound) {
+                Toast.makeText(this, "Disconnecting Sphero...", Toast.LENGTH_SHORT).show()
+                unbindService(spheroServiceConnection)
+            } else {
+                Toast.makeText(this, "Connecting to Sphero...", Toast.LENGTH_SHORT).show()
+                val spheroServiceIntent = Intent(this, SpheroProviderService::class.java)
+                bindService(spheroServiceIntent, spheroServiceConnection, Context.BIND_AUTO_CREATE)
+            }
+            button_sphero_connect.isEnabled = false
         }
 
         switch_sphero_color_button.setOnClickListener {
