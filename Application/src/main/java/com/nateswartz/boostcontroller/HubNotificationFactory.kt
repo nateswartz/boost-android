@@ -21,8 +21,7 @@ object HubNotificationFactory {
                     || stringData.substring(9, 11) == "02" && ExternalMotorPort == Port.D) {
                 ExternalMotorNotification(stringData)
             } else if (stringData.substring(9, 11) == "3A") {
-                // TODO: This is tilt sensor data
-                UnknownHubNotification(stringData)
+                TiltSensorNotification(stringData)
             } else {
                 InternalMotorNotification(stringData)
             }
