@@ -33,15 +33,15 @@ object HubNotificationFactory {
                     when (stringData.substring(9, 11)) {
                         "01" -> {
                             when (Port.C) {
-                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCECOLOR)
-                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNALMOTOR)
+                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCE_COLOR)
+                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNAL_MOTOR)
                                 else -> UnknownHubNotification(stringData)
                             }
                         }
                         "02" -> {
                             when (Port.D) {
-                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCECOLOR)
-                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNALMOTOR)
+                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCE_COLOR)
+                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNAL_MOTOR)
                                 else -> UnknownHubNotification(stringData)
                             }
                         }

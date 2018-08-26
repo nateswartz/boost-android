@@ -101,14 +101,14 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
 
                     if (notification is PortInfoNotification) {
                         when (notification.sensor) {
-                            Sensor.DISTANCECOLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(true)
-                            Sensor.EXTERNALMOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(true)
+                            Sensor.DISTANCE_COLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(true)
+                            Sensor.EXTERNAL_MOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(true)
                         }
                     }
                     if (notification is PortDisconnectedNotification) {
                         when (notification.sensor) {
-                            Sensor.EXTERNALMOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(false)
-                            Sensor.DISTANCECOLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(false)
+                            Sensor.EXTERNAL_MOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(false)
+                            Sensor.DISTANCE_COLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(false)
                         }
                     }
                     for (listener in notificationListeners) {

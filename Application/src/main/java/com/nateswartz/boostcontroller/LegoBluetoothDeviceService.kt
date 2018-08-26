@@ -17,11 +17,11 @@ class LegoBluetoothDeviceService : Service() {
         val notification = HubNotificationFactory.build(data)
         if (notification is PortInfoNotification) {
             when (notification.sensor) {
-                Sensor.DISTANCECOLOR -> {
+                Sensor.DISTANCE_COLOR -> {
                     moveHubController.ColorSensorPort = notification.port
                     HubNotificationFactory.ColorSensorPort = notification.port
                 }
-                Sensor.EXTERNALMOTOR -> {
+                Sensor.EXTERNAL_MOTOR -> {
                     moveHubController.ExternalMotorPort = notification.port
                     HubNotificationFactory.ExternalMotorPort = notification.port
                 }

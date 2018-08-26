@@ -8,7 +8,7 @@ enum class Port {
 }
 
 enum class Sensor {
-    LED, DISTANCECOLOR, EXTERNALMOTOR, MOTOR, TILT, UNKNOWN
+    LED, DISTANCE_COLOR, EXTERNAL_MOTOR, MOTOR, TILT, UNKNOWN
 }
 
 class PortInfoNotification(private var rawData: String) : HubNotification, Parcelable{
@@ -23,8 +23,8 @@ class PortInfoNotification(private var rawData: String) : HubNotification, Parce
 
     val sensor = when (rawData.substring(15, 17)) {
         "17" -> Sensor.LED
-        "25" -> Sensor.DISTANCECOLOR
-        "26" -> Sensor.EXTERNALMOTOR
+        "25" -> Sensor.DISTANCE_COLOR
+        "26" -> Sensor.EXTERNAL_MOTOR
         "27" -> Sensor.MOTOR
         "28" -> Sensor.TILT
         else -> Sensor.UNKNOWN
