@@ -156,6 +156,7 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
                 toast.show()
                 sphero = robot
                 switch_sphero_color_button.isEnabled = true
+                switch_sphero_color_tilt.isEnabled = true
                 button_sphero_connect.text = "Disconnect Sphero"
                 button_sphero_connect.isEnabled = true
             }
@@ -289,7 +290,7 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
 
         disableControls()
         switch_sphero_color_button.isEnabled = false
-
+        switch_sphero_color_tilt.isEnabled = false
 
         // Sphero
         button_sphero_connect.setOnClickListener {
@@ -309,6 +310,14 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
                 notificationListeners["button_sphero"] = ChangeSpheroColorOnButton(sphero!!)
             } else {
                 notificationListeners.remove("button_sphero")
+            }
+        }
+
+        switch_sphero_color_tilt.setOnClickListener {
+            if (switch_sphero_color_tilt.isChecked) {
+                notificationListeners["tilt_sphero"] = ChangeSpheroColorOnTilt(sphero!!)
+            } else {
+                notificationListeners.remove("tilt_sphero")
             }
         }
 

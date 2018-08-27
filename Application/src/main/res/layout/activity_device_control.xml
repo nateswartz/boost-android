@@ -102,14 +102,24 @@
                 app:layout_constraintTop_toBottomOf="@+id/textview_sphero" />
 
             <Switch
+                android:id="@+id/switch_sphero_color_tilt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Boost Tilt/Sphero LED"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/switch_sphero_color_button" />
+
+            <Switch
                 android:id="@+id/switch_sphero_color_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="Button/Sphero"
-                app:layout_constraintStart_toEndOf="@+id/button_sphero_connect"
-                app:layout_constraintTop_toBottomOf="@+id/textview_sphero" />
+                android:text="Boost Button/Sphero LED"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/button_sphero_connect" />
 
             <TextView
                 android:id="@+id/textview_other_integrations"
@@ -120,7 +130,7 @@
                 android:text="Other Integrations"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/button_sphero_connect" />
+                app:layout_constraintTop_toBottomOf="@+id/switch_sphero_color_tilt" />
 
             <Switch
                 android:id="@+id/switch_button_change_light"

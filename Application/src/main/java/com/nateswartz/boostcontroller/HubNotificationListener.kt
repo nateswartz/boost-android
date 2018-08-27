@@ -77,6 +77,23 @@ class ChangeSpheroColorOnButton(private val robot: ConvenienceRobot) : HubNotifi
     }
 }
 
+class ChangeSpheroColorOnTilt(private val robot: ConvenienceRobot) : HubNotificationListener {
+    override fun execute(notification: HubNotification) {
+        if (notification is TiltSensorNotification) {
+            val color = when (notification.orientation) {
+                Orientation.FLAT -> Triple(1.0f, 1.0f, 0.0f)
+                Orientation.STANDING_LED_UP -> Triple(0.0f, 1.0f, 0.0f)
+                Orientation.STANDING_BUTTON_UP -> Triple(0.0f, 0.0f, 1.0f)
+                Orientation.B_D_UP -> Triple(0.5f, 1.0f, 1.0f)
+                Orientation.A_C_UP -> Triple(0.0f, 0.5f, 0.5f)
+                Orientation.BATTERIES_UP -> Triple(1.0f, 0.0f, 0.0f)
+                Orientation.UNKNOWN -> Triple(1.0f, 1.0f, 1.0f)
+            }
+            robot.setLed(color.first, color.second, color.third)
+        }
+    }
+}
+
 class RollerCoaster(private val time: String, private val counterclockwise: Boolean, private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
     private var currentRotationValue = 0
     private var colors = arrayOf("red", "blue", "green")
