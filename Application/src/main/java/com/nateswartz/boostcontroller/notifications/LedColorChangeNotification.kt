@@ -1,10 +1,11 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.misc.getColorFromHex
 
 class LedColorChangeNotification(private var rawData: String) : HubNotification, Parcelable {
-    val color =  getColorFromHex(rawData.substring(12, 14))
+    val color = getColorFromHex(rawData.substring(12, 14))
 
     constructor(parcel: Parcel) : this(parcel.readString())
 

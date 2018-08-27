@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.misc
 
 import com.orbotix.ConvenienceRobot
 import com.orbotix.common.RobotChangedStateListener

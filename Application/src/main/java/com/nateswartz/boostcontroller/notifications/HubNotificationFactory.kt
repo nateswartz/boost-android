@@ -1,4 +1,6 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.notifications
+
+import com.nateswartz.boostcontroller.misc.convertBytesToString
 
 object HubNotificationFactory {
 

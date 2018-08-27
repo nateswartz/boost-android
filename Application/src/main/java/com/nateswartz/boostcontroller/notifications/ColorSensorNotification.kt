@@ -1,7 +1,8 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.misc.getColorFromHex
 
 class ColorSensorNotification(private var rawData: String) : HubNotification, Parcelable{
     val port = if (rawData[10] == '1') Port.C else Port.D

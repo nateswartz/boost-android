@@ -1,10 +1,11 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.services
 
 import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import com.nateswartz.boostcontroller.misc.SpheroServiceListener
 import com.orbotix.ConvenienceRobot
 import com.orbotix.DualStackDiscoveryAgent
 import com.orbotix.common.DiscoveryException

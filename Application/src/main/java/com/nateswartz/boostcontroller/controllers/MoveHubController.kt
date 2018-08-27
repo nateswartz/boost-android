@@ -1,6 +1,9 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.controllers
 
 import android.util.Log
+import com.nateswartz.boostcontroller.enums.LEDColorCommand
+import com.nateswartz.boostcontroller.misc.getByteArrayFromInt
+import com.nateswartz.boostcontroller.notifications.Port
 
 class MoveHubController (private val gattController: GattController) {
 

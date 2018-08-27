@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable

@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.controllers
 
 import android.bluetooth.*
 import android.bluetooth.le.*
@@ -6,6 +6,9 @@ import android.content.Context
 import android.os.Handler
 import android.os.ParcelUuid
 import android.util.Log
+import com.nateswartz.boostcontroller.activities.DeviceControlActivity
+import com.nateswartz.boostcontroller.misc.convertBytesToString
+import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import java.util.*
 
 enum class DeviceType {

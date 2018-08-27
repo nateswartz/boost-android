@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.activities
 
 import android.Manifest
 import android.app.Activity
@@ -21,6 +21,18 @@ import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_device_control.*
 import android.widget.*
+import com.nateswartz.boostcontroller.*
+import com.nateswartz.boostcontroller.controllers.LifxController
+import com.nateswartz.boostcontroller.fragments.ActionsFragment
+import com.nateswartz.boostcontroller.fragments.NotificationSettingsFragment
+import com.nateswartz.boostcontroller.misc.SpheroServiceListener
+import com.nateswartz.boostcontroller.notifications.HubNotification
+import com.nateswartz.boostcontroller.notifications.PortDisconnectedNotification
+import com.nateswartz.boostcontroller.notifications.PortInfoNotification
+import com.nateswartz.boostcontroller.notifications.Sensor
+import com.nateswartz.boostcontroller.notifications.listeners.*
+import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
+import com.nateswartz.boostcontroller.services.SpheroProviderService
 import com.orbotix.ConvenienceRobot
 import com.orbotix.common.RobotChangedStateListener
 

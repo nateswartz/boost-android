@@ -1,4 +1,7 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.misc
+
+import com.nateswartz.boostcontroller.enums.Color
+import com.nateswartz.boostcontroller.enums.LEDColorCommand
 
 fun getColorFromHex(str: String) : Color {
     return when (str) {

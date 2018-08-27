@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.fragments
 
 import android.content.Context
 import android.os.Bundle
@@ -6,6 +6,9 @@ import android.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
+import com.nateswartz.boostcontroller.R
+import com.nateswartz.boostcontroller.notifications.Port
 import kotlinx.android.synthetic.main.fragment_notification_settings.*
 
 // TODO: Rename parameter arguments, choose names that match

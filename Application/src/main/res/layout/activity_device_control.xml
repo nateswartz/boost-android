@@ -20,7 +20,7 @@
 
             <fragment
                 android:id="@+id/notifications_fragement"
-                android:name="com.nateswartz.boostcontroller.NotificationSettingsFragment"
+                android:name="com.nateswartz.boostcontroller.fragments.NotificationSettingsFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -61,7 +61,7 @@
 
             <fragment
                 android:id="@+id/actions_fragment"
-                android:name="com.nateswartz.boostcontroller.ActionsFragment"
+                android:name="com.nateswartz.boostcontroller.fragments.ActionsFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

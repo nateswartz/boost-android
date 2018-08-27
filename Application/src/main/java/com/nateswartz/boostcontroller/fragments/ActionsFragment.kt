@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.fragments
 
 import android.os.Bundle
 import android.app.Fragment
@@ -7,6 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
+import com.nateswartz.boostcontroller.R
+import com.nateswartz.boostcontroller.misc.getLedColorFromName
+import com.nateswartz.boostcontroller.notifications.Port
 import kotlinx.android.synthetic.main.fragment_actions.*
 
 class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {

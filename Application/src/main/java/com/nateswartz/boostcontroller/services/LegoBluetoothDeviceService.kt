@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.services
 
 import android.app.Service
 import android.content.Intent
@@ -6,6 +6,12 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
+import com.nateswartz.boostcontroller.controllers.GattController
+import com.nateswartz.boostcontroller.notifications.HubNotificationFactory
+import com.nateswartz.boostcontroller.controllers.MoveHubController
+import com.nateswartz.boostcontroller.notifications.HubNotification
+import com.nateswartz.boostcontroller.notifications.PortInfoNotification
+import com.nateswartz.boostcontroller.notifications.Sensor
 
 
 class LegoBluetoothDeviceService : Service() {

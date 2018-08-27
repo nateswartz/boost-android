@@ -1,4 +1,4 @@
-package com.nateswartz.boostcontroller
+package com.nateswartz.boostcontroller.controllers
 
 import android.content.Context
 import android.util.Log
