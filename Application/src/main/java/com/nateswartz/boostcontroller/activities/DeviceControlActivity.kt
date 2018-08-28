@@ -19,6 +19,10 @@ import android.util.Log
 import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
 import kotlinx.android.synthetic.main.activity_device_control.*
 import android.widget.*
 import com.nateswartz.boostcontroller.*
@@ -396,6 +400,37 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
             }
             transaction.commit()
         }
+
+        textview_sphero.setOnClickListener {
+            if (button_sphero_connect.visibility == View.VISIBLE) {
+                fadeOutAndHideView(button_sphero_connect)
+                fadeOutAndHideView(switch_sphero_color_button)
+                fadeOutAndHideView(switch_sphero_color_tilt)
+            } else if (button_sphero_connect.visibility == View.GONE) {
+                button_sphero_connect.visibility = View.VISIBLE
+                switch_sphero_color_button.visibility = View.VISIBLE
+                switch_sphero_color_tilt.visibility = View.VISIBLE
+            }
+        }
+    }
+
+     private fun fadeOutAndHideView(view: View)
+    {
+        val fadeOut = AlphaAnimation(1f, 0f)
+        fadeOut.interpolator = AccelerateInterpolator()
+        fadeOut.duration = 200
+
+        fadeOut.setAnimationListener(object: Animation.AnimationListener
+        {
+            override fun onAnimationEnd(animation: Animation)
+            {
+                view.visibility = View.GONE
+            }
+            override fun onAnimationRepeat(animation: Animation) {}
+            override fun onAnimationStart(animation: Animation) {}
+        })
+
+        view.startAnimation(fadeOut)
     }
 
     private fun enableControls() {
