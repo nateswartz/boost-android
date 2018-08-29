@@ -29,6 +29,7 @@ import com.nateswartz.boostcontroller.*
 import com.nateswartz.boostcontroller.controllers.LifxController
 import com.nateswartz.boostcontroller.fragments.ActionsFragment
 import com.nateswartz.boostcontroller.fragments.NotificationSettingsFragment
+import com.nateswartz.boostcontroller.fragments.SpheroFragment
 import com.nateswartz.boostcontroller.misc.SpheroServiceListener
 import com.nateswartz.boostcontroller.notifications.HubNotification
 import com.nateswartz.boostcontroller.notifications.PortDisconnectedNotification
@@ -41,9 +42,14 @@ import com.orbotix.ConvenienceRobot
 import com.orbotix.common.RobotChangedStateListener
 
 
-class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSettingsFragment.OnFragmentInteractionListener {
+class DeviceControlActivity : Activity(),
+        SpheroServiceListener,
+        NotificationSettingsFragment.OnFragmentInteractionListener,
+        SpheroFragment.SpheroFragmentListener {
+
     private var notificationSettingsFragment: NotificationSettingsFragment? = null
     private var actionsFragment: ActionsFragment? = null
+    private var spheroFragment: SpheroFragment? = null
 
     // Lifx
     private var lifxController: LifxController? = null
@@ -152,13 +158,15 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
                 toast.setGravity(Gravity.BOTTOM, 0, 10)
                 toast.show()
             }
+            spheroFragment!!.spheroServiceBound()
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
-            Log.d(TAG,"onServiceDisconnected")
+            Log.e(TAG,"onServiceDisconnected")
             boundService = null
             isSpheroServiceBound = false
             boundService?.removeListener(this@DeviceControlActivity)
+            spheroFragment!!.spheroServiceUnbound()
         }
     }
 
@@ -171,16 +179,12 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
                 toast.setGravity(Gravity.BOTTOM, 0, 10)
                 toast.show()
                 sphero = robot
-                switch_sphero_color_button.isEnabled = true
-                switch_sphero_color_tilt.isEnabled = true
-                button_sphero_connect.text = "Disconnect Sphero"
-                button_sphero_connect.isEnabled = true
+                spheroFragment!!.spheroOnline()
             }
             RobotChangedStateListener.RobotChangedStateNotificationType.Offline -> {
                 Log.d(TAG, "handleRobotDisconnected")
-                button_sphero_connect.text = "Connect Sphero"
-                button_sphero_connect.isEnabled = true
                 sphero = null
+                spheroFragment!!.spheroOffline()
             }
             RobotChangedStateListener.RobotChangedStateNotificationType.Connecting -> {
                 Log.d(TAG, "handleRobotConnecting")
@@ -237,6 +241,7 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
                 .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                 .hide(actionsFragment)
                 .commit()
+        spheroFragment = fragmentManager.findFragmentById(R.id.sphero_fragment) as SpheroFragment
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -305,37 +310,6 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
         legoBluetoothDeviceService!!.connect()
 
         disableControls()
-        switch_sphero_color_button.isEnabled = false
-        switch_sphero_color_tilt.isEnabled = false
-
-        // Sphero
-        button_sphero_connect.setOnClickListener {
-            if (isSpheroServiceBound) {
-                Toast.makeText(this, "Disconnecting Sphero...", Toast.LENGTH_SHORT).show()
-                unbindService(spheroServiceConnection)
-            } else {
-                Toast.makeText(this, "Connecting to Sphero...", Toast.LENGTH_SHORT).show()
-                val spheroServiceIntent = Intent(this, SpheroProviderService::class.java)
-                bindService(spheroServiceIntent, spheroServiceConnection, Context.BIND_AUTO_CREATE)
-            }
-            button_sphero_connect.isEnabled = false
-        }
-
-        switch_sphero_color_button.setOnClickListener {
-            if (switch_sphero_color_button.isChecked) {
-                notificationListeners["button_sphero"] = ChangeSpheroColorOnButton(sphero!!)
-            } else {
-                notificationListeners.remove("button_sphero")
-            }
-        }
-
-        switch_sphero_color_tilt.setOnClickListener {
-            if (switch_sphero_color_tilt.isChecked) {
-                notificationListeners["tilt_sphero"] = ChangeSpheroColorOnTilt(sphero!!)
-            } else {
-                notificationListeners.remove("tilt_sphero")
-            }
-        }
 
         switch_sync_colors.setOnClickListener {
             if (switch_sync_colors.isChecked) {
@@ -402,35 +376,44 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
         }
 
         textview_sphero.setOnClickListener {
-            if (button_sphero_connect.visibility == View.VISIBLE) {
-                fadeOutAndHideView(button_sphero_connect)
-                fadeOutAndHideView(switch_sphero_color_button)
-                fadeOutAndHideView(switch_sphero_color_tilt)
-            } else if (button_sphero_connect.visibility == View.GONE) {
-                button_sphero_connect.visibility = View.VISIBLE
-                switch_sphero_color_button.visibility = View.VISIBLE
-                switch_sphero_color_tilt.visibility = View.VISIBLE
+            val transaction = fragmentManager.beginTransaction()
+                    .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+            if (spheroFragment!!.isHidden){
+                transaction.show(spheroFragment)
+            } else {
+                transaction.hide(spheroFragment)
             }
+            transaction.commit()
         }
     }
 
-     private fun fadeOutAndHideView(view: View)
-    {
-        val fadeOut = AlphaAnimation(1f, 0f)
-        fadeOut.interpolator = AccelerateInterpolator()
-        fadeOut.duration = 200
+    override fun onConnect() {
+        Toast.makeText(this, "Connecting to Sphero...", Toast.LENGTH_SHORT).show()
+        val spheroServiceIntent = Intent(this, SpheroProviderService::class.java)
+        bindService(spheroServiceIntent, spheroServiceConnection, Context.BIND_AUTO_CREATE)
+    }
 
-        fadeOut.setAnimationListener(object: Animation.AnimationListener
-        {
-            override fun onAnimationEnd(animation: Animation)
-            {
-                view.visibility = View.GONE
-            }
-            override fun onAnimationRepeat(animation: Animation) {}
-            override fun onAnimationStart(animation: Animation) {}
-        })
+    override fun onDisconnect() {
+        Toast.makeText(this, "Disconnecting Sphero...", Toast.LENGTH_SHORT).show()
+        unbindService(spheroServiceConnection)
+        isSpheroServiceBound = false
+        spheroFragment!!.spheroServiceUnbound()
+    }
 
-        view.startAnimation(fadeOut)
+    override fun onButtonLEDListenerChange(enabled: Boolean) {
+        if (enabled) {
+            notificationListeners["button_sphero"] = ChangeSpheroColorOnButton(sphero!!)
+        } else {
+            notificationListeners.remove("button_sphero")
+        }
+    }
+
+    override fun onTiltLEDListenerChange(enabled: Boolean) {
+        if (enabled) {
+            notificationListeners["tilt_sphero"] = ChangeSpheroColorOnTilt(sphero!!)
+        } else {
+            notificationListeners.remove("tilt_sphero")
+        }
     }
 
     private fun enableControls() {
@@ -505,8 +488,6 @@ class DeviceControlActivity : Activity(), SpheroServiceListener, NotificationSet
             unbindService(spheroServiceConnection)
         }
         legoBluetoothDeviceService = null
-
-        switch_sphero_color_button.isEnabled = false
     }
 
     companion object {

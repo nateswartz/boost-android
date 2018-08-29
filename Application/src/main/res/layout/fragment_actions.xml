@@ -6,8 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".fragments.ActionsFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <Spinner
         android:id="@+id/spinner_led_colors"
         android:layout_width="wrap_content"
