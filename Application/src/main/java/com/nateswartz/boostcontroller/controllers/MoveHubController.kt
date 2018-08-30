@@ -61,85 +61,80 @@ class MoveHubController (private val gattController: GattController) {
     }
 
     fun activateColorSensorNotifications() {
-        when (colorSensorPort) {
-            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_C)
-            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_COLOR_SENSOR_PORT_D)
-            else -> Log.w(TAG, "No Color Sensor detected")
-        }
+        changeColorSensorNotifications(true)
     }
 
     fun deactivateColorSensorNotifications() {
-        when (colorSensorPort) {
-            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_C)
-            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_COLOR_SENSOR_PORT_D)
-            else -> Log.w(TAG, "No Color Sensor detected")
-        }
+        changeColorSensorNotifications(false)
     }
 
     fun activateExternalMotorSensorNotifications() {
-        when (externalMotorPort) {
-            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_C)
-            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_EXTERNAL_MOTOR_PORT_D)
-            else -> Log.w(TAG, "No External Motor detected")
-        }
+        changeExternalMotorSensorNotifications(true)
     }
 
     fun deactivateExternalMotorSensorNotifications() {
-        when (externalMotorPort) {
-            Port.C -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_C)
-            Port.D -> gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_EXTERNAL_MOTOR_PORT_D)
-            else -> Log.w(TAG, "No External Motor detected")
+        changeExternalMotorSensorNotifications(false)
+    }
+
+    private fun changeColorSensorNotifications(enable: Boolean) {
+        changeExternalSensorNotifications(enable, colorSensorPort, ExternalSensorType.COLOR)
+    }
+
+    private fun changeExternalMotorSensorNotifications(enable: Boolean) {
+        changeExternalSensorNotifications(enable, externalMotorPort, ExternalSensorType.MOTOR)
+    }
+
+    private fun changeExternalSensorNotifications(enable: Boolean, portToRead: Port, type: ExternalSensorType) {
+        val port = when (portToRead) {
+            Port.C -> ExternalSensorPort.C
+            Port.D -> ExternalSensorPort.D
+            else -> {
+                Log.w(TAG, "No External Sensor detected")
+                ExternalSensorPort.NONE
+            }
         }
+        val message = MoveHubMessageFactory.getExternalSensorMessage(port, type, enable)
+        gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun activateInternalMotorSensorsNotifications() {
-        activateInternalMotorSensorNotifications("A", "angle")
-        activateInternalMotorSensorNotifications("B", "angle")
-        //activateInternalMotorSensorNotifications("A+B")
+        activateInternalMotorSensorNotifications(MotorNotificationPort.A, MotorNotificationType.ANGLE)
+        activateInternalMotorSensorNotifications(MotorNotificationPort.B, MotorNotificationType.ANGLE)
     }
 
-    fun activateInternalMotorSensorNotifications(motor: String, type: String) {
-        val data = ACTIVATE_MOTOR_PORT
-        when (motor) {
-            "A" -> data[3] = A_PORT_BYTE
-            "B" -> data[3] = B_PORT_BYTE
-            "A+B" -> data[3] = AB_PORT_BYTE
-        }
-        when (type) {
-            "speed" -> data[4] = SPEED_BYTE
-            "angle" -> data[4] = ANGLE_BYTE
-        }
-        gattController.writeCharacteristic(DeviceType.BOOST, data)
+    private fun activateInternalMotorSensorNotifications(motor: MotorNotificationPort, type: MotorNotificationType) {
+        val message = MoveHubMessageFactory.getInternalMotorMessage(motor, type, true)
+        gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun deactivateInternalMotorSensorsNotifications() {
-        deactivateInternalMotorSensorNotifications("A")
-        deactivateInternalMotorSensorNotifications("B")
+        deactivateInternalMotorSensorNotifications(MotorNotificationPort.A)
+        deactivateInternalMotorSensorNotifications(MotorNotificationPort.B)
     }
 
-    fun deactivateInternalMotorSensorNotifications(motor: String) {
-        val data = DEACTIVATE_MOTOR_PORT
-        when (motor) {
-            "A" -> data[3] = A_PORT_BYTE
-            "B" -> data[3] = B_PORT_BYTE
-        }
-        gattController.writeCharacteristic(DeviceType.BOOST, data)
+    private fun deactivateInternalMotorSensorNotifications(motor: MotorNotificationPort) {
+        val message = MoveHubMessageFactory.getInternalMotorMessage(motor, enable = false)
+        gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun activateTiltSensorNotifications() {
-        gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_TILT_SENSOR)
+        val message = MoveHubMessageFactory.getTiltSensorMessage(false, true)
+        gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun deactivateTiltSensorNotifications() {
-        gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_TILT_SENSOR)
+        val data = MoveHubMessageFactory.getTiltSensorMessage(false, false)
+        gattController.writeCharacteristic(DeviceType.BOOST, data)
     }
 
     fun activateAdvancedTiltSensorNotifications() {
-        gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_ADVANCED_TILT_SENSOR)
+        val message = MoveHubMessageFactory.getTiltSensorMessage(true, true)
+        gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun deactivateAdvancedTiltSensorNotifications() {
-        gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_ADVANCED_TILT_SENSOR)
+        val message = MoveHubMessageFactory.getTiltSensorMessage(true, false)
+        gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     private fun runMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, portByte: Byte) {
@@ -159,32 +154,126 @@ class MoveHubController (private val gattController: GattController) {
         // Currently not working
         private val DEACTIVATE_BUTTON = byteArrayOf(0x05, 0x00, 0x03, 0x02, 0x00)
 
-        private val ACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
-        private val ACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01)
-        private val DEACTIVATE_COLOR_SENSOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00)
-        private val DEACTIVATE_COLOR_SENSOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00)
-
-        private val ACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-        private val ACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-        private val DEACTIVATE_EXTERNAL_MOTOR_PORT_C = byteArrayOf(0x0a, 0x00, 0x41, 0x01, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
-        private val DEACTIVATE_EXTERNAL_MOTOR_PORT_D = byteArrayOf(0x0a, 0x00, 0x41, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
-
-        private val ACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01)
-        private val DEACTIVATE_MOTOR_PORT = byteArrayOf(0x0a, 0x00, 0x41, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00)
-
-        private val ACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
-        private val DEACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
-
-        private val ACTIVATE_ADVANCED_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x04, 0x10, 0x00, 0x00, 0x00, 0x01)
-        private val DEACTIVATE_ADVANCED_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x04, 0x10, 0x00, 0x00, 0x00, 0x00)
-
         private const val C_PORT_BYTE = 0x01.toByte()
         private const val D_PORT_BYTE = 0x02.toByte()
         private const val AB_PORT_BYTE = 0x39.toByte()
         private const val A_PORT_BYTE = 0x37.toByte()
         private const val B_PORT_BYTE = 0x38.toByte()
+    }
+}
 
-        private const val SPEED_BYTE = 0x01.toByte()
-        private const val ANGLE_BYTE = 0x02.toByte()
+enum class MotorNotificationType {
+    ANGLE, SPEED, NONE
+}
+
+enum class MotorNotificationPort {
+    A, B, A_B, NONE
+}
+
+enum class ExternalSensorPort {
+    C, D, NONE
+}
+
+enum class ExternalSensorType {
+    COLOR, MOTOR, NONE
+}
+
+object MoveHubMessageFactory {
+    private const val PROTOCOL_VERSION = 0x00.toByte()
+    private const val SUBSCRIBE_TO_SENSOR = 0x41.toByte()
+    private const val TILT_SENSOR_PORT = 0x3a.toByte()
+    private const val ENABLE_NOTIFICATION = 0x01.toByte()
+    private const val DISABLE_NOTIFICATION = 0x00.toByte()
+    private const val EMPTY = 0x00.toByte()
+    private const val PORT_A = 0x37.toByte()
+    private const val PORT_B = 0x38.toByte()
+    private const val PORT_A_B = 0x39.toByte()
+    private const val MOTOR_SPEED = 0x01.toByte()
+    private const val MOTOR_ANGLE = 0x02.toByte()
+
+    fun getInternalMotorMessage(port: MotorNotificationPort = MotorNotificationPort.NONE,
+                                type: MotorNotificationType = MotorNotificationType.NONE,
+                                enable: Boolean = true) : ByteArray {
+
+        var message = byteArrayOf(PROTOCOL_VERSION)
+        message += SUBSCRIBE_TO_SENSOR
+
+        message += when (port) {
+            MotorNotificationPort.A -> PORT_A
+            MotorNotificationPort.B -> PORT_B
+            MotorNotificationPort.A_B -> PORT_A_B
+            MotorNotificationPort.NONE -> EMPTY
+        }
+
+        message += when (type) {
+            MotorNotificationType.SPEED -> MOTOR_SPEED
+            MotorNotificationType.ANGLE -> MOTOR_ANGLE
+            MotorNotificationType.NONE -> EMPTY
+        }
+        message += byteArrayOf(0x01, 0x00, 0x00, 0x00)
+
+        message += when (enable) {
+            true -> ENABLE_NOTIFICATION
+            false -> DISABLE_NOTIFICATION
+        }
+
+        message = (message.size + 1).toString(16).toByteArray() + message
+
+        return message
+    }
+
+    fun getTiltSensorMessage(advanced: Boolean = false,
+                             enable: Boolean = true) : ByteArray {
+
+        var message = byteArrayOf(PROTOCOL_VERSION)
+        message += SUBSCRIBE_TO_SENSOR
+        message += TILT_SENSOR_PORT
+
+        message += when (advanced) {
+            true -> byteArrayOf(0x04, 0x10)
+            false -> byteArrayOf(0x02, 0x01)
+        }
+
+        message += byteArrayOf(0x00, 0x00, 0x00)
+
+        message += when (enable) {
+            true -> ENABLE_NOTIFICATION
+            false -> DISABLE_NOTIFICATION
+        }
+
+        message = (message.size + 1).toString(16).toByteArray() + message
+
+        return message
+    }
+
+    fun getExternalSensorMessage(port: ExternalSensorPort = ExternalSensorPort.NONE,
+                                 type: ExternalSensorType = ExternalSensorType.NONE,
+                                 enable: Boolean = true) : ByteArray {
+
+        var message = byteArrayOf(PROTOCOL_VERSION)
+        message += SUBSCRIBE_TO_SENSOR
+
+        message += when (port) {
+            ExternalSensorPort.C -> 0x01.toByte()
+            ExternalSensorPort.D -> 0x02.toByte()
+            ExternalSensorPort.NONE -> EMPTY
+        }
+
+        message += when (type) {
+            ExternalSensorType.COLOR -> 0x08.toByte()
+            ExternalSensorType.MOTOR -> 0x02.toByte()
+            ExternalSensorType.NONE -> EMPTY
+        }
+
+        message += byteArrayOf(0x01, 0x00, 0x00, 0x00)
+
+        message += when (enable) {
+            true -> ENABLE_NOTIFICATION
+            false -> DISABLE_NOTIFICATION
+        }
+
+        message = (message.size + 1).toString(16).toByteArray() + message
+
+        return message
     }
 }
