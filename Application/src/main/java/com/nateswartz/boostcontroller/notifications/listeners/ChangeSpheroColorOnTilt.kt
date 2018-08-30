@@ -4,9 +4,15 @@ import com.nateswartz.boostcontroller.enums.SpheroColors
 import com.nateswartz.boostcontroller.notifications.HubNotification
 import com.nateswartz.boostcontroller.notifications.Orientation
 import com.nateswartz.boostcontroller.notifications.TiltSensorNotification
+import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import com.orbotix.ConvenienceRobot
 
-class ChangeSpheroColorOnTilt(private val robot: ConvenienceRobot) : HubNotificationListener {
+class ChangeSpheroColorOnTilt(private val legoBluetoothDeviceService: LegoBluetoothDeviceService, private val robot: ConvenienceRobot) : HubNotificationListener {
+
+    override fun setup() {
+        legoBluetoothDeviceService.moveHubController.activateTiltSensorNotifications()
+    }
+
     override fun execute(notification: HubNotification) {
         if (notification is TiltSensorNotification) {
             val color = when (notification.orientation) {
@@ -20,5 +26,9 @@ class ChangeSpheroColorOnTilt(private val robot: ConvenienceRobot) : HubNotifica
             }
             robot.setLed(color.first, color.second, color.third)
         }
+    }
+
+    override fun cleanup() {
+        legoBluetoothDeviceService.moveHubController.deactivateTiltSensorNotifications()
     }
 }

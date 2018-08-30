@@ -5,6 +5,10 @@ import com.nateswartz.boostcontroller.notifications.*
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 
 class ChangeLEDOnButtonClick(private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
+    override fun setup() {
+        legoBluetoothDeviceService.moveHubController.activateButtonNotifications()
+    }
+
     override fun execute(notification: HubNotification) {
         if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
             val color = when ((1..5).shuffled().last()) {
@@ -16,5 +20,9 @@ class ChangeLEDOnButtonClick(private val legoBluetoothDeviceService: LegoBluetoo
             }
             legoBluetoothDeviceService.moveHubController.setLEDColor(color)
         }
+    }
+
+    override fun cleanup() {
+        legoBluetoothDeviceService.moveHubController.deactivateButtonNotifications()
     }
 }

@@ -312,44 +312,37 @@ class DeviceControlActivity : Activity(),
         disableControls()
 
         switch_sync_colors.setOnClickListener {
-            if (switch_sync_colors.isChecked) {
-                notificationListeners["sync_colors"] = ChangeLEDOnColorSensor(legoBluetoothDeviceService!!)
-            } else {
-                notificationListeners.remove("sync_colors")
+            when (switch_button_change_light.isChecked) {
+                true -> registerListener(ChangeLEDOnColorSensor(legoBluetoothDeviceService!!), "sync_colors")
+                false -> unregisterListener("sync_colors")
             }
         }
 
         switch_button_change_light.setOnClickListener {
-            if (switch_button_change_light.isChecked) {
-                notificationListeners["button_change_light"] = ChangeLEDOnButtonClick(legoBluetoothDeviceService!!)
-            } else {
-                notificationListeners.remove("button_change_light")
+            when (switch_button_change_light.isChecked) {
+                true -> registerListener(ChangeLEDOnButtonClick(legoBluetoothDeviceService!!), "button_change_light")
+                false -> unregisterListener("button_change_light")
             }
         }
 
         switch_button_change_motor.setOnClickListener {
-            if (switch_button_change_motor.isChecked) {
-                notificationListeners["button_change_motor"] = RunMotorOnButtonClick(legoBluetoothDeviceService!!)
-            } else {
-                notificationListeners.remove("button_change_motor")
+            when (switch_button_change_motor.isChecked) {
+                true -> registerListener(RunMotorOnButtonClick(legoBluetoothDeviceService!!), "button_change_motor")
+                false -> unregisterListener("button_change_motor")
             }
         }
 
         switch_roller_coaster.setOnClickListener {
-            if (switch_roller_coaster.isChecked) {
-                //val time = if (input_time.text.toString() == "") "1000" else input_time.text.toString()
-                //notificationListeners["roller_coaster"] = RollerCoaster(time, switch_counter_clockwise.isChecked, legoBluetoothDeviceService!!)
-                notificationListeners["roller_coaster"] = RollerCoaster("2000", true, legoBluetoothDeviceService!!)
-            } else {
-                notificationListeners.remove("roller_coaster")
+            when (switch_roller_coaster.isChecked) {
+                true -> registerListener(RollerCoaster("2000", true, legoBluetoothDeviceService!!), "roller_coaster")
+                false -> unregisterListener("roller_coaster")
             }
         }
 
         switch_motor_button_lifx.setOnClickListener {
-            if (switch_motor_button_lifx.isChecked) {
-                notificationListeners["motor_button_led_lifx"] = ChangeLifxLEDOnMotorButton(legoBluetoothDeviceService!!, lifxController!!)
-            } else {
-                notificationListeners.remove("motor_button_led_lifx")
+            when (switch_button_change_motor.isChecked) {
+                true -> registerListener(ChangeLifxLEDOnMotorButton(legoBluetoothDeviceService!!, lifxController!!), "motor_button_led_lifx")
+                false -> unregisterListener("motor_button_led_lifx")
             }
         }
 
@@ -401,20 +394,30 @@ class DeviceControlActivity : Activity(),
     }
 
     override fun onButtonLEDListenerChange(enabled: Boolean) {
-        if (enabled) {
-            notificationListeners["button_sphero"] = ChangeSpheroColorOnButton(sphero!!)
-        } else {
-            notificationListeners.remove("button_sphero")
+        when (enabled) {
+            true -> registerListener(ChangeSpheroColorOnButton(legoBluetoothDeviceService!!, sphero!!), "button_sphero")
+            false -> unregisterListener("button_sphero")
         }
     }
 
     override fun onTiltLEDListenerChange(enabled: Boolean) {
-        if (enabled) {
-            notificationListeners["tilt_sphero"] = ChangeSpheroColorOnTilt(sphero!!)
-        } else {
-            notificationListeners.remove("tilt_sphero")
+        when (enabled) {
+            true -> registerListener(ChangeSpheroColorOnTilt(legoBluetoothDeviceService!!, sphero!!), "tilt_sphero")
+            false -> unregisterListener("tilt_sphero")
         }
     }
+
+    private fun registerListener(listener: HubNotificationListener, label: String) {
+        listener.setup()
+        notificationListeners[label] = listener
+    }
+
+    private fun unregisterListener(label: String) {
+        val listener = notificationListeners[label]
+        listener!!.cleanup()
+        notificationListeners.remove(label)
+    }
+
 
     private fun enableControls() {
         setControlsState(true)

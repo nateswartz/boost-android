@@ -11,6 +11,11 @@ class ChangeLifxLEDOnMotorButton(private val legoBluetoothDeviceService: LegoBlu
     private var colors = arrayOf("kelvin:3200", "red", "blue", "purple", "green")
     private var currentColorIndex = 0
 
+    override fun setup() {
+        legoBluetoothDeviceService.moveHubController.activateButtonNotifications()
+        legoBluetoothDeviceService.moveHubController.activateInternalMotorSensorsNotifications()
+    }
+
     override fun execute(notification: HubNotification) {
         if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
             lifxController.changeLightColor(colors[currentColorIndex])
@@ -28,5 +33,10 @@ class ChangeLifxLEDOnMotorButton(private val legoBluetoothDeviceService: LegoBlu
                 currentRotationValue = rotationValue
             }
         }
+    }
+
+    override fun cleanup() {
+        legoBluetoothDeviceService.moveHubController.deactivateButtonNotifications()
+        legoBluetoothDeviceService.moveHubController.deactivateInternalMotorSensorsNotifications()
     }
 }

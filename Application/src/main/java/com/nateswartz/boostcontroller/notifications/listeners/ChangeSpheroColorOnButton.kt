@@ -1,9 +1,15 @@
 package com.nateswartz.boostcontroller.notifications.listeners
 
 import com.nateswartz.boostcontroller.notifications.*
+import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import com.orbotix.ConvenienceRobot
 
-class ChangeSpheroColorOnButton(private val robot: ConvenienceRobot) : HubNotificationListener {
+class ChangeSpheroColorOnButton(private val legoBluetoothDeviceService: LegoBluetoothDeviceService, private val robot: ConvenienceRobot) : HubNotificationListener {
+
+    override fun setup() {
+        legoBluetoothDeviceService.moveHubController.activateButtonNotifications()
+    }
+
     override fun execute(notification: HubNotification) {
         if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
             val color = when ((1..4).shuffled().last()) {
@@ -14,5 +20,9 @@ class ChangeSpheroColorOnButton(private val robot: ConvenienceRobot) : HubNotifi
             }
             robot.setLed(color.first, color.second, color.third)
         }
+    }
+
+    override fun cleanup() {
+        legoBluetoothDeviceService.moveHubController.deactivateButtonNotifications()
     }
 }

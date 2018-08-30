@@ -10,6 +10,11 @@ class RollerCoaster(private val time: String, private val counterclockwise: Bool
     private var colors = arrayOf("red", "blue", "green")
     private var currentColorIndex = 0
 
+    override fun setup() {
+        legoBluetoothDeviceService.moveHubController.activateButtonNotifications()
+        legoBluetoothDeviceService.moveHubController.activateInternalMotorSensorsNotifications()
+    }
+
     override fun execute(notification: HubNotification) {
         if (notification is ButtonNotification && notification.buttonState == ButtonState.PRESSED) {
             val power = when (currentColorIndex) {
@@ -32,5 +37,10 @@ class RollerCoaster(private val time: String, private val counterclockwise: Bool
                 currentRotationValue = rotationValue
             }
         }
+    }
+
+    override fun cleanup() {
+        legoBluetoothDeviceService.moveHubController.deactivateButtonNotifications()
+        legoBluetoothDeviceService.moveHubController.deactivateInternalMotorSensorsNotifications()
     }
 }
