@@ -129,10 +129,10 @@ class NotificationSettingsFragment : Fragment() {
 
         if (isConnected) {
             text_boost_connected.visibility = View.VISIBLE
-            if (legoBluetoothDeviceService!!.moveHubController.ColorSensorPort != Port.UNKNOWN) {
+            if (legoBluetoothDeviceService!!.moveHubController.colorSensorPort != Port.UNKNOWN) {
                 checkbox_color_sensor.isEnabled = isConnected
             }
-            if (legoBluetoothDeviceService!!.moveHubController.ExternalMotorPort != Port.UNKNOWN) {
+            if (legoBluetoothDeviceService!!.moveHubController.externalMotorPort != Port.UNKNOWN) {
                 checkbox_external_motor.isEnabled = isConnected
             }
         } else {
