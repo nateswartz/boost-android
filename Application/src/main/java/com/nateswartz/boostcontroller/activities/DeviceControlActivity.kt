@@ -332,6 +332,13 @@ class DeviceControlActivity : Activity(),
             }
         }
 
+        switch_tilt_led.setOnClickListener {
+            when (switch_tilt_led.isChecked) {
+                true -> registerListener(ChangeLEDColorOnTilt(legoBluetoothDeviceService!!), "tilt_change_led")
+                false -> unregisterListener("tilt_change_led")
+            }
+        }
+
         switch_roller_coaster.setOnClickListener {
             when (switch_roller_coaster.isChecked) {
                 true -> registerListener(RollerCoaster("2000", true, legoBluetoothDeviceService!!), "roller_coaster")

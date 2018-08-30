@@ -43,8 +43,8 @@ class MoveHubController (private val gattController: GattController) {
         val timeBytes = getByteArrayFromInt(timeInMilliseconds, 2)
         val motorAPower = powerPercentage.toByte()
         val motorBPower = (255 - powerPercentage).toByte()
-        val RUN_MOTOR = byteArrayOf(0x0d, 0x00, 0x81.toByte(), AB_PORT_BYTE, 0x11, 0x0a, timeBytes[0], timeBytes[1], motorAPower, motorBPower, 0x64, 0x7f, 0x03)
-        gattController.writeCharacteristic(DeviceType.BOOST, RUN_MOTOR)
+        val runMotorCommand = byteArrayOf(0x0d, 0x00, 0x81.toByte(), AB_PORT_BYTE, 0x11, 0x0a, timeBytes[0], timeBytes[1], motorAPower, motorBPower, 0x64, 0x7f, 0x03)
+        gattController.writeCharacteristic(DeviceType.BOOST, runMotorCommand)
     }
 
     fun enableNotifications() {
@@ -134,6 +134,14 @@ class MoveHubController (private val gattController: GattController) {
         gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_TILT_SENSOR)
     }
 
+    fun activateAdvancedTiltSensorNotifications() {
+        gattController.writeCharacteristic(DeviceType.BOOST, ACTIVATE_ADVANCED_TILT_SENSOR)
+    }
+
+    fun deactivateAdvancedTiltSensorNotifications() {
+        gattController.writeCharacteristic(DeviceType.BOOST, DEACTIVATE_ADVANCED_TILT_SENSOR)
+    }
+
     private fun runMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, portByte: Byte) {
         val powerByte = when (counterclockwise) {
             true -> (255 - powerPercentage).toByte()
@@ -166,6 +174,9 @@ class MoveHubController (private val gattController: GattController) {
 
         private val ACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01)
         private val DEACTIVATE_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00)
+
+        private val ACTIVATE_ADVANCED_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x04, 0x10, 0x00, 0x00, 0x00, 0x01)
+        private val DEACTIVATE_ADVANCED_TILT_SENSOR = byteArrayOf(0x0a, 0x00, 0x41, 0x3a, 0x04, 0x10, 0x00, 0x00, 0x00, 0x00)
 
         private const val C_PORT_BYTE = 0x01.toByte()
         private const val D_PORT_BYTE = 0x02.toByte()

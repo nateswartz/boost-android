@@ -23,7 +23,11 @@ object HubNotificationFactory {
                     || stringData.substring(9, 11) == "02" && ExternalMotorPort == Port.D) {
                 ExternalMotorNotification(stringData)
             } else if (stringData.substring(9, 11) == "3A") {
-                TiltSensorNotification(stringData)
+                if (stringData.substring(0, 2) > "05") {
+                    AdvancedTiltSensorNotification(stringData)
+                } else {
+                    TiltSensorNotification(stringData)
+                }
             } else {
                 InternalMotorNotification(stringData)
             }

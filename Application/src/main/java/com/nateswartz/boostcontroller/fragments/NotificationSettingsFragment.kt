@@ -87,9 +87,9 @@ class NotificationSettingsFragment : Fragment() {
         }
         checkbox_tilt_sensor.setOnClickListener {
             if (checkbox_tilt_sensor.isChecked) {
-                legoBluetoothDeviceService!!.moveHubController.activateTiltSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.activateAdvancedTiltSensorNotifications()
             } else {
-                legoBluetoothDeviceService!!.moveHubController.deactivateTiltSensorNotifications()
+                legoBluetoothDeviceService!!.moveHubController.deactivateAdvancedTiltSensorNotifications()
             }
         }
         checkbox_external_motor.setOnClickListener {

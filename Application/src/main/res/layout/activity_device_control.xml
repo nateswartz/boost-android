@@ -46,7 +46,7 @@
                 android:layout_marginTop="8dp"
                 android:text="Motor+Button/LED+Lifx"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/switch_button_change_motor" />
+                app:layout_constraintTop_toBottomOf="@+id/switch_tilt_led" />
 
             <TextView
                 android:id="@+id/textview_actions"
@@ -141,6 +141,16 @@
                 android:text="Roller Coaster"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switch_sync_colors" />
+
+            <Switch
+                android:id="@+id/switch_tilt_led"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Tilt/LED"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/switch_button_change_motor" />
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
