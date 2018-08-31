@@ -98,21 +98,21 @@ class MoveHubController (private val gattController: GattController) {
     }
 
     fun activateInternalMotorSensorsNotifications() {
-        activateInternalMotorSensorNotifications(MotorNotificationPort.A, MotorNotificationType.ANGLE)
-        activateInternalMotorSensorNotifications(MotorNotificationPort.B, MotorNotificationType.ANGLE)
+        activateInternalMotorSensorNotifications(InternalMotorNotificationPort.A, MotorNotificationType.ANGLE)
+        activateInternalMotorSensorNotifications(InternalMotorNotificationPort.B, MotorNotificationType.ANGLE)
     }
 
-    private fun activateInternalMotorSensorNotifications(motor: MotorNotificationPort, type: MotorNotificationType) {
+    private fun activateInternalMotorSensorNotifications(motor: InternalMotorNotificationPort, type: MotorNotificationType) {
         val message = MoveHubMessageFactory.getInternalMotorMessage(motor, type, true)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun deactivateInternalMotorSensorsNotifications() {
-        deactivateInternalMotorSensorNotifications(MotorNotificationPort.A)
-        deactivateInternalMotorSensorNotifications(MotorNotificationPort.B)
+        deactivateInternalMotorSensorNotifications(InternalMotorNotificationPort.A)
+        deactivateInternalMotorSensorNotifications(InternalMotorNotificationPort.B)
     }
 
-    private fun deactivateInternalMotorSensorNotifications(motor: MotorNotificationPort) {
+    private fun deactivateInternalMotorSensorNotifications(motor: InternalMotorNotificationPort) {
         val message = MoveHubMessageFactory.getInternalMotorMessage(motor, enable = false)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
@@ -166,9 +166,14 @@ enum class MotorNotificationType {
     ANGLE, SPEED, NONE
 }
 
-enum class MotorNotificationPort {
+enum class InternalMotorNotificationPort {
     A, B, A_B, NONE
 }
+
+enum class MotorPort {
+    A, B, C, D, NONE
+}
+
 
 enum class ExternalSensorPort {
     C, D, NONE
@@ -180,29 +185,38 @@ enum class ExternalSensorType {
 
 object MoveHubMessageFactory {
     private const val PROTOCOL_VERSION = 0x00.toByte()
+
     private const val SUBSCRIBE_TO_SENSOR = 0x41.toByte()
+    private const val SET_PORT_VALUE = 0x81.toByte()
+
     private const val TILT_SENSOR_PORT = 0x3a.toByte()
+
     private const val ENABLE_NOTIFICATION = 0x01.toByte()
     private const val DISABLE_NOTIFICATION = 0x00.toByte()
+
     private const val EMPTY = 0x00.toByte()
+
     private const val PORT_A = 0x37.toByte()
     private const val PORT_B = 0x38.toByte()
     private const val PORT_A_B = 0x39.toByte()
+    private const val PORT_C = 0x01.toByte()
+    private const val PORT_D = 0x02.toByte()
+
     private const val MOTOR_SPEED = 0x01.toByte()
     private const val MOTOR_ANGLE = 0x02.toByte()
 
-    fun getInternalMotorMessage(port: MotorNotificationPort = MotorNotificationPort.NONE,
+    fun getInternalMotorMessage(port: InternalMotorNotificationPort = InternalMotorNotificationPort.NONE,
                                 type: MotorNotificationType = MotorNotificationType.NONE,
-                                enable: Boolean = true) : ByteArray {
+                                enable: Boolean = true): ByteArray {
 
         var message = byteArrayOf(PROTOCOL_VERSION)
         message += SUBSCRIBE_TO_SENSOR
 
         message += when (port) {
-            MotorNotificationPort.A -> PORT_A
-            MotorNotificationPort.B -> PORT_B
-            MotorNotificationPort.A_B -> PORT_A_B
-            MotorNotificationPort.NONE -> EMPTY
+            InternalMotorNotificationPort.A -> PORT_A
+            InternalMotorNotificationPort.B -> PORT_B
+            InternalMotorNotificationPort.A_B -> PORT_A_B
+            InternalMotorNotificationPort.NONE -> EMPTY
         }
 
         message += when (type) {
@@ -223,7 +237,7 @@ object MoveHubMessageFactory {
     }
 
     fun getTiltSensorMessage(advanced: Boolean = false,
-                             enable: Boolean = true) : ByteArray {
+                             enable: Boolean = true): ByteArray {
 
         var message = byteArrayOf(PROTOCOL_VERSION)
         message += SUBSCRIBE_TO_SENSOR
@@ -248,7 +262,7 @@ object MoveHubMessageFactory {
 
     fun getExternalSensorMessage(port: ExternalSensorPort = ExternalSensorPort.NONE,
                                  type: ExternalSensorType = ExternalSensorType.NONE,
-                                 enable: Boolean = true) : ByteArray {
+                                 enable: Boolean = true): ByteArray {
 
         var message = byteArrayOf(PROTOCOL_VERSION)
         message += SUBSCRIBE_TO_SENSOR
@@ -271,6 +285,39 @@ object MoveHubMessageFactory {
             true -> ENABLE_NOTIFICATION
             false -> DISABLE_NOTIFICATION
         }
+
+        message = (message.size + 1).toString(16).toByteArray() + message
+
+        return message
+    }
+
+    // Only for single motor for now
+    fun getRunMotorMessage(port: MotorPort = MotorPort.NONE,
+                           timeInMS: Int,
+                           powerPercentage: Int,
+                           counterclockwise: Boolean): ByteArray {
+
+        var message = byteArrayOf(PROTOCOL_VERSION)
+        message += SET_PORT_VALUE
+
+        message += when (port) {
+            MotorPort.A -> PORT_A
+            MotorPort.B -> PORT_B
+            MotorPort.C -> PORT_C
+            MotorPort.D -> PORT_D
+            MotorPort.NONE -> EMPTY
+        }
+
+        message += byteArrayOf(0x11, 0x09)
+
+        message += getByteArrayFromInt(timeInMS, 2)
+
+        message += when (counterclockwise) {
+            true -> (255 - powerPercentage).toByte()
+            false -> powerPercentage.toByte()
+        }
+
+        message += byteArrayOf(0x64, 0x7f, 0x03)
 
         message = (message.size + 1).toString(16).toByteArray() + message
 

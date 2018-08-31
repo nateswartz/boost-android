@@ -36,8 +36,8 @@ fun getLedColorFromName(name: String) : LEDColorCommand {
     }
 }
 
-fun getByteArrayFromInt(number: Int, size: Int): Array<Byte> {
-    val result = Array<Byte>(size) {0}
+fun getByteArrayFromInt(number: Int, size: Int): ByteArray {
+    val result = ByteArray(size)
     var intermediateNumber = number
     val mask = 0xFF
 
