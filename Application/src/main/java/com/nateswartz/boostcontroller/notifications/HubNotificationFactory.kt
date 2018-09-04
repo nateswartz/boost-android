@@ -1,11 +1,13 @@
 package com.nateswartz.boostcontroller.notifications
 
+import com.nateswartz.boostcontroller.enums.BoostPort
+import com.nateswartz.boostcontroller.enums.BoostSensor
 import com.nateswartz.boostcontroller.misc.convertBytesToString
 
 object HubNotificationFactory {
 
-    var ColorSensorPort = Port.UNKNOWN
-    var ExternalMotorPort = Port.UNKNOWN
+    var ColorSensorPort = BoostPort.NONE
+    var ExternalMotorPort = BoostPort.NONE
 
     fun build(byteData: ByteArray): HubNotification {
         return build(convertBytesToString(byteData))
@@ -16,11 +18,11 @@ object HubNotificationFactory {
             "01" -> return ButtonNotification(stringData)
             "82" -> return LedColorChangeNotification(stringData)
             // Sensor data from port
-            "45" -> return if (stringData.substring(9, 11) == "01" && ColorSensorPort == Port.C
-                    || stringData.substring(9, 11) == "02" && ColorSensorPort == Port.D) {
+            "45" -> return if (stringData.substring(9, 11) == "01" && ColorSensorPort == BoostPort.C
+                    || stringData.substring(9, 11) == "02" && ColorSensorPort == BoostPort.D) {
                 ColorSensorNotification(stringData)
-            } else if (stringData.substring(9, 11) == "01" && ExternalMotorPort == Port.C
-                    || stringData.substring(9, 11) == "02" && ExternalMotorPort == Port.D) {
+            } else if (stringData.substring(9, 11) == "01" && ExternalMotorPort == BoostPort.C
+                    || stringData.substring(9, 11) == "02" && ExternalMotorPort == BoostPort.D) {
                 ExternalMotorNotification(stringData)
             } else if (stringData.substring(9, 11) == "3A") {
                 if (stringData.substring(0, 2) > "05") {
@@ -37,16 +39,16 @@ object HubNotificationFactory {
                 "00" -> {
                     when (stringData.substring(9, 11)) {
                         "01" -> {
-                            when (Port.C) {
-                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCE_COLOR)
-                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNAL_MOTOR)
+                            when (BoostPort.C) {
+                                ColorSensorPort -> PortDisconnectedNotification(stringData, BoostSensor.DISTANCE_COLOR)
+                                ExternalMotorPort -> PortDisconnectedNotification(stringData, BoostSensor.EXTERNAL_MOTOR)
                                 else -> UnknownHubNotification(stringData)
                             }
                         }
                         "02" -> {
-                            when (Port.D) {
-                                ColorSensorPort -> PortDisconnectedNotification(stringData, Sensor.DISTANCE_COLOR)
-                                ExternalMotorPort -> PortDisconnectedNotification(stringData, Sensor.EXTERNAL_MOTOR)
+                            when (BoostPort.D) {
+                                ColorSensorPort -> PortDisconnectedNotification(stringData, BoostSensor.DISTANCE_COLOR)
+                                ExternalMotorPort -> PortDisconnectedNotification(stringData, BoostSensor.EXTERNAL_MOTOR)
                                 else -> UnknownHubNotification(stringData)
                             }
                         }

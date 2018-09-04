@@ -9,8 +9,8 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import com.nateswartz.boostcontroller.R
+import com.nateswartz.boostcontroller.enums.BoostPort
 import com.nateswartz.boostcontroller.misc.getLedColorFromName
-import com.nateswartz.boostcontroller.notifications.Port
 import kotlinx.android.synthetic.main.fragment_actions.*
 
 class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
@@ -50,8 +50,8 @@ class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
             val counterclockwise = switch_counter_clockwise.isChecked
             if (power != "" && time != "") {
                 when (motor) {
-                    "A" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.A)
-                    "B" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, Port.B)
+                    "A" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, BoostPort.A)
+                    "B" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotor(power.toInt(), time.toInt(), counterclockwise, BoostPort.B)
                     "A+B" -> legoBluetoothDeviceService!!.moveHubController.runInternalMotors(power.toInt(), time.toInt(), counterclockwise)
                     "External" -> legoBluetoothDeviceService!!.moveHubController.runExternalMotor(power.toInt(), time.toInt(), counterclockwise)
                 }

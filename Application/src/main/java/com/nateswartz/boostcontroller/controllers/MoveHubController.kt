@@ -1,14 +1,13 @@
 package com.nateswartz.boostcontroller.controllers
 
 import android.util.Log
-import com.nateswartz.boostcontroller.enums.LEDColorCommand
+import com.nateswartz.boostcontroller.enums.*
 import com.nateswartz.boostcontroller.misc.getByteArrayFromInt
-import com.nateswartz.boostcontroller.notifications.Port
 
 class MoveHubController (private val gattController: GattController) {
 
-    var colorSensorPort = Port.UNKNOWN
-    var externalMotorPort = Port.UNKNOWN
+    var colorSensorPort = BoostPort.NONE
+    var externalMotorPort = BoostPort.NONE
 
     fun setLEDColor(color: LEDColorCommand) {
         gattController.writeCharacteristic(DeviceType.BOOST, color.data)
@@ -18,16 +17,16 @@ class MoveHubController (private val gattController: GattController) {
         runMotor(externalMotorPort, timeInMilliseconds, powerPercentage, counterclockwise)
     }
 
-    fun runInternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, motor: Port) {
+    fun runInternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean, motor: BoostPort) {
         runMotor(motor, timeInMilliseconds, powerPercentage, counterclockwise)
     }
 
     fun runInternalMotors(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
-        runMotor(Port.A_B,timeInMilliseconds, powerPercentage, counterclockwise)
+        runMotor(BoostPort.A_B,timeInMilliseconds, powerPercentage, counterclockwise)
     }
 
     fun runInternalMotorsInOpposition(powerPercentage: Int, timeInMilliseconds: Int) {
-        val message = MoveHubMessageFactory.runMotor(MotorPort.A_B, timeInMilliseconds, powerPercentage, false, true)
+        val message = MoveHubMessageFactory.runMotor(BoostPort.A_B, timeInMilliseconds, powerPercentage, false, true)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
@@ -61,13 +60,13 @@ class MoveHubController (private val gattController: GattController) {
     }
 
     fun activateInternalMotorSensorsNotifications() {
-        activateInternalMotorSensorNotifications(InternalMotorNotificationPort.A, MotorNotificationType.ANGLE)
-        activateInternalMotorSensorNotifications(InternalMotorNotificationPort.B, MotorNotificationType.ANGLE)
+        activateInternalMotorSensorNotifications(InternalMotorPort.A, MotorNotificationType.ANGLE)
+        activateInternalMotorSensorNotifications(InternalMotorPort.B, MotorNotificationType.ANGLE)
     }
 
     fun deactivateInternalMotorSensorsNotifications() {
-        deactivateInternalMotorSensorNotifications(InternalMotorNotificationPort.A)
-        deactivateInternalMotorSensorNotifications(InternalMotorNotificationPort.B)
+        deactivateInternalMotorSensorNotifications(InternalMotorPort.A)
+        deactivateInternalMotorSensorNotifications(InternalMotorPort.B)
     }
 
     fun activateTiltSensorNotifications() {
@@ -90,12 +89,12 @@ class MoveHubController (private val gattController: GattController) {
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
-    private fun activateInternalMotorSensorNotifications(motor: InternalMotorNotificationPort, type: MotorNotificationType) {
+    private fun activateInternalMotorSensorNotifications(motor: InternalMotorPort, type: MotorNotificationType) {
         val message = MoveHubMessageFactory.internalMotorNotifications(motor, type, true)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
-    private fun deactivateInternalMotorSensorNotifications(motor: InternalMotorNotificationPort) {
+    private fun deactivateInternalMotorSensorNotifications(motor: InternalMotorPort) {
         val message = MoveHubMessageFactory.internalMotorNotifications(motor, enable = false)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
@@ -108,59 +107,27 @@ class MoveHubController (private val gattController: GattController) {
         changeExternalSensorNotifications(enable, externalMotorPort, ExternalSensorType.MOTOR)
     }
 
-    private fun changeExternalSensorNotifications(enable: Boolean, portToRead: Port, type: ExternalSensorType) {
+    private fun changeExternalSensorNotifications(enable: Boolean, portToRead: BoostPort, type: ExternalSensorType) {
         val port = when (portToRead) {
-            Port.C -> ExternalSensorPort.C
-            Port.D -> ExternalSensorPort.D
+            BoostPort.C -> ExternalSensorPort.C
+            BoostPort.D -> ExternalSensorPort.D
             else -> {
                 Log.w(TAG, "No External Sensor detected")
                 ExternalSensorPort.NONE
             }
         }
-        val message = MoveHubMessageFactory.externalSensorNotificaions(port, type, enable)
+        val message = MoveHubMessageFactory.externalSensorNotifications(port, type, enable)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
-    private fun runMotor(motor: Port, timeInMilliseconds: Int, powerPercentage: Int, counterclockwise: Boolean) {
-        val port = when (motor) {
-            Port.A -> MotorPort.A
-            Port.B -> MotorPort.B
-            Port.A_B -> MotorPort.A_B
-            Port.C -> MotorPort.C
-            Port.D -> MotorPort.D
-            Port.UNKNOWN -> {
-                Log.w(TAG, "No Motor Specified")
-                MotorPort.NONE
-            }
-        }
-        val message = MoveHubMessageFactory.runMotor(port, timeInMilliseconds, powerPercentage, counterclockwise)
+    private fun runMotor(motor: BoostPort, timeInMilliseconds: Int, powerPercentage: Int, counterclockwise: Boolean) {
+        val message = MoveHubMessageFactory.runMotor(motor, timeInMilliseconds, powerPercentage, counterclockwise)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     companion object {
         private val TAG = MoveHubController::class.java.simpleName
     }
-}
-
-enum class MotorNotificationType {
-    ANGLE, SPEED, NONE
-}
-
-enum class InternalMotorNotificationPort {
-    A, B, A_B, NONE
-}
-
-enum class MotorPort {
-    A, B, A_B, C, D, NONE
-}
-
-
-enum class ExternalSensorPort {
-    C, D, NONE
-}
-
-enum class ExternalSensorType {
-    COLOR, MOTOR, NONE
 }
 
 object MoveHubMessageFactory {
@@ -185,7 +152,7 @@ object MoveHubMessageFactory {
     private const val MOTOR_SPEED = 0x01.toByte()
     private const val MOTOR_ANGLE = 0x02.toByte()
 
-    fun internalMotorNotifications(port: InternalMotorNotificationPort = InternalMotorNotificationPort.NONE,
+    fun internalMotorNotifications(port: InternalMotorPort = InternalMotorPort.NONE,
                                 type: MotorNotificationType = MotorNotificationType.NONE,
                                 enable: Boolean = true): ByteArray {
 
@@ -193,10 +160,10 @@ object MoveHubMessageFactory {
         message += SUBSCRIBE_TO_SENSOR
 
         message += when (port) {
-            InternalMotorNotificationPort.A -> PORT_A
-            InternalMotorNotificationPort.B -> PORT_B
-            InternalMotorNotificationPort.A_B -> PORT_A_B
-            InternalMotorNotificationPort.NONE -> EMPTY
+            InternalMotorPort.A -> PORT_A
+            InternalMotorPort.B -> PORT_B
+            InternalMotorPort.A_B -> PORT_A_B
+            InternalMotorPort.NONE -> EMPTY
         }
 
         message += when (type) {
@@ -240,9 +207,9 @@ object MoveHubMessageFactory {
         return message
     }
 
-    fun externalSensorNotificaions(port: ExternalSensorPort = ExternalSensorPort.NONE,
-                                 type: ExternalSensorType = ExternalSensorType.NONE,
-                                 enable: Boolean = true): ByteArray {
+    fun externalSensorNotifications(port: ExternalSensorPort = ExternalSensorPort.NONE,
+                                    type: ExternalSensorType = ExternalSensorType.NONE,
+                                    enable: Boolean = true): ByteArray {
 
         var message = byteArrayOf(PROTOCOL_VERSION)
         message += SUBSCRIBE_TO_SENSOR
@@ -271,7 +238,7 @@ object MoveHubMessageFactory {
         return message
     }
 
-    fun runMotor(port: MotorPort = MotorPort.NONE,
+    fun runMotor(port: BoostPort = BoostPort.NONE,
                            timeInMS: Int,
                            powerPercentage: Int,
                            counterclockwise: Boolean,
@@ -281,12 +248,12 @@ object MoveHubMessageFactory {
         message += SET_PORT_VALUE
 
         message += when (port) {
-            MotorPort.A -> PORT_A
-            MotorPort.B -> PORT_B
-            MotorPort.A_B -> PORT_A_B
-            MotorPort.C -> PORT_C
-            MotorPort.D -> PORT_D
-            MotorPort.NONE -> EMPTY
+            BoostPort.A -> PORT_A
+            BoostPort.B -> PORT_B
+            BoostPort.A_B -> PORT_A_B
+            BoostPort.C -> PORT_C
+            BoostPort.D -> PORT_D
+            BoostPort.NONE -> EMPTY
         }
 
         message += 0x11.toByte()

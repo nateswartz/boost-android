@@ -2,10 +2,11 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.enums.BoostPort
 
 class InternalMotorNotification(private var rawData: String) : HubNotification, Parcelable{
 
-    val port = if (rawData[10] == '7') Port.A else if (rawData[10] == '8') Port.B else Port.A_B
+    val port = if (rawData[10] == '7') BoostPort.A else if (rawData[10] == '8') BoostPort.B else BoostPort.A_B
     private val rotation = (rawData.substring(15, 17))
     private val angle = (rawData.substring(12, 14))
     val rotationValue = getRotationValue(rotation, angle)

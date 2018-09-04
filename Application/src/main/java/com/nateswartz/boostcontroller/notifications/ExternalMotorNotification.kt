@@ -2,10 +2,11 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.enums.BoostPort
 
 class ExternalMotorNotification(private var rawData: String) : HubNotification, Parcelable{
 
-    val port = if (rawData[10] == '1') Port.C else Port.D
+    val port = if (rawData[10] == '1') BoostPort.C else BoostPort.D
 
     constructor(parcel: Parcel) : this(parcel.readString())
 

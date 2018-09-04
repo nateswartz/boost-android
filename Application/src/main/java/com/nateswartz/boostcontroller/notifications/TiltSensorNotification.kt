@@ -2,27 +2,19 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.enums.TiltSensorOrientation
 
-enum class Orientation {
-    FLAT,
-    STANDING_LED_UP,
-    STANDING_BUTTON_UP,
-    B_D_UP,
-    A_C_UP,
-    BATTERIES_UP,
-    UNKNOWN
-}
 
 class TiltSensorNotification(private var rawData: String) : HubNotification, Parcelable{
 
     val orientation = when (rawData.substring(12, 14)) {
-        "00" -> Orientation.FLAT
-        "01" -> Orientation.STANDING_LED_UP
-        "02" -> Orientation.STANDING_BUTTON_UP
-        "03" -> Orientation.B_D_UP
-        "04" -> Orientation.A_C_UP
-        "05" -> Orientation.BATTERIES_UP
-        else -> Orientation.UNKNOWN
+        "00" -> TiltSensorOrientation.FLAT
+        "01" -> TiltSensorOrientation.STANDING_LED_UP
+        "02" -> TiltSensorOrientation.STANDING_BUTTON_UP
+        "03" -> TiltSensorOrientation.B_D_UP
+        "04" -> TiltSensorOrientation.A_C_UP
+        "05" -> TiltSensorOrientation.BATTERIES_UP
+        else -> TiltSensorOrientation.UNKNOWN
     }
 
     constructor(parcel: Parcel) : this(parcel.readString())

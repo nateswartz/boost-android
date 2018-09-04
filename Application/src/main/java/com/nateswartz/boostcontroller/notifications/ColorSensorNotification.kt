@@ -2,10 +2,11 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.enums.BoostPort
 import com.nateswartz.boostcontroller.misc.getColorFromHex
 
 class ColorSensorNotification(private var rawData: String) : HubNotification, Parcelable{
-    val port = if (rawData[10] == '1') Port.C else Port.D
+    val port = if (rawData[10] == '1') BoostPort.C else BoostPort.D
     val color = getColorFromHex(rawData.substring(12, 14))
     val distance = getDistance(rawData.substring(15, 17), rawData.substring(21, 23))
 

@@ -9,9 +9,9 @@ import android.widget.Toast
 import com.nateswartz.boostcontroller.controllers.GattController
 import com.nateswartz.boostcontroller.notifications.HubNotificationFactory
 import com.nateswartz.boostcontroller.controllers.MoveHubController
+import com.nateswartz.boostcontroller.enums.BoostSensor
 import com.nateswartz.boostcontroller.notifications.HubNotification
 import com.nateswartz.boostcontroller.notifications.PortInfoNotification
-import com.nateswartz.boostcontroller.notifications.Sensor
 
 
 class LegoBluetoothDeviceService : Service() {
@@ -23,11 +23,11 @@ class LegoBluetoothDeviceService : Service() {
         val notification = HubNotificationFactory.build(data)
         if (notification is PortInfoNotification) {
             when (notification.sensor) {
-                Sensor.DISTANCE_COLOR -> {
+                BoostSensor.DISTANCE_COLOR -> {
                     moveHubController.colorSensorPort = notification.port
                     HubNotificationFactory.ColorSensorPort = notification.port
                 }
-                Sensor.EXTERNAL_MOTOR -> {
+                BoostSensor.EXTERNAL_MOTOR -> {
                     moveHubController.externalMotorPort = notification.port
                     HubNotificationFactory.ExternalMotorPort = notification.port
                 }

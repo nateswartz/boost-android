@@ -1,13 +1,9 @@
 package com.nateswartz.boostcontroller.notifications.listeners
 
 import com.nateswartz.boostcontroller.enums.LEDColorCommand
-import com.nateswartz.boostcontroller.enums.SpheroColors
 import com.nateswartz.boostcontroller.notifications.AdvancedTiltSensorNotification
 import com.nateswartz.boostcontroller.notifications.HubNotification
-import com.nateswartz.boostcontroller.notifications.Orientation
-import com.nateswartz.boostcontroller.notifications.TiltSensorNotification
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
-import com.orbotix.ConvenienceRobot
 
 class ChangeLEDColorOnTilt(private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
     private var currentOrientationValue = ""

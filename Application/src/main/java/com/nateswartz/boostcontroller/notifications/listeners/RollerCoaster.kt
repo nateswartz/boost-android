@@ -1,5 +1,6 @@
 package com.nateswartz.boostcontroller.notifications.listeners
 
+import com.nateswartz.boostcontroller.enums.BoostPort
 import com.nateswartz.boostcontroller.misc.getLedColorFromName
 import com.nateswartz.boostcontroller.notifications.*
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
@@ -24,7 +25,7 @@ class RollerCoaster(private val time: String, private val counterclockwise: Bool
             }
             legoBluetoothDeviceService.moveHubController.runExternalMotor(power, time.toInt(), counterclockwise)
         }
-        if (notification is InternalMotorNotification && (notification.port == Port.A || notification.port == Port.B)) {
+        if (notification is InternalMotorNotification && (notification.port == BoostPort.A || notification.port == BoostPort.B)) {
             val rotationValue = notification.rotationValue
 
             if ((rotationValue - currentRotationValue).absoluteValue > 150) {

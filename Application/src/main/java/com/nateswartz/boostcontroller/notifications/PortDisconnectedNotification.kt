@@ -2,18 +2,20 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.enums.BoostPort
+import com.nateswartz.boostcontroller.enums.BoostSensor
 
-class PortDisconnectedNotification(private var rawData: String, val sensor: Sensor) : HubNotification, Parcelable{
+class PortDisconnectedNotification(private var rawData: String, val sensor: BoostSensor) : HubNotification, Parcelable{
 
     val port = when (rawData.substring(9, 11)) {
-        "01" -> Port.C
-        "02" -> Port.D
-        "37" -> Port.A
-        "38" -> Port.B
-        else -> Port.UNKNOWN
+        "01" -> BoostPort.C
+        "02" -> BoostPort.D
+        "37" -> BoostPort.A
+        "38" -> BoostPort.B
+        else -> BoostPort.NONE
     }
 
-    constructor(parcel: Parcel) : this(parcel.readString(), Sensor.valueOf(parcel.readString()))
+    constructor(parcel: Parcel) : this(parcel.readString(), BoostSensor.valueOf(parcel.readString()))
 
     override fun toString(): String {
         return "Port Disconnected Notification - Port $port - Sensor ${sensor.name} - $rawData"

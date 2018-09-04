@@ -19,14 +19,11 @@ import android.util.Log
 import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
 import kotlinx.android.synthetic.main.activity_device_control.*
 import android.widget.*
 import com.nateswartz.boostcontroller.*
 import com.nateswartz.boostcontroller.controllers.LifxController
+import com.nateswartz.boostcontroller.enums.BoostSensor
 import com.nateswartz.boostcontroller.fragments.ActionsFragment
 import com.nateswartz.boostcontroller.fragments.NotificationSettingsFragment
 import com.nateswartz.boostcontroller.fragments.SpheroFragment
@@ -34,7 +31,6 @@ import com.nateswartz.boostcontroller.misc.SpheroServiceListener
 import com.nateswartz.boostcontroller.notifications.HubNotification
 import com.nateswartz.boostcontroller.notifications.PortDisconnectedNotification
 import com.nateswartz.boostcontroller.notifications.PortInfoNotification
-import com.nateswartz.boostcontroller.notifications.Sensor
 import com.nateswartz.boostcontroller.notifications.listeners.*
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import com.nateswartz.boostcontroller.services.SpheroProviderService
@@ -124,14 +120,14 @@ class DeviceControlActivity : Activity(),
 
                     if (notification is PortInfoNotification) {
                         when (notification.sensor) {
-                            Sensor.DISTANCE_COLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(true)
-                            Sensor.EXTERNAL_MOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(true)
+                            BoostSensor.DISTANCE_COLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(true)
+                            BoostSensor.EXTERNAL_MOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(true)
                         }
                     }
                     if (notification is PortDisconnectedNotification) {
                         when (notification.sensor) {
-                            Sensor.EXTERNAL_MOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(false)
-                            Sensor.DISTANCE_COLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(false)
+                            BoostSensor.EXTERNAL_MOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(false)
+                            BoostSensor.DISTANCE_COLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(false)
                         }
                     }
                     for (listener in notificationListeners) {

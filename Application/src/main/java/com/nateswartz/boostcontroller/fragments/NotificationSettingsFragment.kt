@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import com.nateswartz.boostcontroller.R
-import com.nateswartz.boostcontroller.notifications.Port
+import com.nateswartz.boostcontroller.enums.BoostPort
 import kotlinx.android.synthetic.main.fragment_notification_settings.*
 
 // TODO: Rename parameter arguments, choose names that match
@@ -129,10 +129,10 @@ class NotificationSettingsFragment : Fragment() {
 
         if (isConnected) {
             text_boost_connected.visibility = View.VISIBLE
-            if (legoBluetoothDeviceService!!.moveHubController.colorSensorPort != Port.UNKNOWN) {
+            if (legoBluetoothDeviceService!!.moveHubController.colorSensorPort != BoostPort.NONE) {
                 checkbox_color_sensor.isEnabled = isConnected
             }
-            if (legoBluetoothDeviceService!!.moveHubController.externalMotorPort != Port.UNKNOWN) {
+            if (legoBluetoothDeviceService!!.moveHubController.externalMotorPort != BoostPort.NONE) {
                 checkbox_external_motor.isEnabled = isConnected
             }
         } else {
