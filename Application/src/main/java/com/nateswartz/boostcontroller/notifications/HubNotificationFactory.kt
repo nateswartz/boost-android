@@ -16,7 +16,10 @@ object HubNotificationFactory {
     private fun build(stringData: String): HubNotification {
         when (stringData.substring(6, 8)) {
             "01" -> return ButtonNotification(stringData)
-            "82" -> return LedColorChangeNotification(stringData)
+            "82" -> return when (stringData.substring(9, 11)) {
+                "32" -> LedColorChangeNotification(stringData)
+                else -> MotorMovementChangeNotification(stringData)
+            }
             // Sensor data from port
             "45" -> return if (stringData.substring(9, 11) == "01" && ColorSensorPort == BoostPort.C
                     || stringData.substring(9, 11) == "02" && ColorSensorPort == BoostPort.D) {
