@@ -2,29 +2,22 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.nateswartz.boostcontroller.enums.TiltSensorOrientation
+import com.nateswartz.boostcontroller.enums.findTiltSensorOrientation
+import com.nateswartz.boostcontroller.misc.convertBytesToString
 
 
-class TiltSensorNotification(private var rawData: String) : HubNotification, Parcelable{
+class TiltSensorNotification(private var rawData: ByteArray) : HubNotification, Parcelable{
 
-    val orientation = when (rawData.substring(12, 14)) {
-        "00" -> TiltSensorOrientation.FLAT
-        "01" -> TiltSensorOrientation.STANDING_LED_UP
-        "02" -> TiltSensorOrientation.STANDING_BUTTON_UP
-        "03" -> TiltSensorOrientation.B_D_UP
-        "04" -> TiltSensorOrientation.A_C_UP
-        "05" -> TiltSensorOrientation.BATTERIES_UP
-        else -> TiltSensorOrientation.UNKNOWN
-    }
+    val orientation = findTiltSensorOrientation(rawData[4])
 
-    constructor(parcel: Parcel) : this(parcel.readString())
+    constructor(parcel: Parcel) : this(parcel.createByteArray())
 
     override fun toString(): String {
-        return "Tilt Sensor Notification - Orientation ${orientation.name} - $rawData"
+        return "Tilt Sensor Notification - Orientation ${orientation.name} - ${convertBytesToString(rawData)}"
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(rawData)
+        parcel.writeByteArray(rawData)
     }
 
     override fun describeContents(): Int {

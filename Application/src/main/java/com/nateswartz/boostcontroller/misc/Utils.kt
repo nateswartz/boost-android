@@ -21,19 +21,7 @@ fun getColorFromHex(str: String) : Color {
 }
 
 fun getLedColorFromName(name: String) : LEDColorCommand {
-    return when (name.toLowerCase()) {
-        "pink" -> LEDColorCommand.PINK
-        "purple" -> LEDColorCommand.PURPLE
-        "blue" -> LEDColorCommand.BLUE
-        "light blue" -> LEDColorCommand.LIGHTBLUE
-        "cyan" -> LEDColorCommand.CYAN
-        "green" -> LEDColorCommand.GREEN
-        "yellow" -> LEDColorCommand.YELLOW
-        "orange" -> LEDColorCommand.ORANGE
-        "red" -> LEDColorCommand.RED
-        "white" -> LEDColorCommand.WHITE
-        else -> LEDColorCommand.BLACK
-    }
+    return (LEDColorCommand.valueOf(name.toUpperCase()))
 }
 
 fun getByteArrayFromInt(number: Int, size: Int): ByteArray {

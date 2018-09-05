@@ -2,20 +2,21 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.nateswartz.boostcontroller.misc.convertBytesToString
 
 interface HubNotification : Parcelable{
     override fun toString(): String
 }
 
-open class UnknownHubNotification(var rawData: String) : HubNotification, Parcelable{
-    constructor(parcel: Parcel) : this(parcel.readString())
+open class UnknownHubNotification(var rawData: ByteArray) : HubNotification, Parcelable{
+    constructor(parcel: Parcel) : this(parcel.createByteArray())
 
     override fun toString(): String {
-        return "Hub Notification - $rawData"
+        return "Hub Notification - ${convertBytesToString(rawData)}"
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(rawData)
+        parcel.writeByteArray(rawData)
     }
 
     override fun describeContents(): Int {

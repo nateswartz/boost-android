@@ -10,59 +10,34 @@ object HubNotificationFactory {
     var ExternalMotorPort = BoostPort.NONE
 
     fun build(byteData: ByteArray): HubNotification {
-        return build(convertBytesToString(byteData))
-    }
-
-    private fun build(stringData: String): HubNotification {
-        when (stringData.substring(6, 8)) {
-            "01" -> return ButtonNotification(stringData)
-            "82" -> return when (stringData.substring(9, 11)) {
-                "32" -> LedColorChangeNotification(stringData)
-                else -> MotorMovementChangeNotification(stringData)
+        return when (byteData[2]) {
+            0x01.toByte() -> ButtonNotification(byteData)
+            0x82.toByte() -> when (byteData[3]) {
+                0x32.toByte() -> LedColorChangeNotification(byteData)
+                else -> MotorMovementChangeNotification(byteData)
             }
-            // Sensor data from port
-            "45" -> return if (stringData.substring(9, 11) == "01" && ColorSensorPort == BoostPort.C
-                    || stringData.substring(9, 11) == "02" && ColorSensorPort == BoostPort.D) {
-                ColorSensorNotification(stringData)
-            } else if (stringData.substring(9, 11) == "01" && ExternalMotorPort == BoostPort.C
-                    || stringData.substring(9, 11) == "02" && ExternalMotorPort == BoostPort.D) {
-                ExternalMotorNotification(stringData)
-            } else if (stringData.substring(9, 11) == "3A") {
-                if (stringData.substring(0, 2) > "05") {
-                    AdvancedTiltSensorNotification(stringData)
-                } else {
-                    TiltSensorNotification(stringData)
+            0x45.toByte() -> when(byteData[3]) {
+                ColorSensorPort.code -> ColorSensorNotification(convertBytesToString(byteData))
+                ExternalMotorPort.code -> ExternalMotorNotification(byteData)
+                0x3A.toByte() -> when (byteData[1]) {
+                    0x05.toByte() -> TiltSensorNotification((byteData))
+                    else -> AdvancedTiltSensorNotification((byteData))
                 }
-            } else {
-                InternalMotorNotification(stringData)
+                else -> InternalMotorNotification(convertBytesToString(byteData))
             }
-            // Port information
-            "04" -> return when (stringData.substring(12, 14)) {
-                "01" -> PortInfoNotification(stringData)
-                "00" -> {
-                    when (stringData.substring(9, 11)) {
-                        "01" -> {
-                            when (BoostPort.C) {
-                                ColorSensorPort -> PortDisconnectedNotification(stringData, BoostSensor.DISTANCE_COLOR)
-                                ExternalMotorPort -> PortDisconnectedNotification(stringData, BoostSensor.EXTERNAL_MOTOR)
-                                else -> UnknownHubNotification(stringData)
-                            }
-                        }
-                        "02" -> {
-                            when (BoostPort.D) {
-                                ColorSensorPort -> PortDisconnectedNotification(stringData, BoostSensor.DISTANCE_COLOR)
-                                ExternalMotorPort -> PortDisconnectedNotification(stringData, BoostSensor.EXTERNAL_MOTOR)
-                                else -> UnknownHubNotification(stringData)
-                            }
-                        }
-                        else -> UnknownHubNotification(stringData)
-                    }
+            0x04.toByte() -> when (byteData[4]) {
+                0x01.toByte() -> PortInfoNotification(byteData)
+                0x00.toByte() -> when (byteData[3]) {
+                    ColorSensorPort.code -> PortDisconnectedNotification(byteData, BoostSensor.DISTANCE_COLOR)
+                    ExternalMotorPort.code -> PortDisconnectedNotification(byteData, BoostSensor.EXTERNAL_MOTOR)
+                    else -> UnknownHubNotification(byteData)
                 }
-                else -> UnknownHubNotification(stringData)
+                else -> UnknownHubNotification(byteData)
             }
-            else -> return UnknownHubNotification(stringData)
+            else -> UnknownHubNotification(byteData)
         }
     }
+
 
 
 }

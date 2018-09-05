@@ -2,20 +2,21 @@ package com.nateswartz.boostcontroller.notifications
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.nateswartz.boostcontroller.enums.BoostPort
+import com.nateswartz.boostcontroller.enums.findBoostPort
+import com.nateswartz.boostcontroller.misc.convertBytesToString
 
-class ExternalMotorNotification(private var rawData: String) : HubNotification, Parcelable{
+class ExternalMotorNotification(private var rawData: ByteArray) : HubNotification, Parcelable{
 
-    val port = if (rawData[10] == '1') BoostPort.C else BoostPort.D
+    val port = findBoostPort(rawData[3])
 
-    constructor(parcel: Parcel) : this(parcel.readString())
+    constructor(parcel: Parcel) : this(parcel.createByteArray())
 
     override fun toString(): String {
-        return "External Motor Notification - Port $port - $rawData"
+        return "External Motor Notification - Port $port - ${convertBytesToString(rawData)}"
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(rawData)
+        parcel.writeByteArray(rawData)
     }
 
     override fun describeContents(): Int {

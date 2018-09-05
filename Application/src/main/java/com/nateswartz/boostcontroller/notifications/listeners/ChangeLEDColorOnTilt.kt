@@ -1,12 +1,13 @@
 package com.nateswartz.boostcontroller.notifications.listeners
 
 import com.nateswartz.boostcontroller.enums.LEDColorCommand
+import com.nateswartz.boostcontroller.enums.TiltSensorOrientation
 import com.nateswartz.boostcontroller.notifications.AdvancedTiltSensorNotification
 import com.nateswartz.boostcontroller.notifications.HubNotification
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 
 class ChangeLEDColorOnTilt(private val legoBluetoothDeviceService: LegoBluetoothDeviceService) : HubNotificationListener {
-    private var currentOrientationValue = ""
+    private var currentOrientationValue = 0x00.toByte()
 
     override fun setup() {
         legoBluetoothDeviceService.moveHubController.activateAdvancedTiltSensorNotifications()
