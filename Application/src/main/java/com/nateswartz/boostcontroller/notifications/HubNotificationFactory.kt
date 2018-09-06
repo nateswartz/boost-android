@@ -17,7 +17,7 @@ object HubNotificationFactory {
                 else -> MotorMovementChangeNotification(byteData)
             }
             0x45.toByte() -> when(byteData[3]) {
-                ColorSensorPort.code -> ColorSensorNotification(convertBytesToString(byteData))
+                ColorSensorPort.code -> ColorSensorNotification(byteData)
                 ExternalMotorPort.code -> ExternalMotorNotification(byteData)
                 0x3A.toByte() -> when (byteData[1]) {
                     0x05.toByte() -> TiltSensorNotification((byteData))
