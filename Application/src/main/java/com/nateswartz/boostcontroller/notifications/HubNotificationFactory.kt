@@ -9,25 +9,41 @@ object HubNotificationFactory {
     var ColorSensorPort = BoostPort.NONE
     var ExternalMotorPort = BoostPort.NONE
 
+    private const val DEVICE_INFORMATION = 0x01.toByte()
+    private const val PORT_CHANGED = 0x82.toByte()
+    private const val SENSOR_READING = 0x45.toByte()
+    private const val PORT_INFORMATION = 0x04.toByte()
+
+    private const val LED = 0x32.toByte()
+    private const val TILT_SENSOR = 0x3A.toByte()
+
+    private const val DEVICE = 0x01.toByte()
+    private const val NO_DEVICE = 0x00.toByte()
+
     fun build(byteData: ByteArray): HubNotification {
-        return when (byteData[2]) {
-            0x01.toByte() -> ButtonNotification(byteData)
-            0x82.toByte() -> when (byteData[3]) {
-                0x32.toByte() -> LedColorChangeNotification(byteData)
+        val length = byteData[0]
+        val messageType = byteData[2]
+        val portNumber = byteData[3]
+        val deviceKind = byteData[4]
+
+        return when (messageType) {
+            DEVICE_INFORMATION -> ButtonNotification(byteData)
+            PORT_CHANGED -> when (portNumber) {
+                LED -> LedColorChangeNotification(byteData)
                 else -> MotorMovementChangeNotification(byteData)
             }
-            0x45.toByte() -> when(byteData[3]) {
+            SENSOR_READING -> when(portNumber) {
                 ColorSensorPort.code -> ColorSensorNotification(byteData)
                 ExternalMotorPort.code -> ExternalMotorNotification(byteData)
-                0x3A.toByte() -> when (byteData[1]) {
+                TILT_SENSOR -> when (length) {
                     0x05.toByte() -> TiltSensorNotification((byteData))
                     else -> AdvancedTiltSensorNotification((byteData))
                 }
                 else -> InternalMotorNotification(convertBytesToString(byteData))
             }
-            0x04.toByte() -> when (byteData[4]) {
-                0x01.toByte() -> PortInfoNotification(byteData)
-                0x00.toByte() -> when (byteData[3]) {
+            PORT_INFORMATION -> when (deviceKind) {
+                DEVICE -> PortConnectedNotification(byteData)
+                NO_DEVICE -> when (portNumber) {
                     ColorSensorPort.code -> PortDisconnectedNotification(byteData, BoostSensor.DISTANCE_COLOR)
                     ExternalMotorPort.code -> PortDisconnectedNotification(byteData, BoostSensor.EXTERNAL_MOTOR)
                     else -> UnknownHubNotification(byteData)
@@ -37,7 +53,4 @@ object HubNotificationFactory {
             else -> UnknownHubNotification(byteData)
         }
     }
-
-
-
 }

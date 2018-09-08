@@ -6,7 +6,7 @@ import com.nateswartz.boostcontroller.enums.findBoostPort
 import com.nateswartz.boostcontroller.enums.findBoostSensor
 import com.nateswartz.boostcontroller.misc.convertBytesToString
 
-class PortInfoNotification(private var rawData: ByteArray) : HubNotification, Parcelable{
+class PortConnectedNotification(private var rawData: ByteArray) : HubNotification, Parcelable{
 
     val port = findBoostPort(rawData[3])
 
@@ -15,7 +15,7 @@ class PortInfoNotification(private var rawData: ByteArray) : HubNotification, Pa
     constructor(parcel: Parcel) : this(parcel.createByteArray())
 
     override fun toString(): String {
-        return "Port Info Notification - Port $port - Sensor $sensor - ${convertBytesToString(rawData)}"
+        return "Port Connected Notification - Port $port - Sensor $sensor - ${convertBytesToString(rawData)}"
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -26,12 +26,12 @@ class PortInfoNotification(private var rawData: ByteArray) : HubNotification, Pa
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<PortInfoNotification> {
-        override fun createFromParcel(parcel: Parcel): PortInfoNotification {
-            return PortInfoNotification(parcel)
+    companion object CREATOR : Parcelable.Creator<PortConnectedNotification> {
+        override fun createFromParcel(parcel: Parcel): PortConnectedNotification {
+            return PortConnectedNotification(parcel)
         }
 
-        override fun newArray(size: Int): Array<PortInfoNotification?> {
+        override fun newArray(size: Int): Array<PortConnectedNotification?> {
             return arrayOfNulls(size)
         }
     }

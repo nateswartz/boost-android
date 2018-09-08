@@ -11,7 +11,7 @@ import com.nateswartz.boostcontroller.notifications.HubNotificationFactory
 import com.nateswartz.boostcontroller.controllers.MoveHubController
 import com.nateswartz.boostcontroller.enums.BoostSensor
 import com.nateswartz.boostcontroller.notifications.HubNotification
-import com.nateswartz.boostcontroller.notifications.PortInfoNotification
+import com.nateswartz.boostcontroller.notifications.PortConnectedNotification
 
 
 class LegoBluetoothDeviceService : Service() {
@@ -21,7 +21,7 @@ class LegoBluetoothDeviceService : Service() {
 
     fun handleNotification(data: ByteArray) {
         val notification = HubNotificationFactory.build(data)
-        if (notification is PortInfoNotification) {
+        if (notification is PortConnectedNotification) {
             when (notification.sensor) {
                 BoostSensor.DISTANCE_COLOR -> {
                     moveHubController.colorSensorPort = notification.port
@@ -31,6 +31,7 @@ class LegoBluetoothDeviceService : Service() {
                     moveHubController.externalMotorPort = notification.port
                     HubNotificationFactory.ExternalMotorPort = notification.port
                 }
+                else -> Log.w(TAG, "Unknown sensor")
             }
         }
         Log.d(TAG, notification.toString())

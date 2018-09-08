@@ -30,7 +30,7 @@ import com.nateswartz.boostcontroller.fragments.SpheroFragment
 import com.nateswartz.boostcontroller.misc.SpheroServiceListener
 import com.nateswartz.boostcontroller.notifications.HubNotification
 import com.nateswartz.boostcontroller.notifications.PortDisconnectedNotification
-import com.nateswartz.boostcontroller.notifications.PortInfoNotification
+import com.nateswartz.boostcontroller.notifications.PortConnectedNotification
 import com.nateswartz.boostcontroller.notifications.listeners.*
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import com.nateswartz.boostcontroller.services.SpheroProviderService
@@ -118,7 +118,7 @@ class DeviceControlActivity : Activity(),
                 LegoBluetoothDeviceService.ACTION_DEVICE_NOTIFICATION -> {
                     val notification = intent.getParcelableExtra<HubNotification>(LegoBluetoothDeviceService.NOTIFICATION_DATA)
 
-                    if (notification is PortInfoNotification) {
+                    if (notification is PortConnectedNotification) {
                         when (notification.sensor) {
                             BoostSensor.DISTANCE_COLOR -> notificationSettingsFragment!!.colorSensorConnectionChanged(true)
                             BoostSensor.EXTERNAL_MOTOR -> notificationSettingsFragment!!.externalMotorConnectionChanged(true)

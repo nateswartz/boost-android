@@ -14,6 +14,8 @@ enum class BoostPort(val code: Byte) {
     A_B(0x39),
     C(0x01),
     D(0x02),
+    LED(0x32),
+    TILT(0x3A),
     NONE(0x00)
 }
 
