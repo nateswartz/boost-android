@@ -14,6 +14,8 @@ object HubNotificationFactory {
     private const val SENSOR_READING = 0x45.toByte()
     private const val PORT_INFORMATION = 0x04.toByte()
 
+    private const val NAME = 0x01.toByte()
+    private const val BUTTON = 0x02.toByte()
     private const val LED = 0x32.toByte()
     private const val TILT_SENSOR = 0x3A.toByte()
 
@@ -27,7 +29,11 @@ object HubNotificationFactory {
         val deviceKind = byteData[4]
 
         return when (messageType) {
-            DEVICE_INFORMATION -> ButtonNotification(byteData)
+            DEVICE_INFORMATION -> when (portNumber) {
+                NAME -> NameNotification(byteData)
+                BUTTON -> ButtonNotification(byteData)
+                else -> UnknownHubNotification(byteData)
+            }
             PORT_CHANGED -> when (portNumber) {
                 LED -> LedColorChangeNotification(byteData)
                 else -> MotorMovementChangeNotification(byteData)

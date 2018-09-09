@@ -89,6 +89,11 @@ class MoveHubController (private val gattController: GattController) {
         gattController.writeCharacteristic(DeviceType.BOOST, message)
     }
 
+    fun getName() {
+        val message = byteArrayOf(0x06, 0x00, 0x01, 0x01, 0x02, 0x00)
+        gattController.writeCharacteristic(DeviceType.BOOST, message)
+    }
+
     private fun activateInternalMotorSensorNotifications(motor: InternalMotorPort, type: MotorNotificationType) {
         val message = MoveHubMessageFactory.internalMotorNotifications(motor, type, true)
         gattController.writeCharacteristic(DeviceType.BOOST, message)
@@ -253,7 +258,7 @@ object MoveHubMessageFactory {
             BoostPort.A_B -> PORT_A_B
             BoostPort.C -> PORT_C
             BoostPort.D -> PORT_D
-            BoostPort.NONE -> EMPTY
+            else -> EMPTY
         }
 
         message += 0x11.toByte()
