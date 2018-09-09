@@ -6,8 +6,10 @@ import android.content.Context
 import android.os.Handler
 import android.os.ParcelUuid
 import android.util.Log
+import android.widget.Toast
 import com.nateswartz.boostcontroller.activities.DeviceControlActivity
 import com.nateswartz.boostcontroller.misc.convertBytesToString
+import com.nateswartz.boostcontroller.services.BluetoothGattNotifier
 import com.nateswartz.boostcontroller.services.LegoBluetoothDeviceService
 import java.util.*
 
@@ -15,13 +17,17 @@ enum class DeviceType {
     BOOST, LPF2
 }
 
+interface GattWriter {
+    fun writeCharacteristic(deviceType: DeviceType, data: ByteArray): Boolean
+    fun setCharacteristicNotification(deviceType: DeviceType, enabled: Boolean)
+}
 /*
 Handle to send data to:
 attr handle: 0x000c, end grp handle: 0x000f uuid: 00001623-1212-efde-1623-785feabcd123
 
 handle: 0x000d, char properties: 0x1e, char value handle: 0x000e, uuid: 00001624-1212-efde-1623-785feabcd123
 */
-class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService) {
+class GattController(val gattNotifier: BluetoothGattNotifier): GattWriter {
 
     private var bluetoothManager: BluetoothManager? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
@@ -64,10 +70,9 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
                         else -> {
                             connectedLpf2 = false
                             intentAction = LegoBluetoothDeviceService.ACTION_LPF2_DISCONNECTED
-
                         }
                     }
-                    legoBluetoothDeviceService.broadcastUpdate(intentAction)
+                    gattNotifier.broadcastUpdate(intentAction)
                 }
             }
         }
@@ -90,7 +95,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
                     intentAction = LegoBluetoothDeviceService.ACTION_LPF2_CONNECTED
                 }
             }
-            legoBluetoothDeviceService.broadcastUpdate(intentAction)
+            gattNotifier.broadcastUpdate(intentAction)
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt,
@@ -99,7 +104,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 val data = characteristic.value
                 if (data.isNotEmpty()) {
-                    legoBluetoothDeviceService.handleNotification(data)
+                    gattNotifier.handleNotification(data)
                 }
             }
         }
@@ -108,7 +113,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
                                              characteristic: BluetoothGattCharacteristic) {
             val data = characteristic.value
             if (data.isNotEmpty()) {
-                legoBluetoothDeviceService.handleNotification(data)
+                gattNotifier.handleNotification(data)
             }
         }
     }
@@ -119,7 +124,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
         if (bluetoothManager == null) {
-            bluetoothManager = legoBluetoothDeviceService.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            bluetoothManager = gattNotifier.getContext().getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
             if (bluetoothManager == null) {
                 Log.e(TAG, "Unable to initialize BluetoothManager.")
                 return false
@@ -172,7 +177,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        bluetoothGatt = device.connectGatt(legoBluetoothDeviceService, false, gattCallback)
+        bluetoothGatt = device.connectGatt(gattNotifier.getContext(), false, gattCallback)
         Log.d(TAG, "Trying to create a new connection.")
         bluetoothDeviceAddress = boostHub!!.address
         return true
@@ -199,7 +204,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
         bluetoothGatt = null
     }
 
-    fun writeCharacteristic(deviceType: DeviceType, data: ByteArray): Boolean {
+    override fun writeCharacteristic(deviceType: DeviceType, data: ByteArray): Boolean {
         Log.d(TAG, "Writing characteristic: ${convertBytesToString(data)}")
         if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.e(TAG, "BluetoothAdapter not initialized")
@@ -210,7 +215,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
         return bluetoothGatt!!.writeCharacteristic(characteristic)
     }
 
-    fun setCharacteristicNotification(deviceType: DeviceType, enabled: Boolean) {
+    override fun setCharacteristicNotification(deviceType: DeviceType, enabled: Boolean) {
         Log.d(TAG, "Enabling notifications")
         if (bluetoothAdapter == null || bluetoothGatt == null) {
             Log.e(TAG, "BluetoothAdapter not initialized")
@@ -245,7 +250,7 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
                 scanning = false
                 bluetoothScanner!!.stopScan(leScanCallback)
                 val intentAction = LegoBluetoothDeviceService.ACTION_DEVICE_CONNECTION_FAILED
-                legoBluetoothDeviceService.broadcastUpdate(intentAction)
+                gattNotifier.broadcastUpdate(intentAction)
             }, DeviceControlActivity.SCAN_PERIOD)
 
             Log.d(TAG, "Scanning")
@@ -254,13 +259,13 @@ class GattController(val legoBluetoothDeviceService: LegoBluetoothDeviceService)
                     listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(BOOST_UUID)).build()),
                     ScanSettings.Builder().build(),
                     leScanCallback)
-            legoBluetoothDeviceService.showMessage("Scanning...")
+            Toast.makeText(gattNotifier.getContext(), "Scanning...", Toast.LENGTH_SHORT).show()
 
         } else {
             Log.d(TAG, "Stop Scanning")
             scanning = false
             bluetoothScanner!!.stopScan(leScanCallback)
-            legoBluetoothDeviceService.showMessage("Scanning Stopped")
+            Toast.makeText(gattNotifier.getContext(), "Scanning Stopped", Toast.LENGTH_SHORT).show()
         }
     }
 

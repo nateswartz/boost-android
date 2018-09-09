@@ -4,13 +4,13 @@ import android.util.Log
 import com.nateswartz.boostcontroller.enums.*
 import com.nateswartz.boostcontroller.misc.getByteArrayFromInt
 
-class MoveHubController (private val gattController: GattController) {
+class MoveHubController (private val gattWriter: GattWriter) {
 
     var colorSensorPort = BoostPort.NONE
     var externalMotorPort = BoostPort.NONE
 
     fun setLEDColor(color: LEDColorCommand) {
-        gattController.writeCharacteristic(DeviceType.BOOST, color.data)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, color.data)
     }
 
     fun runExternalMotor(powerPercentage: Int, timeInMilliseconds: Int, counterclockwise: Boolean) {
@@ -27,20 +27,20 @@ class MoveHubController (private val gattController: GattController) {
 
     fun runInternalMotorsInOpposition(powerPercentage: Int, timeInMilliseconds: Int) {
         val message = MoveHubMessageFactory.runMotor(BoostPort.A_B, timeInMilliseconds, powerPercentage, false, true)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun enableNotifications() {
-        gattController.setCharacteristicNotification(DeviceType.BOOST, true)
+        gattWriter.setCharacteristicNotification(DeviceType.BOOST, true)
     }
 
     fun activateButtonNotifications() {
-        gattController.writeCharacteristic(DeviceType.BOOST, byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02))
+        gattWriter.writeCharacteristic(DeviceType.BOOST, byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02))
     }
 
     // Currently not working
     fun deactivateButtonNotifications() {
-        gattController.writeCharacteristic(DeviceType.BOOST, byteArrayOf(0x05, 0x00, 0x03, 0x02, 0x00))
+        gattWriter.writeCharacteristic(DeviceType.BOOST, byteArrayOf(0x05, 0x00, 0x03, 0x02, 0x00))
     }
 
     fun activateColorSensorNotifications() {
@@ -71,37 +71,37 @@ class MoveHubController (private val gattController: GattController) {
 
     fun activateTiltSensorNotifications() {
         val message = MoveHubMessageFactory.tiltSensorNotifications(false, true)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun deactivateTiltSensorNotifications() {
         val data = MoveHubMessageFactory.tiltSensorNotifications(false, false)
-        gattController.writeCharacteristic(DeviceType.BOOST, data)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, data)
     }
 
     fun activateAdvancedTiltSensorNotifications() {
         val message = MoveHubMessageFactory.tiltSensorNotifications(true, true)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun deactivateAdvancedTiltSensorNotifications() {
         val message = MoveHubMessageFactory.tiltSensorNotifications(true, false)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     fun getName() {
         val message = byteArrayOf(0x06, 0x00, 0x01, 0x01, 0x02, 0x00)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     private fun activateInternalMotorSensorNotifications(motor: InternalMotorPort, type: MotorNotificationType) {
         val message = MoveHubMessageFactory.internalMotorNotifications(motor, type, true)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     private fun deactivateInternalMotorSensorNotifications(motor: InternalMotorPort) {
         val message = MoveHubMessageFactory.internalMotorNotifications(motor, enable = false)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     private fun changeColorSensorNotifications(enable: Boolean) {
@@ -122,12 +122,12 @@ class MoveHubController (private val gattController: GattController) {
             }
         }
         val message = MoveHubMessageFactory.externalSensorNotifications(port, type, enable)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     private fun runMotor(motor: BoostPort, timeInMilliseconds: Int, powerPercentage: Int, counterclockwise: Boolean) {
         val message = MoveHubMessageFactory.runMotor(motor, timeInMilliseconds, powerPercentage, counterclockwise)
-        gattController.writeCharacteristic(DeviceType.BOOST, message)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
     companion object {

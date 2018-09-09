@@ -1,11 +1,11 @@
 package com.nateswartz.boostcontroller.services
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import com.nateswartz.boostcontroller.controllers.GattController
 import com.nateswartz.boostcontroller.notifications.HubNotificationFactory
 import com.nateswartz.boostcontroller.controllers.MoveHubController
@@ -14,12 +14,22 @@ import com.nateswartz.boostcontroller.notifications.HubNotification
 import com.nateswartz.boostcontroller.notifications.PortConnectedNotification
 
 
-class LegoBluetoothDeviceService : Service() {
+interface BluetoothGattNotifier {
+    fun broadcastUpdate(action: String)
+    fun handleNotification(data: ByteArray)
+    fun getContext(): Context
+}
+
+class LegoBluetoothDeviceService : Service(), BluetoothGattNotifier {
 
     private var gattController = GattController(this)
     var moveHubController = MoveHubController(gattController)
 
-    fun handleNotification(data: ByteArray) {
+    override fun getContext(): Context {
+        return applicationContext
+    }
+
+    override fun handleNotification(data: ByteArray) {
         val notification = HubNotificationFactory.build(data)
         if (notification is PortConnectedNotification) {
             when (notification.sensor) {
@@ -65,13 +75,9 @@ class LegoBluetoothDeviceService : Service() {
         }
     }*/
 
-    fun showMessage(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
     private val binder = LocalBinder()
 
-    fun broadcastUpdate(action: String) {
+    override fun broadcastUpdate(action: String) {
         val intent = Intent(action)
         sendBroadcast(intent)
     }
