@@ -87,7 +87,6 @@ class DeviceControlActivity : Activity(),
                     connectingBoost = false
                     notificationSettingsFragment!!.boostConnectionChanged(connectedBoost)
                     actionsFragment!!.boostConnectionChanged(connectedBoost)
-                    legoBluetoothDeviceService!!.moveHubController.enableNotifications()
                     enableControls()
                     invalidateOptionsMenu()
                 }

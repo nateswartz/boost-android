@@ -79,6 +79,9 @@ class LegoBluetoothDeviceService : Service(), BluetoothGattNotifier {
 
     override fun broadcastUpdate(action: String) {
         val intent = Intent(action)
+        if (action == LegoBluetoothDeviceService.ACTION_BOOST_CONNECTED) {
+            moveHubController.enableNotifications()
+        }
         sendBroadcast(intent)
     }
 
