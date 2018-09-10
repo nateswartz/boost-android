@@ -57,6 +57,12 @@ class ActionsFragment : Fragment(), AdapterView.OnItemSelectedListener {
                 }
             }
         }
+
+        button_send.setOnClickListener {
+            if (input_command.text.toString() != "") {
+                legoBluetoothDeviceService?.moveHubController?.sendCommand(input_command.text.toString())
+            }
+        }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {

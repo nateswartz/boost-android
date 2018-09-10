@@ -98,6 +98,15 @@ class MoveHubController (private val gattWriter: GattWriter) {
         gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
+    fun sendCommand(message: String) {
+        val commandPieces = message.split(" ")
+        var command = ByteArray(0)
+        for (piece in commandPieces) {
+            command += piece.toByte()
+        }
+        gattWriter.writeCharacteristic(DeviceType.BOOST, command)
+    }
+
     private fun activateInternalMotorSensorNotifications(motor: InternalMotorPort, type: MotorNotificationType) {
         val message = MoveHubMessageFactory.internalMotorNotifications(motor, type, true)
         gattWriter.writeCharacteristic(DeviceType.BOOST, message)
