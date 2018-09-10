@@ -93,6 +93,11 @@ class MoveHubController (private val gattWriter: GattWriter) {
         gattWriter.writeCharacteristic(DeviceType.BOOST, message)
     }
 
+    fun ping() {
+        val message = byteArrayOf(0x06, 0x00, 0x03, 0x01, 0x03, 0x00)
+        gattWriter.writeCharacteristic(DeviceType.BOOST, message)
+    }
+
     private fun activateInternalMotorSensorNotifications(motor: InternalMotorPort, type: MotorNotificationType) {
         val message = MoveHubMessageFactory.internalMotorNotifications(motor, type, true)
         gattWriter.writeCharacteristic(DeviceType.BOOST, message)

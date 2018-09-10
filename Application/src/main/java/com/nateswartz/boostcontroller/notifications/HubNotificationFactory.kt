@@ -10,6 +10,7 @@ object HubNotificationFactory {
     var ExternalMotorPort = BoostPort.NONE
 
     private const val DEVICE_INFORMATION = 0x01.toByte()
+    private const val PONG = 0x03.toByte()
     private const val PORT_CHANGED = 0x82.toByte()
     private const val SENSOR_READING = 0x45.toByte()
     private const val PORT_INFORMATION = 0x04.toByte()
@@ -56,6 +57,7 @@ object HubNotificationFactory {
                 }
                 else -> UnknownHubNotification(byteData)
             }
+            PONG -> PongNotification(byteData)
             else -> UnknownHubNotification(byteData)
         }
     }
