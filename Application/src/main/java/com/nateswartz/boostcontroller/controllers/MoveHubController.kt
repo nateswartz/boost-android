@@ -38,9 +38,8 @@ class MoveHubController (private val gattWriter: GattWriter) {
         gattWriter.writeCharacteristic(DeviceType.BOOST, byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x02))
     }
 
-    // Currently not working
     fun deactivateButtonNotifications() {
-        gattWriter.writeCharacteristic(DeviceType.BOOST, byteArrayOf(0x05, 0x00, 0x03, 0x02, 0x00))
+        gattWriter.writeCharacteristic(DeviceType.BOOST, byteArrayOf(0x05, 0x00, 0x01, 0x02, 0x03))
     }
 
     fun activateColorSensorNotifications() {

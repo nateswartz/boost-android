@@ -74,7 +74,6 @@ class NotificationSettingsFragment : Fragment() {
             if (checkbox_button.isChecked) {
                 legoBluetoothDeviceService!!.moveHubController.activateButtonNotifications()
             } else {
-                // Currently not working
                 legoBluetoothDeviceService!!.moveHubController.deactivateButtonNotifications()
             }
         }
