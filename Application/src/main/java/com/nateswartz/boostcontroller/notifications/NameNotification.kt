@@ -5,12 +5,12 @@ import android.os.Parcelable
 import com.nateswartz.boostcontroller.misc.convertBytesToString
 
 class NameNotification(private var rawData: ByteArray) : HubNotification, Parcelable {
-    val name = convertBytesToText(rawData.slice(IntRange(5, rawData.size)).toByteArray())
+    val name = convertBytesToText(rawData.sliceArray(5 until rawData.size))
 
     constructor(parcel: Parcel) : this(parcel.createByteArray())
 
     override fun toString(): String {
-        return "Name Notification - Name $name - ${convertBytesToString(rawData)}"
+        return "Name Notification - Name: $name - ${convertBytesToString(rawData)}"
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

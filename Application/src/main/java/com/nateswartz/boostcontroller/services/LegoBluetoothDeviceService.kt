@@ -41,7 +41,9 @@ class LegoBluetoothDeviceService : Service(), BluetoothGattNotifier {
                     moveHubController.externalMotorPort = notification.port
                     HubNotificationFactory.ExternalMotorPort = notification.port
                 }
-                else -> Log.w(TAG, "Unknown sensor")
+                BoostSensor.LED -> {
+                    moveHubController.getName()
+                }
             }
         }
         Log.d(TAG, notification.toString())
